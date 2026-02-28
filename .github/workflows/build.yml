@@ -30,13 +30,11 @@ jobs:
         channel: 'stable'
     
     - name: Install dependencies
-      run: |
-        cd mobile
-        flutter pub get
+      run: flutter pub get
     
     - name: Generate keystore
       run: |
-        cd mobile/android
+        cd android
         keytool -genkey -v -keystore app/shanjing.keystore -alias shanjing \
           -keyalg RSA -keysize 2048 -validity 10000 \
           -storepass shanjing123 -keypass shanjing123 \
@@ -44,7 +42,7 @@ jobs:
     
     - name: Create key.properties
       run: |
-        cd mobile/android
+        cd android
         cat > key.properties << EOF
         storePassword=shanjing123
         keyPassword=shanjing123
@@ -54,25 +52,23 @@ jobs:
     
     - name: Update AMAP_KEY in AndroidManifest
       run: |
-        cd mobile/android/app/src/main
+        cd android/app/src/main
         sed -i "s/\${AMAP_API_KEY}/${{ secrets.AMAP_KEY }}/g" AndroidManifest.xml
     
     - name: Build APK
-      run: |
-        cd mobile
-        flutter build apk --release
+      run: flutter build apk --release
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: shanjing-apk
-        path: mobile/build/app/outputs/flutter-apk/app-release.apk
+        path: build/app/outputs/flutter-apk/app-release.apk
     
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v1
       with:
-        files: mobile/build/app/outputs/flutter-apk/app-release.apk
+        files: build/app/outputs/flutter-apk/app-release.apk
         tag_name: v${{ github.run_number }}
         name: Release v${{ github.run_number }}
         draft: false
