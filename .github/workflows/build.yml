@@ -167,22 +167,25 @@ jobs:
     
     - name: Build APK
       run: |
-        flutter build apk --release --verbose 2>&1 | tail -300
+        flutter build apk --release
         echo "=== Find APK files ==="
         find . -name "*.apk" -type f
+        ls -la build/app/outputs/ 2>/dev/null || true
+        ls -la build/app/outputs/flutter-apk/ 2>/dev/null || true
     
     - name: Upload APK
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: shanjing-apk
-        path: build/app/outputs/flutter-apk/app-release.apk
+        path: '**/*.apk'
         if-no-files-found: warn
     
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v1
       with:
-        files: build/app/outputs/flutter-apk/app-release.apk
+        files: '**/*.apk'
         tag_name: v0.1.${{ github.run_number }}
         name: Release v0.1.${{ github.run_number }}
         body: |
@@ -192,6 +195,9 @@ jobs:
           提交: ${{ github.event.head_commit.message }}
         draft: false
         prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       continue-on-error: true
