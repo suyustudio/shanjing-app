@@ -169,13 +169,13 @@ jobs:
     - name: Build APK
       run: |
         flutter doctor -v
-        flutter build apk --release || true
-        echo "=== Find all APK files ==="
-        find . -name "*.apk" -type f 2>/dev/null
-        echo "=== List build outputs ==="
-        ls -la build/ 2>/dev/null || true
-        ls -la build/app/ 2>/dev/null || true
-        ls -la build/app/outputs/ 2>/dev/null || true
+        echo "=== Pub dependencies ==="
+        flutter pub deps
+        echo "=== Build APK with verbose output ==="
+        flutter build apk --release --verbose 2>&1 | head -200
+        echo "=== Check if APK was created ==="
+        find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+        ls -la build/ 2>/dev/null || echo "No build directory"
     
     - name: Upload APK
       if: always()
