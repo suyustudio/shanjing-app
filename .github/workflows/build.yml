@@ -167,11 +167,17 @@ jobs:
     
     - name: Build APK
       run: |
+        set -e
         flutter build apk --release
         echo "=== Find APK files ==="
         find . -name "*.apk" -type f
         ls -la build/app/outputs/ 2>/dev/null || true
         ls -la build/app/outputs/flutter-apk/ 2>/dev/null || true
+        # Verify APK exists
+        if [ ! -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+          echo "ERROR: APK file not found!"
+          exit 1
+        fi
     
     - name: Upload APK
       if: always()
