@@ -169,13 +169,9 @@ jobs:
     - name: Build APK
       run: |
         flutter doctor -v
-        flutter build apk --release || true
+        flutter build apk --release
         echo "=== Find all APK files ==="
-        find . -name "*.apk" -type f 2>/dev/null
-        echo "=== List build outputs ==="
-        ls -la build/ 2>/dev/null || true
-        ls -la build/app/ 2>/dev/null || true
-        ls -la build/app/outputs/ 2>/dev/null || true
+        find . -name "*.apk" -type f
     
     - name: Upload APK
       if: always()
