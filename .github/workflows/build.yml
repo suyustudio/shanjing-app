@@ -167,7 +167,10 @@ jobs:
         EOF
     
     - name: Build APK
-      run: flutter build apk --release
+      run: |
+        flutter doctor -v
+        flutter build apk --release --verbose 2>&1 | tee build.log
+        cat build.log | tail -100
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
