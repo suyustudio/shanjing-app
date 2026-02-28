@@ -1,0 +1,81 @@
+name: Build and Release APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AMAP_KEY: ${{ secrets.AMAP_KEY }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Install dependencies
+      run: |
+        cd mobile
+        flutter pub get
+    
+    - name: Generate keystore
+      run: |
+        cd mobile/android
+        keytool -genkey -v -keystore app/shanjing.keystore -alias shanjing \
+          -keyalg RSA -keysize 2048 -validity 10000 \
+          -storepass shanjing123 -keypass shanjing123 \
+          -dname "CN=Shanjing App, OU=Development, O=SuyuStudio, L=Hangzhou, ST=Zhejiang, C=CN"
+    
+    - name: Create key.properties
+      run: |
+        cd mobile/android
+        cat > key.properties << EOF
+        storePassword=shanjing123
+        keyPassword=shanjing123
+        keyAlias=shanjing
+        storeFile=app/shanjing.keystore
+        EOF
+    
+    - name: Update AMAP_KEY in AndroidManifest
+      run: |
+        cd mobile/android/app/src/main
+        sed -i "s/\${AMAP_API_KEY}/${{ secrets.AMAP_KEY }}/g" AndroidManifest.xml
+    
+    - name: Build APK
+      run: |
+        cd mobile
+        flutter build apk --release
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: shanjing-apk
+        path: mobile/build/app/outputs/flutter-apk/app-release.apk
+    
+    - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: mobile/build/app/outputs/flutter-apk/app-release.apk
+        tag_name: v${{ github.run_number }}
+        name: Release v${{ github.run_number }}
+        draft: false
+        prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
