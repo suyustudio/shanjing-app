@@ -169,8 +169,12 @@ jobs:
     - name: Build APK
       run: |
         flutter doctor -v
-        flutter build apk --release --verbose 2>&1 | tee build.log
-        cat build.log | tail -100
+        flutter build apk --release
+        echo "=== APK Output Files ==="
+        find build -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+        ls -la build/app/outputs/ 2>/dev/null || echo "outputs directory not found"
+        ls -la build/app/outputs/flutter-apk/ 2>/dev/null || echo "flutter-apk directory not found"
+        ls -la build/app/outputs/apk/ 2>/dev/null || echo "apk directory not found"
     
     - name: Upload APK
       if: always()
@@ -178,8 +182,7 @@ jobs:
       with:
         name: shanjing-apk
         path: |
-          build/app/outputs/flutter-apk/*.apk
-          build/app/outputs/apk/release/*.apk
+          **/*.apk
         if-no-files-found: warn
     
     - name: Create Release
