@@ -1,3 +1,6 @@
+# Dependencies
+node_modules/
+
 # Flutter/Dart
 .dart_tool/
 .packages
