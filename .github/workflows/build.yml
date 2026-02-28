@@ -38,18 +38,16 @@ jobs:
     - name: Install dependencies
       run: flutter pub get
     
-    - name: Generate keystore
+    - name: Setup Android signing
       run: |
         cd android
         mkdir -p app
+        # Generate keystore
         keytool -genkey -v -keystore app/shanjing.keystore -alias shanjing \
           -keyalg RSA -keysize 2048 -validity 10000 \
           -storepass shanjing123 -keypass shanjing123 \
           -dname "CN=Shanjing App, OU=Development, O=SuyuStudio, L=Hangzhou, ST=Zhejiang, C=CN"
-    
-    - name: Create key.properties
-      run: |
-        cd android
+        # Create key.properties
         cat > key.properties << EOF
         storePassword=shanjing123
         keyPassword=shanjing123
@@ -57,11 +55,17 @@ jobs:
         storeFile=app/shanjing.keystore
         EOF
     
-    - name: Configure signing in build.gradle
+    - name: Configure Android build
       run: |
+        # Update build.gradle with signing config
         cd android/app
-        # Add signing config to build.gradle
         cat > build.gradle << 'EOF'
+        plugins {
+            id "com.android.application"
+            id "kotlin-android"
+            id "dev.flutter.flutter-gradle-plugin"
+        }
+        
         def localProperties = new Properties()
         def localPropertiesFile = rootProject.file('local.properties')
         if (localPropertiesFile.exists()) {
@@ -79,57 +83,52 @@ jobs:
         }
         
         android {
-            namespace "com.suyustudio.shanjing"
-            compileSdkVersion flutter.compileSdkVersion
-            ndkVersion flutter.ndkVersion
+            namespace = "com.suyustudio.shanjing"
+            compileSdk = flutter.compileSdkVersion
+            ndkVersion = flutter.ndkVersion
             
             compileOptions {
-                sourceCompatibility JavaVersion.VERSION_1_8
-                targetCompatibility JavaVersion.VERSION_1_8
+                sourceCompatibility = JavaVersion.VERSION_1_8
+                targetCompatibility = JavaVersion.VERSION_1_8
             }
             
             kotlinOptions {
                 jvmTarget = '1.8'
             }
             
-            sourceSets {
-                main.java.srcDirs += 'src/main/kotlin'
-            }
-            
             defaultConfig {
-                applicationId "com.suyustudio.shanjing"
-                minSdkVersion 21
-                targetSdkVersion flutter.targetSdkVersion
-                versionCode flutter.versionCode
-                versionName flutter.versionName
+                applicationId = "com.suyustudio.shanjing"
+                minSdk = 21
+                targetSdk = flutter.targetSdkVersion
+                versionCode = flutter.versionCode
+                versionName = flutter.versionName
             }
             
             signingConfigs {
                 release {
-                    keyAlias keystoreProperties['keyAlias']
-                    keyPassword keystoreProperties['keyPassword']
-                    storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-                    storePassword keystoreProperties['storePassword']
+                    keyAlias = keystoreProperties['keyAlias']
+                    keyPassword = keystoreProperties['keyPassword']
+                    storeFile = keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                    storePassword = keystoreProperties['storePassword']
                 }
             }
             
             buildTypes {
                 release {
-                    signingConfig signingConfigs.release
-                    minifyEnabled false
-                    shrinkResources false
+                    signingConfig = signingConfigs.release
+                    minifyEnabled = false
+                    shrinkResources = false
                 }
             }
         }
         
         flutter {
-            source '../..'
+            source = '../..'
         }
         EOF
     
-    - name: Update AMAP_KEY in AndroidManifest
+    - name: Update AndroidManifest
       run: |
-        mkdir -p android/app/src/main
         cat > android/app/src/main/AndroidManifest.xml << EOF
         <manifest xmlns:android="http://schemas.android.com/apk/res/android">
             <application
@@ -168,24 +167,22 @@ jobs:
     
     - name: Build APK
       run: |
-        flutter doctor -v
         flutter build apk --release
-        echo "=== Find all APK files ==="
+        echo "=== Find APK files ==="
         find . -name "*.apk" -type f
     
     - name: Upload APK
-      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: shanjing-apk
-        path: '**/*.apk'
+        path: build/app/outputs/flutter-apk/app-release.apk
         if-no-files-found: warn
     
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v1
       with:
-        files: '**/*.apk'
+        files: build/app/outputs/flutter-apk/app-release.apk
         tag_name: v0.1.${{ github.run_number }}
         name: Release v0.1.${{ github.run_number }}
         body: |
