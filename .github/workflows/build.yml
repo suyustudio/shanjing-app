@@ -167,7 +167,7 @@ jobs:
     
     - name: Build APK
       run: |
-        flutter build apk --release
+        flutter build apk --release --verbose 2>&1 | tail -300
         echo "=== Find APK files ==="
         find . -name "*.apk" -type f
     
