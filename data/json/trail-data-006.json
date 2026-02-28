@@ -1,0 +1,17 @@
+{
+  "id": "trail-006",
+  "name": "玉皇山",
+  "distance": 5,
+  "duration": 120,
+  "source": "两步路公开轨迹",
+  "description": "玉皇山位于杭州西湖风景区南部，是杭州市区内一处适合短途徒步的山地路线。路线沿途可欣赏山林景色，是周末休闲徒步的不错选择。",
+  "location": "杭州西湖风景区南部",
+  "difficulty": "moderate",
+  "collectionDate": "2026-02-28",
+  "coordinates": [
+    [120.14, 30.23],
+    [120.15, 30.24]
+  ],
+  "dataVersion": "v1.0",
+  "notes": "基础信息待后续补充详细轨迹数据"
+}

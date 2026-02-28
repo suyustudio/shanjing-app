@@ -1,0 +1,262 @@
+// schema.prisma
+// 山径APP 数据库模型定义 - User 模块
+// PostgreSQL 15.4+ with PostGIS 3.3+
+
+// ==================== 生成器配置 ====================
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+// ==================== 枚举定义 ====================
+
+// 路线难度枚举
+enum Difficulty {
+  easy       // 简单
+  moderate   // 中等
+  hard       // 困难
+}
+
+// POI类型枚举
+enum PoiType {
+  safety      // 安全类：急救点、避难所
+  navigation  // 导航类：岔路口、里程碑
+  service     // 服务类：补给点、洗手间
+  info        // 信息类：观景台、介绍牌
+  social      // 社交类：拍照点、休息区
+}
+
+// 轨迹记录状态枚举
+enum TrackStatus {
+  recording   // 记录中
+  paused      // 已暂停
+  completed   // 已完成
+  uploaded    // 已上传
+}
+
+// ==================== 用户模块 ====================
+
+// 用户表
+model User {
+  id                String   @id @default(cuid())
+  
+  // 微信认证信息
+  wxOpenid          String   @unique @map("wx_openid")
+  wxUnionid         String?  @unique @map("wx_unionid")
+  
+  // 基本信息
+  nickname          String?
+  avatarUrl         String?  @map("avatar_url")
+  phone             String?  @unique
+  
+  // 紧急联系人（JSON格式存储）
+  // 格式: [{"name": "张三", "phone": "13800138000", "relation": "配偶"}]
+  emergencyContacts Json?    @map("emergency_contacts")
+  
+  // 用户设置
+  settings          Json?    @default("{}")
+  
+  // 关联关系
+  favorites         Favorite[]
+  trackRecords      TrackRecord[]
+  
+  // 时间戳
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  // 索引
+  @@index([wxOpenid])
+  @@index([phone])
+  @@index([createdAt])
+  @@map("users")
+}
+
+// ==================== 其他模型占位（仅声明，避免关联错误） ====================
+
+model Trail {
+  id               String   @id @default(cuid())
+  name             String   @db.VarChar(100)
+  description      String?  @db.Text
+  distanceKm       Float    @map("distance_km")
+  durationMin      Int      @map("duration_min")
+  elevationGainM   Float    @map("elevation_gain_m")
+  elevationLossM   Float?   @map("elevation_loss_m")
+  difficulty       Difficulty
+  tags             String[] @default([])
+  coverImages      String[] @map("cover_images")
+  gpxUrl           String   @map("gpx_url")
+  safetyInfo       Json     @map("safety_info")
+  city             String   @db.VarChar(50)
+  district         String   @db.VarChar(50)
+  startPointLat    Float    @map("start_point_lat")
+  startPointLng    Float    @map("start_point_lng")
+  startPointAddress String  @map("start_point_address") @db.VarChar(200)
+  boundsNorth      Float    @map("bounds_north")
+  boundsSouth      Float    @map("bounds_south")
+  boundsEast       Float    @map("bounds_east")
+  boundsWest       Float    @map("bounds_west")
+  elevationProfile Json?    @map("elevation_profile")
+  favoriteCount    Int      @default(0) @map("favorite_count")
+  viewCount        Int      @default(0) @map("view_count")
+  isPublished      Boolean  @default(false) @map("is_published")
+  publishedAt      DateTime? @map("published_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+  
+  pois             Poi[]
+  favorites        Favorite[]
+  offlinePackages  OfflinePackage[]
+  trackRecords     TrackRecord[]
+  
+  @@index([startPointLat, startPointLng])
+  @@index([city])
+  @@index([city, district])
+  @@index([difficulty])
+  @@index([deletedAt])
+  @@index([isPublished, publishedAt])
+  @@index([tags])
+  @@map("trails")
+}
+
+model Poi {
+  id          String   @id @default(cuid())
+  trailId     String   @map("trail_id")
+  name        String   @db.VarChar(100)
+  type        PoiType
+  subtype     String   @db.VarChar(50)
+  location    Unsupported("geometry(Point, 4326)")?
+  latitude    Float
+  longitude   Float
+  altitude    Float?
+  sequence    Int
+  description String?  @db.Text
+  photos      String[] @default([])
+  priority    Int      @default(5)
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  trail       Trail    @relation(fields: [trailId], references: [id], onDelete: Cascade)
+  
+  @@index([trailId, sequence])
+  @@index([type])
+  @@index([latitude, longitude])
+  @@index([priority])
+  @@index([location], type: Gist)
+  @@map("pois")
+}
+
+model OfflinePackage {
+  id          String   @id @default(cuid())
+  trailId     String   @map("trail_id")
+  version     String   @default("1.0.0")
+  fileUrl     String   @map("file_url")
+  fileSizeMb  Float    @map("file_size_mb")
+  checksum    String   @db.VarChar(64)
+  minZoom     Int      @map("min_zoom")
+  maxZoom     Int      @map("max_zoom")
+  boundsNorth Float    @map("bounds_north")
+  boundsSouth Float    @map("bounds_south")
+  boundsEast  Float    @map("bounds_east")
+  boundsWest  Float    @map("bounds_west")
+  createdAt   DateTime @default(now()) @map("created_at")
+  expiresAt   DateTime @map("expires_at")
+  
+  trail       Trail    @relation(fields: [trailId], references: [id], onDelete: Cascade)
+  
+  @@index([trailId])
+  @@index([expiresAt])
+  @@index([createdAt])
+  @@map("offline_packages")
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  trailId   String   @map("trail_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trail     Trail    @relation(fields: [trailId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, trailId])
+  @@index([userId, createdAt])
+  @@index([trailId])
+  @@map("favorites")
+}
+
+model TrackRecord {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  trailId         String?  @map("trail_id")
+  startedAt       DateTime @map("started_at")
+  endedAt         DateTime? @map("ended_at")
+  totalDistanceKm Float?   @map("total_distance_km")
+  durationSec     Int?     @map("duration_sec")
+  elevationGainM  Float?   @map("elevation_gain_m")
+  elevationLossM  Float?   @map("elevation_loss_m")
+  maxAltitudeM    Float?   @map("max_altitude_m")
+  minAltitudeM    Float?   @map("min_altitude_m")
+  trackDataUrl    String?  @map("track_data_url")
+  trackDataJson   Json?    @map("track_data_json")
+  photos          String[] @default([])
+  status          TrackStatus @default(recording)
+  isUploaded      Boolean  @default(false) @map("is_uploaded")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trail           Trail?   @relation(fields: [trailId], references: [id], onDelete: SetNull)
+  
+  @@index([userId, startedAt])
+  @@index([trailId])
+  @@index([status, isUploaded])
+  @@index([createdAt])
+  @@map("track_records")
+}
+
+model TokenBlacklist {
+  id        String   @id @default(cuid())
+  token     String   @unique @db.Text
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@index([token])
+  @@index([expiresAt])
+  @@map("token_blacklist")
+}
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique @db.VarChar(100)
+  value       Json
+  description String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  @@map("system_config")
+}
+
+model OperationLog {
+  id          String   @id @default(cuid())
+  userId      String?  @map("user_id")
+  action      String   @db.VarChar(50)
+  resource    String   @db.VarChar(50)
+  resourceId  String?  @map("resource_id")
+  details     Json?
+  ipAddress   String?  @map("ip_address") @db.VarChar(45)
+  userAgent   String?  @map("user_agent") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@index([resource, resourceId])
+  @@map("operation_logs")
+}

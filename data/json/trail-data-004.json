@@ -1,0 +1,26 @@
+{
+  "id": "trail-004",
+  "name": "云栖竹径",
+  "distance": 6,
+  "duration": 150,
+  "source": "两步路公开轨迹",
+  "description": "新西湖十景之一，竹海幽径，途经茶山。路线从云栖竹径出发，经五云山，终点为九溪村或龙井村。",
+  "location": "杭州西湖风景名胜区",
+  "difficulty": "moderate",
+  "collectionDate": "2026-02-28",
+  "coordinates": [
+    [120.0987, 30.1892],
+    [120.1054, 30.1956],
+    [120.1156, 30.2102]
+  ],
+  "elevation": {
+    "totalGain": 313,
+    "totalLoss": 367,
+    "maxAltitude": 349
+  },
+  "averageSpeed": 2.8,
+  "route": "云栖竹径 → 五云山 → 九溪村/龙井村",
+  "highlights": ["五云山顶真迹寺遗址"],
+  "ticket": "云栖竹径景区 8 元（公园年卡免费）",
+  "notes": "全程补给站较少，需自备水和食物，景区内矿泉水价格较高（约6元/瓶），建议轻装上阵，合理分配体力"
+}

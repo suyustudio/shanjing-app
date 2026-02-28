@@ -1,0 +1,175 @@
+# 山径APP 数据库 ER 图 (Mermaid)
+
+```mermaid
+erDiagram
+    USERS ||--o{ FAVORITES : "has"
+    USERS ||--o{ TRACK_RECORDS : "creates"
+    TRAILS ||--o{ POIS : "contains"
+    TRAILS ||--o{ FAVORITES : "is favorited"
+    TRAILS ||--o{ OFFLINE_PACKAGES : "has"
+    TRAILS ||--o{ TRACK_RECORDS : "is recorded"
+
+    USERS {
+        string id PK "CUID"
+        string wx_openid UK "微信OpenID"
+        string wx_unionid UK "微信UnionID"
+        string nickname "昵称"
+        string avatar_url "头像URL"
+        string phone UK "手机号"
+        json emergency_contacts "紧急联系人"
+        json settings "用户设置"
+        datetime created_at "创建时间"
+        datetime updated_at "更新时间"
+    }
+
+    TRAILS {
+        string id PK "CUID"
+        string name "路线名称"
+        string description "路线描述"
+        float distance_km "距离(公里)"
+        int duration_min "预计用时(分钟)"
+        float elevation_gain_m "爬升(米)"
+        float elevation_loss_m "下降(米)"
+        enum difficulty "难度: easy/moderate/hard"
+        string[] tags "标签数组"
+        string[] cover_images "封面图片"
+        string gpx_url "GPX文件URL"
+        json safety_info "安全信息"
+        string city "城市"
+        string district "区县"
+        float start_point_lat "起点纬度"
+        float start_point_lng "起点经度"
+        string start_point_address "起点地址"
+        float bounds_north "边界北"
+        float bounds_south "边界南"
+        float bounds_east "边界东"
+        float bounds_west "边界西"
+        json elevation_profile "海拔剖面"
+        int favorite_count "收藏数"
+        int view_count "浏览数"
+        boolean is_published "是否发布"
+        datetime published_at "发布时间"
+        datetime created_at "创建时间"
+        datetime updated_at "更新时间"
+    }
+
+    POIS {
+        string id PK "CUID"
+        string trail_id FK "路线ID"
+        string name "POI名称"
+        enum type "类型: safety/navigation/service/info/social"
+        string subtype "子类型"
+        geometry location "PostGIS几何点"
+        float latitude "纬度"
+        float longitude "经度"
+        float altitude "海拔"
+        int sequence "序列号"
+        string description "描述"
+        string[] photos "照片URL数组"
+        int priority "优先级"
+        json metadata "扩展信息"
+        datetime created_at "创建时间"
+        datetime updated_at "更新时间"
+    }
+
+    OFFLINE_PACKAGES {
+        string id PK "CUID"
+        string trail_id FK "路线ID"
+        string version "版本号"
+        string file_url "文件URL"
+        float file_size_mb "文件大小(MB)"
+        string checksum "校验值"
+        int min_zoom "最小缩放级别"
+        int max_zoom "最大缩放级别"
+        float bounds_north "边界北"
+        float bounds_south "边界南"
+        float bounds_east "边界东"
+        float bounds_west "边界西"
+        datetime created_at "创建时间"
+        datetime expires_at "过期时间"
+    }
+
+    FAVORITES {
+        string id PK "CUID"
+        string user_id FK "用户ID"
+        string trail_id FK "路线ID"
+        datetime created_at "收藏时间"
+    }
+
+    TRACK_RECORDS {
+        string id PK "CUID"
+        string user_id FK "用户ID"
+        string trail_id FK "路线ID(可选)"
+        datetime started_at "开始时间"
+        datetime ended_at "结束时间"
+        float total_distance_km "总距离(公里)"
+        int duration_sec "持续时间(秒)"
+        float elevation_gain_m "爬升(米)"
+        float elevation_loss_m "下降(米)"
+        float max_altitude_m "最高海拔"
+        float min_altitude_m "最低海拔"
+        string track_data_url "轨迹数据URL"
+        json track_data_json "轨迹数据JSON"
+        string[] photos "照片URL数组"
+        enum status "状态: recording/paused/completed/uploaded"
+        boolean is_uploaded "是否已上传"
+        datetime created_at "创建时间"
+        datetime updated_at "更新时间"
+    }
+
+    TOKEN_BLACKLIST {
+        string id PK "CUID"
+        string token UK "Token"
+        datetime expires_at "过期时间"
+        datetime created_at "创建时间"
+    }
+
+    SYSTEM_CONFIG {
+        string id PK "CUID"
+        string key UK "配置键"
+        json value "配置值"
+        string description "描述"
+        datetime updated_at "更新时间"
+    }
+
+    OPERATION_LOGS {
+        string id PK "CUID"
+        string user_id "用户ID"
+        string action "操作类型"
+        string resource "资源类型"
+        string resource_id "资源ID"
+        json details "详情"
+        string ip_address "IP地址"
+        string user_agent "UserAgent"
+        datetime created_at "创建时间"
+    }
+```
+
+## 表关系说明
+
+### 1. 用户模块
+- **users** - 核心用户表，存储微信认证信息和基本资料
+- 与 favorites: 一对多（一个用户可收藏多条路线）
+- 与 track_records: 一对多（一个用户可有多条轨迹记录）
+
+### 2. 路线模块
+- **trails** - 路线主表，存储路线基本信息和边界框
+- **pois** - POI点表，存储路线上的兴趣点，含PostGIS空间数据
+- **offline_packages** - 离线包表，存储路线离线地图数据
+
+### 3. 用户行为模块
+- **favorites** - 收藏表，关联用户和路线（多对多中间表）
+- **track_records** - 轨迹记录表，存储用户徒步记录
+
+### 4. 系统模块
+- **token_blacklist** - Token黑名单，用于用户登出
+- **system_config** - 系统配置表
+- **operation_logs** - 操作日志表（可选）
+
+## 索引设计要点
+
+1. **空间索引**: pois.location 使用 GiST 索引（PostGIS）
+2. **地理位置**: trails (start_point_lat, start_point_lng) 用于附近搜索
+3. **标签搜索**: trails.tags 使用 GIN 索引
+4. **时间排序**: 各表的 created_at 字段用于列表排序
+5. **联合索引**: favorites (user_id, created_at) 用于用户收藏列表

@@ -1,0 +1,16 @@
+{
+  "id": "trail-008",
+  "name": "法喜寺",
+  "distance": 3,
+  "duration": 90,
+  "source": "两步路公开轨迹",
+  "description": "法喜寺位于杭州天竺山，是著名的佛教圣地。此路线为短途徒步路线，适合休闲游览，沿途可感受禅意氛围。",
+  "location": "杭州天竺山",
+  "difficulty": "easy",
+  "collectionDate": "2026-02-28",
+  "coordinates": [
+    [120.09, 30.23],
+    [120.10, 30.24]
+  ],
+  "collectionBatch": "Week 5 Day 2 - 8/10"
+}

@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "skills": {
+    "prd": {
+      "version": "2.0.5",
+      "installedAt": 1772129181161
+    },
+    "project-management-2": {
+      "version": "0.1.0",
+      "installedAt": 1772150711141
+    },
+    "frontend-design-3": {
+      "version": "0.1.0",
+      "installedAt": 1772173524092
+    },
+    "test-master": {
+      "version": "0.1.0",
+      "installedAt": 1772177767005
+    },
+    "test-patterns": {
+      "version": "1.0.0",
+      "installedAt": 1772177897793
+    },
+    "backend": {
+      "version": "1.0.0",
+      "installedAt": 1772230206522
+    },
+    "map-search": {
+      "version": "1.0.0",
+      "installedAt": 1772187367824
+    },
+    "design-system-creation": {
+      "version": "1.0.0",
+      "installedAt": 1772195115088
+    },
+    "coding": {
+      "version": "1.0.3",
+      "installedAt": 1772213229809
+    },
+    "nodejs-patterns": {
+      "version": "1.0.0",
+      "installedAt": 1772229909096
+    },
+    "gaodemapskill": {
+      "version": "1.0.0",
+      "installedAt": 1772248216625
+    }
+  }
+}

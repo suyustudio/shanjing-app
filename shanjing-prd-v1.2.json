@@ -1,0 +1,458 @@
+{
+  "project": "山径APP",
+  "branchName": "main",
+  "description": "城市年轻人的轻度徒步向导 - MVP版本",
+  "milestone": "M1",
+  "targetDate": "2026-05-15",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "浏览附近路线",
+      "description": "作为准备周末徒步的用户，我希望打开App就能看到附近的推荐路线，以便快速找到适合的目的地。",
+      "acceptanceCriteria": [
+        "首页加载时自动获取用户位置",
+        "显示距离用户5km/10km/20km/50km范围内的路线",
+        "每条路线显示：封面图、名称、距离、难度标签、预计时长",
+        "列表加载时间 < 2秒",
+        "支持下拉刷新",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "module": "发现",
+      "passes": false,
+      "notes": "",
+      "assignee": "移动端工程师",
+      "estimatedDays": 3
+    },
+    {
+      "id": "US-002",
+      "title": "筛选路线",
+      "description": "作为有特定需求的用户，我希望按条件筛选路线，以便找到符合我能力和偏好的路线。",
+      "acceptanceCriteria": [
+        "支持按距离筛选：5km/10km/20km/50km/不限",
+        "支持按难度筛选：休闲/轻度/进阶",
+        "支持按标签筛选：亲子/宠物/摄影",
+        "筛选结果实时更新，延迟 < 500ms",
+        "支持多条件组合筛选",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "module": "发现",
+      "passes": false,
+      "notes": "",
+      "assignee": "移动端工程师",
+      "estimatedDays": 2
+    },
+    {
+      "id": "US-003",
+      "title": "查看路线详情",
+      "description": "作为对某条路线感兴趣的用户，我希望查看详细的路线信息，以便判断是否适合我。",
+      "acceptanceCriteria": [
+        "显示3-5张高清风景图轮播",
+        "显示基础信息：距离/时长/爬升/难度",
+        "显示安全信息：女性友好度/信号覆盖/紧急下撤点",
+        "显示路线简介、亮点、适合人群、注意事项",
+        "显示轨迹预览地图+海拔剖面图",
+        "显示POI列表（起点/观景点/卫生间/补给点/终点）",
+        "页面加载时间 < 3秒",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "module": "发现",
+      "passes": false,
+      "notes": "",
+      "assignee": "移动端工程师",
+      "estimatedDays": 4
+    },
+    {
+      "id": "US-004",
+      "title": "下载离线地图",
+      "description": "作为准备进入山区的用户，我希望提前下载路线的离线地图，以便在没有网络的情况下也能导航。",
+      "acceptanceCriteria": [
+        "在路线详情页提供'下载离线包'按钮",
+        "下载范围：路线周边500m，14-15级精度",
+        "显示下载进度和预计大小（5-20MB/路线）",
+        "支持后台下载",
+        "下载完成后可离线查看地图",
+        "自动清理30天未用离线包",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "module": "导航",
+      "passes": false,
+      "notes": "依赖技术验证V1通过",
+      "assignee": "移动端工程师",
+      "estimatedDays": 3
+    },
+    {
+      "id": "US-005",
+      "title": "轨迹跟随导航",
+      "description": "作为正在徒步的用户，我希望App能实时显示我在路线上的位置，以便确认没有走错路。",
+      "acceptanceCriteria": [
+        "启动导航后，GPS点实时显示在地图上",
+        "GPS点自动匹配到最近路线，显示偏离距离",
+        "地图自动跟随用户位置，保持当前位置在屏幕中心",
+        "显示已走距离、剩余距离、当前海拔",
+        "定位精度 < 10米",
+        "地图刷新频率 >= 5fps",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "module": "导航",
+      "passes": false,
+      "notes": "核心功能，依赖技术验证V1和V2",
+      "assignee": "移动端工程师",
+      "estimatedDays": 6
+    },
+    {
+      "id": "US-006",
+      "title": "偏航提醒",
+      "description": "作为不小心走错的用户，我希望App能及时提醒我偏离了路线，以便尽快回到正确路线上。",
+      "acceptanceCriteria": [
+        "偏离路线 > 30m 时触发震动提醒",
+        "偏离路线 > 50m 时语音提示'您已偏离路线'",
+        "显示回到路线的方向和距离",
+        "偏航提醒在锁屏状态下也能触发",
+        "连续偏航不重复提醒（间隔 >= 30秒）",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "module": "导航",
+      "passes": false,
+      "notes": "依赖US-005完成",
+      "assignee": "移动端工程师",
+      "estimatedDays": 3
+    },
+    {
+      "id": "US-007",
+      "title": "语音播报",
+      "description": "作为不方便看手机的用户，我希望通过语音了解导航信息，以便专注于走路。",
+      "acceptanceCriteria": [
+        "关键路口提前50m语音播报（如'前方50米左转'）",
+        "到达POI时语音播报（如'到达观景点'）",
+        "偏航时语音提醒",
+        "语音音量可调节",
+        "支持静音模式",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "module": "导航",
+      "passes": false,
+      "notes": "依赖US-005完成",
+      "assignee": "移动端工程师",
+      "estimatedDays": 2
+    },
+    {
+      "id": "US-008",
+      "title": "路口图片指引",
+      "description": "作为在复杂路口的用户，我希望看到路口的实景照片，以便确认正确的方向。",
+      "acceptanceCriteria": [
+        "在易错路口、分岔点预标注图片指引",
+        "接近路口时自动显示图片指引（距离 < 30m）",
+        "图片与地图方向对应",
+        "支持手动查看所有路口图片",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "module": "导航",
+      "passes": false,
+      "notes": "依赖US-005完成",
+      "assignee": "移动端工程师",
+      "estimatedDays": 2
+    },
+    {
+      "id": "US-009",
+      "title": "设置紧急联系人",
+      "description": "作为注重安全的用户，我希望设置紧急联系人，以便在紧急情况下快速求助。",
+      "acceptanceCriteria": [
+        "支持设置1-3位紧急联系人",
+        "联系人信息包括：姓名、电话、关系",
+        "导航前提醒确认紧急联系人已设置",
+        "联系人信息本地加密存储",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "module": "安全",
+      "passes": false,
+      "notes": "",
+      "assignee": "移动端工程师",
+      "estimatedDays": 2
+    },
+    {
+      "id": "US-010",
+      "title": "分享行程",
+      "description": "作为独自徒步的用户，我希望将行程信息分享给朋友，以便让朋友知道我的位置和预计返回时间。",
+      "acceptanceCriteria": [
+        "生成包含路线信息的分享卡片",
+        "分享卡片包括：路线名称、起点、预计时长、紧急联系人",
+        "支持分享到微信",
+        "接收方无需安装App即可查看",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "module": "安全",
+      "passes": false,
+      "notes": "",
+      "assignee": "移动端工程师",
+      "estimatedDays": 2
+    },
+    {
+      "id": "US-011",
+      "title": "SOS求助",
+      "description": "作为遇到紧急情况的用户，我希望一键发送求助信息，以便快速获得帮助。",
+      "acceptanceCriteria": [
+        "导航页面显著位置显示SOS按钮",
+        "点击SOS后发送当前位置给紧急联系人",
+        "发送内容包括：位置坐标、时间、路线名称",
+        "发送前需要确认，防止误触",
+        "支持无网络情况下通过短信发送",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "module": "安全",
+      "passes": false,
+      "notes": "依赖US-005和US-009完成",
+      "assignee": "移动端工程师",
+      "estimatedDays": 2
+    },
+    {
+      "id": "US-012",
+      "title": "安全提醒",
+      "description": "作为长时间徒步的用户，我希望定期收到安全状态提醒，以便保持警觉。",
+      "acceptanceCriteria": [
+        "导航中每30分钟震动提醒",
+        "提醒内容包括：已用时间、剩余距离",
+        "点击提醒可查看当前位置和路线进度",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "module": "安全",
+      "passes": false,
+      "notes": "依赖US-005完成",
+      "assignee": "移动端工程师",
+      "estimatedDays": 1
+    },
+    {
+      "id": "US-013",
+      "title": "微信登录",
+      "description": "作为新用户，我希望使用微信快速登录，以便无需注册即可使用。",
+      "acceptanceCriteria": [
+        "支持微信一键登录",
+        "首次登录自动创建用户账号",
+        "获取用户头像和昵称",
+        "登录流程 < 10秒",
+        "登录状态持久化",
+        "Typecheck passes"
+      ],
+      "priority": 13,
+      "module": "用户",
+      "passes": false,
+      "notes": "",
+      "assignee": "移动端工程师",
+      "estimatedDays": 3
+    },
+    {
+      "id": "US-014",
+      "title": "查看个人中心",
+      "description": "作为已登录用户，我希望查看我的基本信息和历史记录，以便管理我的账号。",
+      "acceptanceCriteria": [
+        "显示头像、昵称",
+        "显示历史轨迹数量",
+        "显示收藏的路线数量",
+        "提供设置入口",
+        "Typecheck passes"
+      ],
+      "priority": 14,
+      "module": "用户",
+      "passes": false,
+      "notes": "依赖US-013完成",
+      "assignee": "移动端工程师",
+      "estimatedDays": 2
+    },
+    {
+      "id": "US-015",
+      "title": "管理离线包",
+      "description": "作为下载了多条路线离线包的用户，我希望管理已下载的离线包，以便释放存储空间。",
+      "acceptanceCriteria": [
+        "显示所有已下载离线包列表",
+        "显示每个离线包的大小和下载时间",
+        "支持删除单个离线包",
+        "支持一键清理所有离线包",
+        "显示已用/剩余存储空间",
+        "Typecheck passes"
+      ],
+      "priority": 15,
+      "module": "用户",
+      "passes": false,
+      "notes": "依赖US-004完成",
+      "assignee": "移动端工程师",
+      "estimatedDays": 2
+    }
+  ],
+  "backendTasks": [
+    {
+      "id": "B-001",
+      "title": "用户系统API",
+      "description": "微信登录、用户信息管理",
+      "acceptanceCriteria": [
+        "POST /auth/wechat 微信登录",
+        "GET /users/me 获取用户信息",
+        "PUT /users/me 更新用户信息"
+      ],
+      "priority": 1,
+      "passes": false,
+      "assignee": "后端工程师",
+      "estimatedDays": 5
+    },
+    {
+      "id": "B-002",
+      "title": "路线数据API",
+      "description": "路线CRUD和搜索筛选",
+      "acceptanceCriteria": [
+        "GET /routes 路线列表（支持分页）",
+        "GET /routes/:id 路线详情",
+        "GET /routes/search 路线搜索（距离/难度/标签）",
+        "POST /routes/:id/download 下载离线包"
+      ],
+      "priority": 2,
+      "passes": false,
+      "assignee": "后端工程师",
+      "estimatedDays": 5
+    },
+    {
+      "id": "B-003",
+      "title": "紧急联系人API",
+      "description": "紧急联系人管理",
+      "acceptanceCriteria": [
+        "GET /emergency-contacts 获取联系人",
+        "POST /emergency-contacts 添加联系人",
+        "DELETE /emergency-contacts/:id 删除联系人"
+      ],
+      "priority": 3,
+      "passes": false,
+      "assignee": "后端工程师",
+      "estimatedDays": 2
+    },
+    {
+      "id": "B-004",
+      "title": "文件存储服务",
+      "description": "图片上传下载",
+      "acceptanceCriteria": [
+        "POST /upload/image 图片上传",
+        "返回图片URL",
+        "支持OSS存储"
+      ],
+      "priority": 4,
+      "passes": false,
+      "assignee": "后端工程师",
+      "estimatedDays": 2
+    },
+    {
+      "id": "B-005",
+      "title": "后台管理系统",
+      "description": "运营后台",
+      "acceptanceCriteria": [
+        "路线管理（增删改查）",
+        "用户管理（查看、权限）",
+        "数据审核（UGC内容审核）"
+      ],
+      "priority": 5,
+      "passes": false,
+      "assignee": "后端工程师",
+      "estimatedDays": 6
+    }
+  ],
+  "technicalValidation": [
+    {
+      "id": "V-001",
+      "title": "高德SDK离线导航验证",
+      "description": "验证高德SDK是否支持离线轨迹跟随导航",
+      "acceptanceCriteria": [
+        "可离线显示地图",
+        "GPS点可匹配到路线",
+        "定位精度<10米"
+      ],
+      "priority": 1,
+      "passes": false,
+      "deadline": "Week 2 Day 3",
+      "riskLevel": "极高",
+      "assignee": "移动端工程师"
+    },
+    {
+      "id": "V-002",
+      "title": "Flutter后台GPS保活测试",
+      "description": "验证GPS后台保活能力",
+      "acceptanceCriteria": [
+        "后台持续30分钟不掉",
+        "华为/小米/OPPO/vivo测试通过"
+      ],
+      "priority": 2,
+      "passes": false,
+      "deadline": "Week 2 Day 5",
+      "riskLevel": "高",
+      "assignee": "移动端工程师"
+    },
+    {
+      "id": "V-003",
+      "title": "离线数据存储方案验证",
+      "description": "验证离线数据存储方案",
+      "acceptanceCriteria": [
+        "可存储10条路线离线包",
+        "支持数据清理"
+      ],
+      "priority": 3,
+      "passes": false,
+      "deadline": "Week 2 Day 5",
+      "riskLevel": "中",
+      "assignee": "移动端工程师"
+    }
+  ],
+  "milestones": [
+    {
+      "name": "技术验证完成",
+      "date": "Week 2",
+      "criteria": [
+        "V-001, V-002, V-003 全部通过"
+      ],
+      "status": "not-started"
+    },
+    {
+      "name": "设计完成",
+      "date": "Week 2",
+      "criteria": [
+        "P1-P5 全部完成",
+        "UI设计稿评审通过"
+      ],
+      "status": "not-started"
+    },
+    {
+      "name": "后端API完成",
+      "date": "Week 7",
+      "criteria": [
+        "B-001 到 B-005 全部完成",
+        "API文档完成",
+        "接口测试通过率100%"
+      ],
+      "status": "not-started"
+    },
+    {
+      "name": "移动端开发完成",
+      "date": "Week 10",
+      "criteria": [
+        "US-001 到 US-015 全部完成",
+        "P0/P1 Bug清零"
+      ],
+      "status": "not-started"
+    },
+    {
+      "name": "M1完成",
+      "date": "Week 12",
+      "criteria": [
+        "所有功能测试通过",
+        "实地测试3条路线通过",
+        "30名种子用户NPS >= 50"
+      ],
+      "status": "not-started"
+    }
+  ]
+}
