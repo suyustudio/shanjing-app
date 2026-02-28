@@ -172,29 +172,35 @@ jobs:
         flutter build apk --release
         echo "=== Find APK files ==="
         find . -name "*.apk" -type f 2>/dev/null
+        # Copy APK to known location
+        mkdir -p output
+        find build -name "app-release.apk" -exec cp {} output/shanjing.apk \;
+        ls -la output/
     
-    - name: Upload APK
+    - name: Upload APK to Artifacts
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: shanjing-apk
-        path: build/**/*.apk
+        path: output/*.apk
         if-no-files-found: warn
     
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v1
       with:
-        files: build/app/outputs/flutter-apk/app-release.apk
+        files: output/shanjing.apk
         tag_name: v0.1.${{ github.run_number }}
-        name: Release v0.1.${{ github.run_number }}
+        name: 山径APP v0.1.${{ github.run_number }}
         body: |
           山径APP 自动构建版本
           
           构建时间: ${{ github.event.head_commit.timestamp }}
           提交: ${{ github.event.head_commit.message }}
+          
+          直接下载: shanjing.apk
         draft: false
-        prerelease: true
+        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       continue-on-error: true
