@@ -244,7 +244,7 @@ class _MapScreenState extends State<MapScreen> {
                   title: route.name,
                   snippet: '${route.distance} · ${route.duration}',
                 ),
-                onTap: () => _onMarkerTap(route),
+                onTap: (String id) => _onMarkerTap(route),
               );
             }).toSet(),
             polylines: {

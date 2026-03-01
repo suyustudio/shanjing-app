@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
 import 'navigation_screen.dart';
 

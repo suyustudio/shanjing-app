@@ -87,8 +87,8 @@ class NavigationScreen extends StatefulWidget {
 
 class _NavigationScreenState extends State<NavigationScreen> {
   // 高德地图定位
-  late AMapFlutterLocation _locationPlugin;
-  StreamSubscription<Map<String, Object>>? _locationSubscription;
+  // late AMapFlutterLocation _locationPlugin;
+  // StreamSubscription<Map<String, Object>>? _locationSubscription;
 
   // 语音播报
   final FlutterTts _flutterTts = FlutterTts();
@@ -168,26 +168,15 @@ class _NavigationScreenState extends State<NavigationScreen> {
 
   /// 初始化定位
   void _initLocation() {
-    _locationPlugin = AMapFlutterLocation();
-
-    // 设置定位参数
-    _locationPlugin.setLocationOption(
-      AMapLocationOption(
-        locationMode: AMapLocationMode.hightAccuracy,
-        gpsFirst: true,
-        needsAddress: false,
-        interval: 2000, // 2秒更新一次
-        desiredAccuracy: AMapLocationAccuracy.best,
-      ),
+    // TODO: 高德定位 API 需要重新配置
+    // 暂时使用模拟定位
+    _currentPosition = GPSPoint(
+      latitude: 30.25,
+      longitude: 120.15,
+      accuracy: 5.0,
+      timestamp: DateTime.now(),
     );
-
-    // 监听定位结果
-    _locationSubscription = _locationPlugin
-        .onLocationChanged()
-        .listen(_onLocationUpdate);
-
-    // 开始定位
-    _locationPlugin.startLocation();
+    _currentLatLng = const LatLng(30.25, 120.15);
   }
 
   /// 初始化语音播报
@@ -419,9 +408,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
 
   @override
   void dispose() {
-    _locationSubscription?.cancel();
-    _locationPlugin.stopLocation();
-    _locationPlugin.destroy();
     _flutterTts.stop();
     super.dispose();
   }
@@ -446,10 +432,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
             initialCameraPosition: CameraPosition(
               target: _currentLatLng ?? const LatLng(30.25, 120.15),
               zoom: 17,
-            ),
-            myLocationEnabled: true,
-            myLocationStyleOptions: MyLocationStyleOptions(
-              showMyLocation: true,
             ),
             polylines: {
               Polyline(
