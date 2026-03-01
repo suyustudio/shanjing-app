@@ -5,7 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../widgets/filter_tags.dart';
 import '../constants/design_system.dart';
-import 'route_detail_screen.dart';
+import 'trail_detail_screen.dart';
 
 class RouteInfo {
   final String name;
@@ -146,10 +146,12 @@ class _MapScreenState extends State<MapScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => RouteDetailScreen(
-            routeName: _selectedRoute!.name,
-            distance: _selectedRoute!.distance,
-            duration: _selectedRoute!.duration,
+          builder: (context) => TrailDetailScreen(
+            trailData: {
+              'name': _selectedRoute!.name,
+              'distance': _selectedRoute!.distance,
+              'duration': _selectedRoute!.duration,
+            },
           ),
         ),
       );
@@ -165,10 +167,12 @@ class _MapScreenState extends State<MapScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RouteDetailScreen(
-                routeName: route.name,
-                distance: route.distance,
-                duration: route.duration,
+              builder: (context) => TrailDetailScreen(
+                trailData: {
+                  'name': route.name,
+                  'distance': route.distance,
+                  'duration': route.duration,
+                },
               ),
             ),
           );
@@ -223,10 +227,6 @@ class _MapScreenState extends State<MapScreen> {
             initialCameraPosition: const CameraPosition(
               target: LatLng(30.25, 120.15),
               zoom: 14,
-            ),
-            myLocationEnabled: true,
-            myLocationStyleOptions: MyLocationStyleOptions(
-              showMyLocation: true,
             ),
             onMapCreated: _onMapCreated,
             onTap: (_) => _closeCard(),

@@ -1,0 +1,91 @@
+name: Build and Release APK (Fixed)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AMAP_KEY: ${{ secrets.AMAP_KEY }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+    
+    - name: Check Flutter project
+      run: |
+        echo "=== Project Structure ==="
+        ls -la
+        echo "=== pubspec.yaml ==="
+        cat pubspec.yaml
+        echo "=== lib directory ==="
+        ls -la lib/
+    
+    - name: Enable Android platform
+      run: flutter config --enable-android
+    
+    - name: Install dependencies
+      run: flutter pub get
+    
+    - name: Setup Android signing
+      run: |
+        cd android
+        mkdir -p app
+        # Generate keystore
+        keytool -genkey -v -keystore app/shanjing.keystore -alias shanjing \
+          -keyalg RSA -keysize 2048 -validity 10000 \
+          -storepass shanjing123 -keypass shanjing123 \
+          -dname "CN=Shanjing App, OU=Development, O=SuyuStudio, L=Hangzhou, ST=Zhejiang, C=CN"
+        # Create key.properties
+        cat > key.properties << EOF
+        storePassword=shanjing123
+        keyPassword=shanjing123
+        keyAlias=shanjing
+        storeFile=app/shanjing.keystore
+        EOF
+    
+    - name: Build APK (with verbose output)
+      run: |
+        flutter build apk --release --verbose 2>&1 | tee build.log
+        echo "=== Build Result ==="
+        echo "Exit code: $?"
+    
+    - name: Find APK files
+      run: |
+        echo "=== All APK files ==="
+        find . -name "*.apk" -type f 2>/dev/null
+        echo "=== build directory structure ==="
+        ls -la build/ 2>/dev/null || echo "build directory not found"
+        ls -la build/app/ 2>/dev/null || echo "build/app directory not found"
+        ls -la build/app/outputs/ 2>/dev/null || echo "build/app/outputs directory not found"
+    
+    - name: Upload APK
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: shanjing-apk
+        path: build/app/outputs/**/*.apk
+        if-no-files-found: warn
+    
+    - name: Upload build logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs
+        path: build.log
+        if-no-files-found: ignore

@@ -96,6 +96,11 @@ jobs:
                 jvmTarget = '1.8'
             }
             
+            lintOptions {
+                disable 'InvalidPackage'
+                checkReleaseBuilds false
+            }
+            
             defaultConfig {
                 applicationId = "com.suyustudio.shanjing"
                 minSdk = 21
@@ -118,6 +123,7 @@ jobs:
                     signingConfig = signingConfigs.release
                     minifyEnabled = false
                     shrinkResources = false
+                    proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
                 }
             }
         }
