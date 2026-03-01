@@ -84,8 +84,8 @@ jobs:
         
         android {
             namespace = "com.suyustudio.shanjing"
-            compileSdk = flutter.compileSdkVersion
-            ndkVersion = flutter.ndkVersion
+            compileSdk = 34
+            ndkVersion = "25.1.8937393"
             
             compileOptions {
                 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -99,9 +99,9 @@ jobs:
             defaultConfig {
                 applicationId = "com.suyustudio.shanjing"
                 minSdk = 21
-                targetSdk = flutter.targetSdkVersion
-                versionCode = flutter.versionCode
-                versionName = flutter.versionName
+                targetSdk = 34
+                versionCode = 1
+                versionName = "1.0.0"
             }
             
             signingConfigs {
