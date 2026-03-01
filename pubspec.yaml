@@ -16,7 +16,7 @@ dependencies:
   amap_flutter_location: ^3.0.0
   permission_handler: ^11.0.0
   cached_network_image: ^3.3.0
-  flutter_tts: ^3.8.5
+  flutter_tts: ^4.0.2
 
 dev_dependencies:
   flutter_test:

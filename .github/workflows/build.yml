@@ -57,8 +57,43 @@ jobs:
     
     - name: Configure Android build
       run: |
-        # Update build.gradle with signing config
-        cd android/app
+        # Update project-level build.gradle with Kotlin version
+        cd android
+        cat > build.gradle << 'EOF'
+        buildscript {
+            ext.kotlin_version = '1.9.10'
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath 'com.android.tools.build:gradle:8.1.0'
+                classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+            }
+        }
+        
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        
+        rootProject.buildDir = '../build'
+        subprojects {
+            project.buildDir = "${rootProject.buildDir}/${project.name}"
+        }
+        subprojects {
+            project.evaluationDependsOn(':app')
+        }
+        
+        tasks.register("clean", Delete) {
+            delete rootProject.buildDir
+        }
+        EOF
+        
+        # Update app-level build.gradle with signing config
+        cd app
         cat > build.gradle << 'EOF'
         plugins {
             id "com.android.application"
@@ -88,12 +123,12 @@ jobs:
             ndkVersion = "25.1.8937393"
             
             compileOptions {
-                sourceCompatibility = JavaVersion.VERSION_1_8
-                targetCompatibility = JavaVersion.VERSION_1_8
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
             }
             
             kotlinOptions {
-                jvmTarget = '1.8'
+                jvmTarget = '17'
             }
             
             lintOptions {
