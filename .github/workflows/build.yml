@@ -40,18 +40,18 @@ jobs:
     
     - name: Setup Android signing
       run: |
-        cd android/app
-        # Generate keystore
-        keytool -genkey -v -keystore shanjing.keystore -alias shanjing \
+        cd android
+        # Generate keystore in app directory
+        keytool -genkey -v -keystore app/shanjing.keystore -alias shanjing \
           -keyalg RSA -keysize 2048 -validity 10000 \
           -storepass shanjing123 -keypass shanjing123 \
           -dname "CN=Shanjing App, OU=Development, O=SuyuStudio, L=Hangzhou, ST=Zhejiang, C=CN"
-        # Create key.properties
+        # Create key.properties in android directory
         cat > key.properties << EOF
         storePassword=shanjing123
         keyPassword=shanjing123
         keyAlias=shanjing
-        storeFile=shanjing.keystore
+        storeFile=app/shanjing.keystore
         EOF
     
     - name: Configure Android build
