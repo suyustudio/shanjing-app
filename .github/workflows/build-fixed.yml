@@ -33,8 +33,6 @@ jobs:
         ls -la
         echo "=== pubspec.yaml ==="
         cat pubspec.yaml
-        echo "=== lib directory ==="
-        ls -la lib/
     
     - name: Enable Android platform
       run: flutter config --enable-android
@@ -57,6 +55,119 @@ jobs:
         keyPassword=shanjing123
         keyAlias=shanjing
         storeFile=app/shanjing.keystore
+        EOF
+    
+    - name: Configure Android build
+      run: |
+        # Update project-level build.gradle with Kotlin version
+        cd android
+        cat > build.gradle << 'EOF'
+        buildscript {
+            ext.kotlin_version = '1.9.10'
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath 'com.android.tools.build:gradle:8.1.0'
+                classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+            }
+        }
+        
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        
+        rootProject.buildDir = '../build'
+        subprojects {
+            project.buildDir = "${rootProject.buildDir}/${project.name}"
+        }
+        subprojects {
+            project.evaluationDependsOn(':app')
+        }
+        
+        tasks.register("clean", Delete) {
+            delete rootProject.buildDir
+        }
+        EOF
+        
+        # Update app-level build.gradle with signing config
+        cd app
+        cat > build.gradle << 'EOF'
+        plugins {
+            id "com.android.application"
+            id "kotlin-android"
+            id "dev.flutter.flutter-gradle-plugin"
+        }
+        
+        def localProperties = new Properties()
+        def localPropertiesFile = rootProject.file('local.properties')
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.withReader('UTF-8') { reader ->
+                localProperties.load(reader)
+            }
+        }
+        
+        def keystoreProperties = new Properties()
+        def keystorePropertiesFile = rootProject.file('key.properties')
+        if (keystorePropertiesFile.exists()) {
+            keystorePropertiesFile.withReader('UTF-8') { reader ->
+                keystoreProperties.load(reader)
+            }
+        }
+        
+        android {
+            namespace = "com.suyustudio.shanjing"
+            compileSdk = 34
+            ndkVersion = "25.1.8937393"
+            
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+            
+            kotlinOptions {
+                jvmTarget = '17'
+            }
+            
+            lintOptions {
+                disable 'InvalidPackage'
+                checkReleaseBuilds false
+            }
+            
+            defaultConfig {
+                applicationId = "com.suyustudio.shanjing"
+                minSdk = 21
+                targetSdk = 34
+                versionCode = 1
+                versionName = "1.0.0"
+            }
+            
+            signingConfigs {
+                release {
+                    keyAlias = keystoreProperties['keyAlias']
+                    keyPassword = keystoreProperties['keyPassword']
+                    storeFile = keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                    storePassword = keystoreProperties['storePassword']
+                }
+            }
+            
+            buildTypes {
+                release {
+                    signingConfig = signingConfigs.release
+                    minifyEnabled = false
+                    shrinkResources = false
+                    proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+                }
+            }
+        }
+        
+        flutter {
+            source = '../..'
+        }
         EOF
     
     - name: Build APK (with verbose output)
