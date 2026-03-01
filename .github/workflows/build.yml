@@ -179,18 +179,14 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: shanjing-apk
-        path: |
-          build/app/outputs/flutter-apk/*.apk
-          build/app/outputs/apk/release/*.apk
+        path: '**/*.apk'
         if-no-files-found: warn
     
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          build/app/outputs/flutter-apk/*.apk
-          build/app/outputs/apk/release/*.apk
+        files: '**/*.apk'
         tag_name: v0.1.${{ github.run_number }}
         name: Release v0.1.${{ github.run_number }}
         body: |
