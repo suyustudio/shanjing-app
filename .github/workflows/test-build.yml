@@ -1,0 +1,36 @@
+name: Test Flutter Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+    
+    - name: Create minimal Flutter app
+      run: |
+        flutter config --enable-android
+        flutter create --platforms=android test_app
+        cd test_app
+        flutter build apk --release
+        ls -la build/app/outputs/flutter-apk/
+    
+    - name: Upload test APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-apk
+        path: test_app/build/app/outputs/flutter-apk/*.apk
