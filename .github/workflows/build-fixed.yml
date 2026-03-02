@@ -31,7 +31,8 @@ jobs:
         if [ ! -d "android" ]; then
           echo "Android directory not found, creating..."
           flutter config --enable-android
-          flutter create --platforms=android .
+          # 使用正确的包名（下划线代替连字符）
+          flutter create --platforms=android --project-name=shanjing_app .
         else
           echo "Android directory already exists"
           ls -la android/
