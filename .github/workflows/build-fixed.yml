@@ -36,16 +36,18 @@ jobs:
           echo "Android directory already exists"
         fi
     
-    - name: Check Kotlin configuration
+    - name: Update Kotlin version
       run: |
-        echo "=== android/build.gradle ==="
-        cat android/build.gradle
+        echo "=== Current android/settings.gradle ==="
+        cat android/settings.gradle
         echo ""
-        echo "=== android/settings.gradle (if exists) ==="
-        cat android/settings.gradle 2>/dev/null || echo "No settings.gradle"
+        echo "=== Updating Kotlin version ==="
+        # 更新 settings.gradle 中的 Kotlin 版本
+        sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.0"/' android/settings.gradle
+        echo "Updated Kotlin version to 1.9.0"
         echo ""
-        echo "=== android/gradle.properties ==="
-        cat android/gradle.properties 2>/dev/null || echo "No gradle.properties"
+        echo "=== Updated android/settings.gradle ==="
+        cat android/settings.gradle
     
     - name: Get dependencies
       run: flutter pub get
