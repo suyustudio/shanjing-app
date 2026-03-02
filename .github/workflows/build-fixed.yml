@@ -33,6 +33,7 @@ jobs:
       run: |
         mkdir -p android/app
         echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/shanjing.keystore
+        ls -la android/app/shanjing.keystore
     
     - name: Configure key.properties
       run: |
@@ -42,29 +43,22 @@ jobs:
         keyAlias=shanjing
         storeFile=shanjing.keystore
         EOL
+        cat android/key.properties
     
     - name: Build APK
       run: |
-        set -e
-        flutter build apk --release | tee build.log
-        echo "=== APK Output Directory ==="
-        ls -la build/app/outputs/flutter-apk/ || echo "flutter-apk not found"
-        ls -la build/app/outputs/apk/release/ || echo "apk/release not found"
-        echo "=== Check APK file ==="
-        find build/app/outputs -name "*.apk" -type f 2>/dev/null || echo "No APK found"
+        flutter build apk --release --verbose || true
+        echo "=== Check build output ==="
+        find . -name "*.apk" -type f 2>/dev/null | head -10 || echo "No APK found"
+        echo "=== Check build directory ==="
+        ls -la build/ 2>/dev/null || echo "No build directory"
+        ls -la build/app/ 2>/dev/null || echo "No build/app directory"
+        ls -la build/app/outputs/ 2>/dev/null || echo "No build/app/outputs directory"
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
+      if: success()
       with:
         name: shanjing-apk
-        path: |
-          build/app/outputs/flutter-apk/*.apk
-          build/app/outputs/apk/release/*.apk
-        if-no-files-found: error
-    
-    - name: Upload build logs
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs
-        path: build.log
-        if-no-files-found: ignore
+        path: build/app/outputs/**/*.apk
+        if-no-files-found: warn
