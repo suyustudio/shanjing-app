@@ -31,12 +31,16 @@ jobs:
         if [ ! -d "android" ]; then
           echo "Android directory not found, creating..."
           flutter config --enable-android
-          # 使用正确的包名（下划线代替连字符）
           flutter create --platforms=android --project-name=shanjing_app .
         else
           echo "Android directory already exists"
-          ls -la android/
         fi
+    
+    - name: Update Kotlin version
+      run: |
+        # 更新 Kotlin 版本到 1.9.0
+        sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.0"/' android/build.gradle
+        cat android/build.gradle | grep kotlin_version
     
     - name: Get dependencies
       run: flutter pub get
