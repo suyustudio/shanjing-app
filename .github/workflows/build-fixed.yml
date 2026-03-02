@@ -45,10 +45,13 @@ jobs:
     
     - name: Build APK
       run: |
-        flutter build apk --release 2>&1 | tee build.log
-        echo "Build completed"
-        ls -la build/app/outputs/flutter-apk/ || true
-        ls -la build/app/outputs/apk/release/ || true
+        set -e
+        flutter build apk --release | tee build.log
+        echo "=== APK Output Directory ==="
+        ls -la build/app/outputs/flutter-apk/ || echo "flutter-apk not found"
+        ls -la build/app/outputs/apk/release/ || echo "apk/release not found"
+        echo "=== Check APK file ==="
+        find build/app/outputs -name "*.apk" -type f 2>/dev/null || echo "No APK found"
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
@@ -57,7 +60,7 @@ jobs:
         path: |
           build/app/outputs/flutter-apk/*.apk
           build/app/outputs/apk/release/*.apk
-        if-no-files-found: warn
+        if-no-files-found: error
     
     - name: Upload build logs
       uses: actions/upload-artifact@v4
