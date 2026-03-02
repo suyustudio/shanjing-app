@@ -38,21 +38,20 @@ jobs:
     
     - name: Update Kotlin version
       run: |
-        echo "=== Current android/app/build.gradle (plugins section) ==="
-        grep -A5 "plugins {" android/app/build.gradle
+        echo "=== Current android/build.gradle ==="
+        cat android/build.gradle
         echo ""
-        echo "=== Updating Kotlin version ==="
-        # 新格式: id "kotlin-android"
-        if grep -q 'id "kotlin-android"' android/app/build.gradle; then
-          # 需要添加 version
-          sed -i 's/id "kotlin-android"/id "kotlin-android" version "1.9.0"/' android/app/build.gradle
-          echo "Updated kotlin-android plugin version"
+        echo "=== Updating Kotlin version in android/build.gradle ==="
+        # 在 android/build.gradle 中添加 kotlin-gradle-plugin 版本
+        if grep -q "org.jetbrains.kotlin:kotlin-gradle-plugin" android/build.gradle; then
+          sed -i 's/org.jetbrains.kotlin:kotlin-gradle-plugin:[^"]*"/org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0"/' android/build.gradle
+          echo "Updated kotlin-gradle-plugin version"
         else
-          echo "WARNING: Could not find kotlin-android pattern"
+          echo "WARNING: Could not find kotlin-gradle-plugin pattern"
         fi
         echo ""
-        echo "=== Updated android/app/build.gradle (plugins section) ==="
-        grep -A5 "plugins {" android/app/build.gradle
+        echo "=== Updated android/build.gradle ==="
+        cat android/build.gradle
     
     - name: Get dependencies
       run: flutter pub get
