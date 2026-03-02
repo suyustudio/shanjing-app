@@ -38,9 +38,14 @@ jobs:
     
     - name: Update Kotlin version
       run: |
-        # 更新 Kotlin 版本到 1.9.0
-        sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.0"/' android/build.gradle
-        cat android/build.gradle | grep kotlin_version
+        if [ -f "android/build.gradle" ]; then
+          echo "Updating Kotlin version..."
+          sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.0"/' android/build.gradle
+          cat android/build.gradle | grep kotlin_version || echo "kotlin_version not found in build.gradle"
+        else
+          echo "android/build.gradle not found"
+          ls -la android/ || echo "android directory not found"
+        fi
     
     - name: Get dependencies
       run: flutter pub get
