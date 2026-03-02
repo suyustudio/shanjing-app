@@ -29,6 +29,20 @@ jobs:
     - name: Get dependencies
       run: flutter pub get
     
+    - name: Generate keystore
+      run: |
+        mkdir -p android/app
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/shanjing.keystore
+    
+    - name: Configure key.properties
+      run: |
+        cat > android/key.properties << EOL
+        storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+        keyPassword=${{ secrets.KEY_PASSWORD }}
+        keyAlias=shanjing
+        storeFile=shanjing.keystore
+        EOL
+    
     - name: Build APK
       run: |
         flutter build apk --release 2>&1 | tee build.log
