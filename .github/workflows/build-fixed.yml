@@ -36,22 +36,16 @@ jobs:
           echo "Android directory already exists"
         fi
     
-    - name: Update Kotlin version
+    - name: Check Kotlin configuration
       run: |
-        echo "=== Current android/build.gradle ==="
+        echo "=== android/build.gradle ==="
         cat android/build.gradle
         echo ""
-        echo "=== Updating Kotlin version in android/build.gradle ==="
-        # 在 android/build.gradle 中添加 kotlin-gradle-plugin 版本
-        if grep -q "org.jetbrains.kotlin:kotlin-gradle-plugin" android/build.gradle; then
-          sed -i 's/org.jetbrains.kotlin:kotlin-gradle-plugin:[^"]*"/org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0"/' android/build.gradle
-          echo "Updated kotlin-gradle-plugin version"
-        else
-          echo "WARNING: Could not find kotlin-gradle-plugin pattern"
-        fi
+        echo "=== android/settings.gradle (if exists) ==="
+        cat android/settings.gradle 2>/dev/null || echo "No settings.gradle"
         echo ""
-        echo "=== Updated android/build.gradle ==="
-        cat android/build.gradle
+        echo "=== android/gradle.properties ==="
+        cat android/gradle.properties 2>/dev/null || echo "No gradle.properties"
     
     - name: Get dependencies
       run: flutter pub get
