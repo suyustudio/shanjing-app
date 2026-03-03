@@ -169,25 +169,36 @@ OSS_REGION=...
 
 ### 配置信息
 - **仓库**: https://github.com/suyustudio/shanjing-app
-- **工作流**: `.github/workflows/build.yml`
-- **状态**: 🔄 构建调试中
-- **定时监控**: 每 5 分钟检查构建状态
+- **工作流**: `.github/workflows/build-fixed.yml`
+- **状态**: ✅ Build #33 成功
+- **APK 版本**: 1.0.0+1
+- **APK 大小**: 20.7 MB
+- **构建日期**: 2026-03-02
 
 ### 构建历史
-| 构建 | 状态 | 失败步骤 | 备注 |
-|------|------|----------|------|
-| #4 | ❌ | Build APK | 已添加详细日志，等待诊断 |
-| #3 | ❌ | Generate keystore | 已修复 |
-| #2 | ❌ | Generate keystore | 已修复 |
-| #1 | ❌ | Install dependencies | mobile 目录问题已修复 |
+| 构建 | 状态 | 说明 |
+|------|------|------|
+| #33 | ✅ 成功 | minSdkVersion 21 修复，APK 已生成 |
+| #32 | ✅ 成功 | 同上 |
+| #50 | ❌ 失败 | 旧工作流 build.yml，已弃用 |
+| #31 | ❌ 失败 | Kotlin 版本问题 |
+
+### APK 下载
+- **GitHub Actions**: https://github.com/suyustudio/shanjing-app/actions/runs/22589501871
+- **本地路径**: `/root/.openclaw/workspace/releases/shanjing-v1.0.0+1.apk`
+- **有效期**: 2026-05-31
 
 ### Secrets 配置
 - `AMAP_KEY`: e17f8ae117d84e2d2d394a2124866603
 - `GITHUB_TOKEN`: 自动提供
 
-### 相关文档
-- `github-actions-build-log.md` - 详细构建日志
-- `build-status-update.md` - 状态更新
+### 测试任务清单
+- [ ] 安装测试（Android 8.0+）
+- [ ] 启动测试
+- [ ] 地图加载测试
+- [ ] 离线地图功能测试
+- [ ] 导航功能测试
+- [ ] 性能测试（启动时间、内存占用）
 
 ## 最后更新
 
