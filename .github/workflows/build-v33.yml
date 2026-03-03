@@ -59,10 +59,18 @@ jobs:
           cat android/app/build.gradle
           
           # Fix minSdkVersion - Flutter uses flutter.minSdkVersion variable
-          # Replace flutter.minSdkVersion with hardcoded 21
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
           echo "Fixed minSdkVersion to 21"
           grep -i "minsdk" android/app/build.gradle || echo "No minSdk found"
+          
+          # Add location permissions to AndroidManifest.xml
+          sed -i '/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">/a\    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />\n    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />' android/app/src/main/AndroidManifest.xml
+          echo "Added permissions to AndroidManifest.xml"
+          
+          # Add abiFilters for AMap SDK
+          sed -i '/defaultConfig {/,/}/ { /versionName/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }
+}' android/app/build.gradle
+          echo "Added abiFilters"
           
           # Add location permissions to AndroidManifest.xml
           sed -i '/<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android">/a\    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />\n    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />' android/app/src/main/AndroidManifest.xml
