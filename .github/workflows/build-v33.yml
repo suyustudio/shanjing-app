@@ -35,34 +35,19 @@ jobs:
         run: |
           sed -i 's/id "org.jetbrains.kotlin.android" version "1.7.10"/id "org.jetbrains.kotlin.android" version "1.9.10"/' android/settings.gradle
       
-      - name: Fix build files with Python
+      - name: Fix app/build.gradle
         run: |
-          python3 << 'EOF'
-          import os
-          # Fix app/build.gradle
-          with open('android/app/build.gradle', 'r') as f:
-              content = f.read()
-          content = content.replace('minSdkVersion flutter.minSdkVersion', 'minSdkVersion 21')
-          # Add ndk block
-          content = content.replace('buildTypes', 'ndk { abiFilters "arm64-v8a", "armeabi-v7a", "x86_64" }\n    buildTypes')
-          with open('android/app/build.gradle', 'w') as f:
-              f.write(content)
-          
-          # Fix AndroidManifest.xml
-          with open('android/app/src/main/AndroidManifest.xml', 'r') as f:
-              content = f.read()
-          perms = '''
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.INTERNET"/>'''
-          content = content.replace('<manifest xmlns:android="http://schemas.android.com/apk/res/android">', '<manifest xmlns:android="http://schemas.android.com/apk/res/android">' + perms)
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
+          sed -i 's/buildTypes/ndk { abiFilters "arm64-v8a", "armeabi-v7a", "x86_64" }\n    buildTypes/' android/app/build.gradle
+      
+      - name: Fix AndroidManifest.xml
+        run: |
+          # Add permissions
+          sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
           # Add AMap Key
-          amap_key = os.environ.get('AMAP_KEY', 'your_amap_key_here')
-          content = content.replace('<application', '<application\n        <meta-data android:name="com.amap.api.v2.apikey" android:value="' + amap_key + '"/>')
-          content = content.replace('</application>', '<meta-data android:name="flutterEmbedding" android:value="2"/>\n    </application>')
-          with open('android/app/src/main/AndroidManifest.xml', 'w') as f:
-              f.write(content)
-          EOF
+          sed -i 's|<application|<application\n        <meta-data android:name="com.amap.api.v2.apikey" android:value="e17f8ae117d84e2d2d394a2124866603"/>|' android/app/src/main/AndroidManifest.xml
+          # Add flutterEmbedding V2
+          sed -i 's|</application>|<meta-data android:name="flutterEmbedding" android:value="2"/>\n    </application>|' android/app/src/main/AndroidManifest.xml
       
       - name: Get dependencies
         run: flutter pub get
