@@ -30,6 +30,8 @@ class AppError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -39,13 +41,13 @@ class AppError extends StatelessWidget {
             Icon(
               icon,
               size: 64,
-              color: iconColor ?? Colors.grey[400],
+              color: iconColor ?? (isDark ? Colors.grey[600] : Colors.grey[400]),
             ),
             const SizedBox(height: 16),
             Text(
               message,
               style: TextStyle(
-                color: Colors.grey[600],
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
                 fontSize: 16,
               ),
               textAlign: TextAlign.center,
@@ -75,10 +77,13 @@ class AppNetworkError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return AppError(
       message: '网络连接失败，请检查网络',
       onRetry: onRetry,
       icon: Icons.wifi_off,
+      iconColor: isDark ? Colors.grey[600] : Colors.grey[400],
     );
   }
 }
@@ -96,6 +101,8 @@ class AppEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -103,13 +110,13 @@ class AppEmpty extends StatelessWidget {
           Icon(
             icon,
             size: 64,
-            color: Colors.grey[400],
+            color: isDark ? Colors.grey[600] : Colors.grey[400],
           ),
           const SizedBox(height: 16),
           Text(
             message,
             style: TextStyle(
-              color: Colors.grey[600],
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
               fontSize: 16,
             ),
           ),

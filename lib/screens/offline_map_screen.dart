@@ -136,7 +136,10 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
     final success = await _offlineManager.downloadOfflineMap(city.cityCode, city.cityName);
     if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${city.cityName} 下载启动失败')),
+        SnackBar(
+          content: Text('${city.cityName} 下载启动失败'),
+          backgroundColor: DesignSystem.getError(context),
+        ),
       );
     } else {
       setState(() {
@@ -167,8 +170,15 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('确认删除'),
-        content: Text('确定要删除 ${city.cityName} 的离线地图吗？'),
+        backgroundColor: DesignSystem.getBackgroundElevated(context),
+        title: Text(
+          '确认删除',
+          style: TextStyle(color: DesignSystem.getTextPrimary(context)),
+        ),
+        content: Text(
+          '确定要删除 ${city.cityName} 的离线地图吗？',
+          style: TextStyle(color: DesignSystem.getTextSecondary(context)),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -176,8 +186,11 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('删除', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(backgroundColor: DesignSystem.getError(context)),
+            child: Text(
+              '删除',
+              style: TextStyle(color: DesignSystem.getTextInverse(context)),
+            ),
           ),
         ],
       ),
@@ -188,11 +201,17 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
       if (success) {
         _loadDownloadedCities();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${city.cityName} 已删除')),
+          SnackBar(
+            content: Text('${city.cityName} 已删除'),
+            backgroundColor: DesignSystem.getSuccess(context),
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${city.cityName} 删除失败')),
+          SnackBar(
+            content: Text('${city.cityName} 删除失败'),
+            backgroundColor: DesignSystem.getError(context),
+          ),
         );
       }
     }
@@ -236,11 +255,15 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.location_city, size: 64, color: Colors.grey[300]),
+            Icon(
+              Icons.location_city,
+              size: 64,
+              color: DesignSystem.getTextTertiary(context),
+            ),
             const SizedBox(height: 16),
             Text(
               showDownloaded ? '暂无已下载的离线地图' : '没有找到城市',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: DesignSystem.getTextSecondary(context)),
             ),
           ],
         ),
@@ -259,61 +282,82 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
 
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          color: DesignSystem.getBackgroundElevated(context),
           child: ListTile(
             leading: Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: isDownloaded ? DesignSystem.primary.withOpacity(0.1) : Colors.grey[200],
+                color: isDownloaded 
+                    ? DesignSystem.getPrimary(context).withOpacity(0.1) 
+                    : DesignSystem.getBackgroundTertiary(context),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 isDownloaded ? Icons.map : Icons.map_outlined,
-                color: isDownloaded ? DesignSystem.primary : Colors.grey,
+                color: isDownloaded ? DesignSystem.getPrimary(context) : DesignSystem.getTextTertiary(context),
               ),
             ),
-            title: Text(city.cityName),
+            title: Text(
+              city.cityName,
+              style: TextStyle(color: DesignSystem.getTextPrimary(context)),
+            ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_formatSize(city.dataSize)),
+                Text(
+                  _formatSize(city.dataSize),
+                  style: TextStyle(color: DesignSystem.getTextSecondary(context)),
+                ),
                 if (isDownloading || isPaused) ...[
                   const SizedBox(height: 4),
                   LinearProgressIndicator(
                     value: progress / 100,
-                    backgroundColor: Colors.grey[200],
+                    backgroundColor: DesignSystem.getBackgroundTertiary(context),
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isPaused ? Colors.orange : DesignSystem.primary,
+                      isPaused ? DesignSystem.getWarning(context) : DesignSystem.getPrimary(context),
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '${_getStatusText(status!)}: $progress%',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: DesignSystem.getTextSecondary(context),
+                    ),
                   ),
                 ],
               ],
             ),
             trailing: isDownloaded
                 ? IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: DesignSystem.getError(context),
+                    ),
                     onPressed: () => _deleteOfflineMap(city),
                   )
                 : isDownloading
                     ? IconButton(
-                        icon: const Icon(Icons.pause, color: Colors.orange),
+                        icon: Icon(
+                          Icons.pause,
+                          color: DesignSystem.getWarning(context),
+                        ),
                         onPressed: () => _pauseDownload(city),
                       )
                     : isPaused
                         ? IconButton(
-                            icon: const Icon(Icons.play_arrow, color: DesignSystem.primary),
+                            icon: Icon(
+                              Icons.play_arrow,
+                              color: DesignSystem.getPrimary(context),
+                            ),
                             onPressed: () => _resumeDownload(city),
                           )
                         : ElevatedButton(
                             onPressed: () => _startDownload(city),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: DesignSystem.primary,
-                              foregroundColor: Colors.white,
+                              backgroundColor: DesignSystem.getPrimary(context),
+                              foregroundColor: DesignSystem.getTextInverse(context),
                               padding: const EdgeInsets.symmetric(horizontal: 16),
                             ),
                             child: const Text('下载'),
@@ -331,13 +375,13 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('离线地图'),
-          backgroundColor: DesignSystem.primary,
-          foregroundColor: Colors.white,
-          bottom: const TabBar(
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            indicatorColor: Colors.white,
-            tabs: [
+          backgroundColor: DesignSystem.getPrimary(context),
+          foregroundColor: DesignSystem.getTextInverse(context),
+          bottom: TabBar(
+            labelColor: DesignSystem.getTextInverse(context),
+            unselectedLabelColor: DesignSystem.getTextInverse(context).withOpacity(0.7),
+            indicatorColor: DesignSystem.getTextInverse(context),
+            tabs: const [
               Tab(text: '已下载'),
               Tab(text: '热门城市'),
               Tab(text: '全部城市'),
@@ -358,12 +402,20 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                         padding: const EdgeInsets.all(16),
                         child: TextField(
                           controller: _searchController,
+                          style: TextStyle(color: DesignSystem.getTextPrimary(context)),
                           decoration: InputDecoration(
                             hintText: '搜索城市',
-                            prefixIcon: const Icon(Icons.search),
+                            hintStyle: TextStyle(color: DesignSystem.getTextTertiary(context)),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: DesignSystem.getTextSecondary(context),
+                            ),
                             suffixIcon: _searchController.text.isNotEmpty
                                 ? IconButton(
-                                    icon: const Icon(Icons.clear),
+                                    icon: Icon(
+                                      Icons.clear,
+                                      color: DesignSystem.getTextSecondary(context),
+                                    ),
                                     onPressed: () {
                                       _searchController.clear();
                                       _onSearch('');
@@ -372,7 +424,10 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                                 : null,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
                             ),
+                            filled: true,
+                            fillColor: DesignSystem.getBackgroundSecondary(context),
                           ),
                           onChanged: _onSearch,
                         ),
@@ -382,17 +437,24 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                         margin: const EdgeInsets.symmetric(horizontal: 16, bottom: 8),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: DesignSystem.getInfo(context).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                            Icon(
+                              Icons.info_outline,
+                              color: DesignSystem.getInfo(context),
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 '离线地图可在无网络环境下使用，建议在WiFi环境下下载',
-                                style: TextStyle(color: Colors.blue[700], fontSize: 12),
+                                style: TextStyle(
+                                  color: DesignSystem.getInfo(context),
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ],

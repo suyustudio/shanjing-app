@@ -8,6 +8,7 @@ import '../widgets/route_card.dart';
 import '../widgets/app_app_bar.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_error.dart';
+import '../constants/design_system.dart';
 import 'trail_detail_screen.dart';
 
 /// 页面切换动画 - FadeTransition
@@ -353,12 +354,61 @@ class _AnimatedRouteCardState extends State<_AnimatedRouteCard>
             child: child,
           );
         },
-        child: RouteCard(
-          imageUrl: widget.imageUrl,
-          name: widget.name,
-          distance: widget.distance,
-          duration: widget.duration,
-          onTap: () {}, // 由 GestureDetector 处理
+        child: Container(
+          padding: const EdgeInsets.all(DesignSystem.spacingMedium),
+          decoration: BoxDecoration(
+            color: DesignSystem.getBackgroundElevated(context),
+            borderRadius: BorderRadius.circular(DesignSystem.radius),
+            boxShadow: DesignSystem.getShadowLight(context),
+          ),
+          child: Row(
+            children: [
+              // 左侧缩略图
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: Container(
+                  width: 80,
+                  height: 60,
+                  color: DesignSystem.getBackgroundTertiary(context),
+                  child: Icon(
+                    Icons.image,
+                    color: DesignSystem.getTextTertiary(context),
+                  ),
+                ),
+              ),
+              const SizedBox(width: DesignSystem.spacingSmall + 4),
+              // 右侧信息
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.name,
+                      style: TextStyle(
+                        fontSize: DesignSystem.fontHeading - 2,
+                        fontWeight: FontWeight.w500,
+                        color: DesignSystem.getTextPrimary(context),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${widget.distance} · ${widget.duration}',
+                      style: TextStyle(
+                        fontSize: DesignSystem.fontBody,
+                        color: DesignSystem.getTextSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: DesignSystem.getTextTertiary(context),
+              ),
+            ],
+          ),
         ),
       ),
     );

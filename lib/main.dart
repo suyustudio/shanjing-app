@@ -6,6 +6,7 @@ import 'screens/discovery_screen.dart';
 import 'screens/profile_screen.dart';
 import 'services/offline_map_manager.dart';
 import 'services/network_manager.dart';
+import 'constants/design_system.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,10 +21,12 @@ void main() async {
   ]);
   
   // 性能优化：设置系统 UI 样式
+  // 使用自动适配亮暗模式的系统 UI 样式
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
     ),
   );
   
@@ -43,10 +46,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '杭州旅游指南',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        useMaterial3: true,
-      ),
+      // 亮色主题
+      theme: DesignSystem.lightTheme,
+      // 暗黑主题
+      darkTheme: DesignSystem.darkTheme,
+      // 跟随系统主题设置
+      themeMode: ThemeMode.system,
       home: const MainScreen(),
     );
   }

@@ -26,10 +26,12 @@ class FilterTags extends StatelessWidget {
               label: Text(tag),
               selected: isSelected,
               onSelected: (_) => onSelect(tag),
-              selectedColor: Theme.of(context).primaryColor,
-              backgroundColor: Colors.grey[200],
+              selectedColor: DesignSystem.getPrimary(context),
+              backgroundColor: DesignSystem.getBackgroundTertiary(context),
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : DesignSystem.textPrimary,
+                color: isSelected 
+                    ? DesignSystem.getTextInverse(context) 
+                    : DesignSystem.getTextPrimary(context),
                 fontSize: DesignSystem.fontBody,
               ),
               shape: RoundedRectangleBorder(

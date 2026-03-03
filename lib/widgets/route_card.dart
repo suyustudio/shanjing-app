@@ -53,17 +53,11 @@ class RouteCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(DesignSystem.spacingSmall + 4),
+        padding: const EdgeInsets.all(DesignSystem.spacingMedium),
         decoration: BoxDecoration(
-          color: DesignSystem.background,
+          color: DesignSystem.getBackgroundElevated(context),
           borderRadius: BorderRadius.circular(DesignSystem.radius),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: DesignSystem.getShadowLight(context),
         ),
         child: Row(
           children: [
@@ -78,20 +72,26 @@ class RouteCard extends StatelessWidget {
                 placeholder: (context, url) => Container(
                   width: 80,
                   height: 60,
-                  color: Colors.grey[200],
-                  child: const Center(
+                  color: DesignSystem.getBackgroundTertiary(context),
+                  child: Center(
                     child: SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: DesignSystem.getPrimary(context),
+                      ),
                     ),
                   ),
                 ),
                 errorWidget: (context, url, error) => Container(
                   width: 80,
                   height: 60,
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.image, color: Colors.grey),
+                  color: DesignSystem.getBackgroundTertiary(context),
+                  child: Icon(
+                    Icons.image, 
+                    color: DesignSystem.getTextTertiary(context),
+                  ),
                 ),
               ),
             ),
@@ -106,9 +106,10 @@ class RouteCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: DesignSystem.fontHeading - 2,
                             fontWeight: FontWeight.w500,
+                            color: DesignSystem.getTextPrimary(context),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -138,17 +139,17 @@ class RouteCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '$distance · $duration',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: DesignSystem.fontBody,
-                      color: DesignSystem.textSecondary,
+                      color: DesignSystem.getTextSecondary(context),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right,
-              color: Colors.grey,
+              color: DesignSystem.getTextTertiary(context),
             ),
           ],
         ),

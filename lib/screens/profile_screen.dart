@@ -15,17 +15,17 @@ class ProfileScreen extends StatelessWidget {
       body: ListView(
         children: [
           // 用户信息区域
-          _buildUserHeader(),
-          const Divider(),
+          _buildUserHeader(context),
+          Divider(color: DesignSystem.getDivider(context)),
           // 设置入口列表
-          _buildSettingsList(),
+          _buildSettingsList(context),
         ],
       ),
     );
   }
 
   /// 用户头像和昵称区域
-  Widget _buildUserHeader() {
+  Widget _buildUserHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(DesignSystem.spacingLarge),
       child: Column(
@@ -35,31 +35,32 @@ class ProfileScreen extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: DesignSystem.primary.withOpacity(0.1),
+              color: DesignSystem.getPrimary(context).withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.person,
               size: 40,
-              color: DesignSystem.primary,
+              color: DesignSystem.getPrimary(context),
             ),
           ),
           const SizedBox(height: DesignSystem.spacingMedium),
           // 用户昵称
-          const Text(
+          Text(
             '徒步爱好者',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
+              color: DesignSystem.getTextPrimary(context),
             ),
           ),
           const SizedBox(height: DesignSystem.spacingSmall),
           // 用户 ID
-          const Text(
+          Text(
             '@hiker_001',
             style: TextStyle(
               fontSize: 14,
-              color: DesignSystem.textSecondary,
+              color: DesignSystem.getTextSecondary(context),
             ),
           ),
           const SizedBox(height: DesignSystem.spacingMedium),
@@ -72,28 +73,22 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: DesignSystem.spacingLarge),
           // 统计卡片
-          _buildStatsCard(),
+          _buildStatsCard(context),
         ],
       ),
     );
   }
 
   /// 统计卡片
-  Widget _buildStatsCard() {
+  Widget _buildStatsCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(DesignSystem.spacingMedium),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: DesignSystem.getBackgroundElevated(context),
         borderRadius: BorderRadius.circular(DesignSystem.radius),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
+        boxShadow: DesignSystem.getShadowLight(context),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           // 已走路线
@@ -101,14 +96,20 @@ class ProfileScreen extends StatelessWidget {
           // 分隔线
           SizedBox(
             height: 40,
-            child: VerticalDivider(width: 1),
+            child: VerticalDivider(
+              width: 1,
+              color: DesignSystem.getDivider(context),
+            ),
           ),
           // 总里程
           _StatItem(value: '156.8', label: '总里程(km)'),
           // 分隔线
           SizedBox(
             height: 40,
-            child: VerticalDivider(width: 1),
+            child: VerticalDivider(
+              width: 1,
+              color: DesignSystem.getDivider(context),
+            ),
           ),
           // 总时长
           _StatItem(value: '48.5', label: '总时长(h)'),
@@ -118,31 +119,67 @@ class ProfileScreen extends StatelessWidget {
   }
 
   /// 设置入口列表
-  Widget _buildSettingsList() {
+  Widget _buildSettingsList(BuildContext context) {
     return Column(
       children: [
         ListTile(
-          leading: const Icon(Icons.settings),
-          title: const Text('设置'),
-          trailing: const Icon(Icons.chevron_right),
+          leading: Icon(
+            Icons.settings,
+            color: DesignSystem.getTextSecondary(context),
+          ),
+          title: Text(
+            '设置',
+            style: TextStyle(color: DesignSystem.getTextPrimary(context)),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: DesignSystem.getTextTertiary(context),
+          ),
           onTap: () {},
         ),
         ListTile(
-          leading: const Icon(Icons.notifications),
-          title: const Text('消息通知'),
-          trailing: const Icon(Icons.chevron_right),
+          leading: Icon(
+            Icons.notifications,
+            color: DesignSystem.getTextSecondary(context),
+          ),
+          title: Text(
+            '消息通知',
+            style: TextStyle(color: DesignSystem.getTextPrimary(context)),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: DesignSystem.getTextTertiary(context),
+          ),
           onTap: () {},
         ),
         ListTile(
-          leading: const Icon(Icons.help_outline),
-          title: const Text('帮助与反馈'),
-          trailing: const Icon(Icons.chevron_right),
+          leading: Icon(
+            Icons.help_outline,
+            color: DesignSystem.getTextSecondary(context),
+          ),
+          title: Text(
+            '帮助与反馈',
+            style: TextStyle(color: DesignSystem.getTextPrimary(context)),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: DesignSystem.getTextTertiary(context),
+          ),
           onTap: () {},
         ),
         ListTile(
-          leading: const Icon(Icons.info_outline),
-          title: const Text('关于我们'),
-          trailing: const Icon(Icons.chevron_right),
+          leading: Icon(
+            Icons.info_outline,
+            color: DesignSystem.getTextSecondary(context),
+          ),
+          title: Text(
+            '关于我们',
+            style: TextStyle(color: DesignSystem.getTextPrimary(context)),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: DesignSystem.getTextTertiary(context),
+          ),
           onTap: () {},
         ),
       ],
@@ -163,18 +200,18 @@ class _StatItem extends StatelessWidget {
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: DesignSystem.primary,
+            color: DesignSystem.getPrimary(context),
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: DesignSystem.fontSmall,
-            color: DesignSystem.textSecondary,
+            color: DesignSystem.getTextSecondary(context),
           ),
         ),
       ],

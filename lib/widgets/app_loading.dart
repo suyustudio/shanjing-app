@@ -22,6 +22,9 @@ class AppLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultColor = color ?? (isDark ? Colors.white70 : Theme.of(context).primaryColor);
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -30,7 +33,7 @@ class AppLoading extends StatelessWidget {
             width: size,
             height: size,
             child: CircularProgressIndicator(
-              color: color,
+              color: defaultColor,
             ),
           ),
           if (message != null) ...[
@@ -38,7 +41,7 @@ class AppLoading extends StatelessWidget {
             Text(
               message!,
               style: TextStyle(
-                color: Colors.grey[600],
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
                 fontSize: 14,
               ),
             ),
@@ -62,12 +65,14 @@ class AppLoadingSmall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return SizedBox(
       width: size,
       height: size,
       child: CircularProgressIndicator(
         strokeWidth: 2,
-        color: color ?? Colors.white,
+        color: color ?? (isDark ? Colors.white70 : Colors.white),
       ),
     );
   }

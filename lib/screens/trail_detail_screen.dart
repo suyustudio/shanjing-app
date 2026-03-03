@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
+import '../constants/design_system.dart';
 import 'navigation_screen.dart';
 
 /// 路线详情页
@@ -67,7 +68,10 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   void _downloadTrail() {
     // TODO: 下载路线
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('开始下载路线...')),
+      SnackBar(
+        content: const Text('开始下载路线...'),
+        backgroundColor: DesignSystem.getBackgroundSecondary(context),
+      ),
     );
   }
 
@@ -75,13 +79,13 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   Color _getDifficultyColor(String difficulty) {
     switch (difficulty) {
       case '简单':
-        return const Color(0xFF2D968A);
+        return DesignSystem.getSuccess(context);
       case '中等':
-        return const Color(0xFFFFC107);
+        return DesignSystem.getWarning(context);
       case '困难':
-        return const Color(0xFFF44336);
+        return DesignSystem.getError(context);
       default:
-        return const Color(0xFF757575);
+        return DesignSystem.getTextTertiary(context);
     }
   }
 
@@ -108,7 +112,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: DesignSystem.getBackground(context),
         body: SafeArea(
           child: Column(
             children: [
@@ -119,7 +123,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 封面图区域
-                      _buildCoverImage(),
+                      _buildCoverImage(context),
                       
                       // 内容区域
                       Padding(
@@ -128,22 +132,22 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // 路线名称 + 难度标签
-                            _buildTitleSection(),
+                            _buildTitleSection(context),
                             
                             const SizedBox(height: 16),
                             
                             // 距离/时长/海拔信息行
-                            _buildInfoRow(),
+                            _buildInfoRow(context),
                             
                             const SizedBox(height: 24),
                             
                             // 路线简介
-                            _buildDescription(),
+                            _buildDescription(context),
                             
                             const SizedBox(height: 24),
                             
                             // TabBar
-                            _buildTabBar(),
+                            _buildTabBar(context),
                           ],
                         ),
                       ),
@@ -151,7 +155,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                       // TabBarView 内容
                       SizedBox(
                         height: 300,
-                        child: _buildTabBarView(),
+                        child: _buildTabBarView(context),
                       ),
                     ],
                   ),
@@ -159,7 +163,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
               ),
               
               // 底部开始导航按钮
-              _buildBottomButton(),
+              _buildBottomButton(context),
             ],
           ),
         ),
@@ -168,7 +172,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   }
 
   /// 构建封面图区域
-  Widget _buildCoverImage() {
+  Widget _buildCoverImage(BuildContext context) {
     return Stack(
       children: [
         // 封面图
@@ -178,7 +182,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
           margin: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: Colors.grey[200],
+            color: DesignSystem.getBackgroundTertiary(context),
             image: DecorationImage(
               image: NetworkImage(_trailData['coverUrl']),
               fit: BoxFit.cover,
@@ -192,21 +196,15 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
           right: 24,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
+              color: DesignSystem.getBackgroundElevated(context).withOpacity(0.9),
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              boxShadow: DesignSystem.getShadowLight(context),
             ),
             child: IconButton(
               onPressed: _toggleFavorite,
               icon: Icon(
                 _isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: _isFavorite ? Colors.red : Colors.grey[700],
+                color: _isFavorite ? Colors.red : DesignSystem.getTextSecondary(context),
               ),
             ),
           ),
@@ -216,17 +214,17 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   }
 
   /// 构建标题区域（路线名称 + 难度标签）
-  Widget _buildTitleSection() {
+  Widget _buildTitleSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 路线名称
         Text(
           _trailData['name'],
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF212121),
+            color: DesignSystem.getTextPrimary(context),
           ),
         ),
         
@@ -242,7 +240,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                   index < _trailData['difficultyLevel']
                       ? Icons.star
                       : Icons.star_border,
-                  color: const Color(0xFFFFC107),
+                  color: DesignSystem.getWarning(context),
                   size: 18,
                 );
               }),
@@ -273,11 +271,11 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   }
 
   /// 构建信息行（距离/时长/海拔）
-  Widget _buildInfoRow() {
+  Widget _buildInfoRow(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: DesignSystem.getBackgroundSecondary(context),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -285,6 +283,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
         children: [
           // 距离
           _buildInfoItem(
+            context: context,
             icon: Icons.location_on_outlined,
             value: '${_trailData['distance']} km',
             label: '距离',
@@ -294,11 +293,12 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
           Container(
             height: 40,
             width: 1,
-            color: Colors.grey[300],
+            color: DesignSystem.getDivider(context),
           ),
           
           // 时长
           _buildInfoItem(
+            context: context,
             icon: Icons.timer_outlined,
             value: _formatDuration(_trailData['duration']),
             label: '时长',
@@ -308,11 +308,12 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
           Container(
             height: 40,
             width: 1,
-            color: Colors.grey[300],
+            color: DesignSystem.getDivider(context),
           ),
           
           // 海拔
           _buildInfoItem(
+            context: context,
             icon: Icons.trending_up_outlined,
             value: '${_trailData['elevation']} m',
             label: '海拔爬升',
@@ -324,6 +325,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
 
   /// 构建单个信息项
   Widget _buildInfoItem({
+    required BuildContext context,
     required IconData icon,
     required String value,
     required String label,
@@ -332,16 +334,16 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
       children: [
         Icon(
           icon,
-          color: const Color(0xFF2D968A),
+          color: DesignSystem.getPrimary(context),
           size: 24,
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF212121),
+            color: DesignSystem.getTextPrimary(context),
           ),
         ),
         const SizedBox(height: 2),
@@ -349,7 +351,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[600],
+            color: DesignSystem.getTextSecondary(context),
           ),
         ),
       ],
@@ -357,18 +359,18 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   }
 
   /// 构建 TabBar
-  Widget _buildTabBar() {
+  Widget _buildTabBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.grey[300]!),
+          bottom: BorderSide(color: DesignSystem.getDivider(context)),
         ),
       ),
-      child: const TabBar(
-        labelColor: Color(0xFF2D968A),
-        unselectedLabelColor: Colors.grey,
-        indicatorColor: Color(0xFF2D968A),
-        tabs: [
+      child: TabBar(
+        labelColor: DesignSystem.getPrimary(context),
+        unselectedLabelColor: DesignSystem.getTextSecondary(context),
+        indicatorColor: DesignSystem.getPrimary(context),
+        tabs: const [
           Tab(text: '轨迹'),
           Tab(text: '评价'),
           Tab(text: '攻略'),
@@ -378,28 +380,28 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   }
 
   /// 构建 TabBarView
-  Widget _buildTabBarView() {
-    return const TabBarView(
+  Widget _buildTabBarView(BuildContext context) {
+    return TabBarView(
       children: [
         // 轨迹 Tab
         Center(
           child: Text(
             '轨迹内容',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: DesignSystem.getTextTertiary(context)),
           ),
         ),
         // 评价 Tab
         Center(
           child: Text(
             '评价内容',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: DesignSystem.getTextTertiary(context)),
           ),
         ),
         // 攻略 Tab
         Center(
           child: Text(
             '攻略内容',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: DesignSystem.getTextTertiary(context)),
           ),
         ),
       ],
@@ -407,16 +409,16 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   }
 
   /// 构建路线简介
-  Widget _buildDescription() {
+  Widget _buildDescription(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           '路线简介',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF212121),
+            color: DesignSystem.getTextPrimary(context),
           ),
         ),
         const SizedBox(height: 8),
@@ -424,7 +426,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
           _trailData['description'],
           style: TextStyle(
             fontSize: 14,
-            color: Colors.grey[700],
+            color: DesignSystem.getTextSecondary(context),
             height: 1.6,
           ),
           maxLines: 4,
@@ -435,11 +437,11 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   }
 
   /// 构建底部操作栏
-  Widget _buildBottomButton() {
+  Widget _buildBottomButton(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: DesignSystem.getBackgroundElevated(context),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -457,7 +459,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
               onPressed: _toggleFavorite,
               icon: Icon(
                 _isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: _isFavorite ? Colors.red : Colors.grey[700],
+                color: _isFavorite ? Colors.red : DesignSystem.getTextSecondary(context),
               ),
             ),
             const SizedBox(width: 8),
@@ -468,8 +470,8 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _startNavigation,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2D968A),
-                    foregroundColor: Colors.white,
+                    backgroundColor: DesignSystem.getPrimary(context),
+                    foregroundColor: DesignSystem.getTextInverse(context),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -493,7 +495,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
               onPressed: _downloadTrail,
               icon: Icon(
                 Icons.download_outlined,
-                color: Colors.grey[700],
+                color: DesignSystem.getTextSecondary(context),
               ),
             ),
           ],
@@ -505,7 +507,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   /// 构建空状态
   Widget _buildEmptyState() {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: DesignSystem.getBackground(context),
       body: AppError(
         message: '路线不存在或已下架',
         icon: Icons.map_outlined,

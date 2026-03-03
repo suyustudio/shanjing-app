@@ -35,28 +35,36 @@ class _SearchBarState extends State<SearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       decoration: BoxDecoration(
-        color: DesignSystem.background,
+        color: isDark ? DesignSystem.backgroundTertiaryDark : DesignSystem.background,
         borderRadius: BorderRadius.circular(DesignSystem.spacingLarge),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: DesignSystem.getShadow(context),
       ),
       child: TextField(
         controller: _controller,
         onChanged: (_) => setState(() {}),
         onSubmitted: _onSubmitted,
+        style: TextStyle(
+          color: DesignSystem.getTextPrimary(context),
+        ),
         decoration: InputDecoration(
           hintText: widget.hintText ?? '搜索',
-          prefixIcon: const Icon(Icons.search),
+          hintStyle: TextStyle(
+            color: DesignSystem.getTextTertiary(context),
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: DesignSystem.getTextSecondary(context),
+          ),
           suffixIcon: _controller.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear),
+                  icon: Icon(
+                    Icons.clear,
+                    color: DesignSystem.getTextSecondary(context),
+                  ),
                   onPressed: _onClear,
                 )
               : null,

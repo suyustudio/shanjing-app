@@ -422,16 +422,16 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   /// 获取状态颜色
-  Color _getStatusColor() {
+  Color _getStatusColor(BuildContext context) {
     switch (_status) {
       case NavigationStatus.navigating:
-        return DesignSystem.primary;
+        return DesignSystem.getPrimary(context);
       case NavigationStatus.offRoute:
-        return Colors.orange;
+        return DesignSystem.getWarning(context);
       case NavigationStatus.arrived:
-        return Colors.green;
+        return DesignSystem.getSuccess(context);
       case NavigationStatus.weakSignal:
-        return Colors.grey;
+        return DesignSystem.getTextTertiary(context);
     }
   }
 
@@ -464,8 +464,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
     return Scaffold(
       appBar: AppAppBar(
         title: '导航: ${widget.routeName}',
-        backgroundColor: _getStatusColor(),
-        foregroundColor: Colors.white,
+        backgroundColor: _getStatusColor(context),
+        foregroundColor: DesignSystem.getTextInverse(context),
         showBack: true,
       ),
       body: Stack(
@@ -493,7 +493,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
             polylines: {
               Polyline(
                 points: _routePoints,
-                color: DesignSystem.primary,
+                color: DesignSystem.getPrimary(context),
                 width: 6,
               ),
             },
@@ -505,7 +505,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
             top: 16,
             left: 16,
             right: 16,
-            child: _buildInfoCard(),
+            child: _buildInfoCard(context),
           ),
 
           // 底部控制栏
@@ -513,7 +513,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
             bottom: 24,
             left: 16,
             right: 16,
-            child: _buildBottomCard(),
+            child: _buildBottomCard(context),
           ),
         ],
       ),
@@ -550,9 +550,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   /// 构建顶部信息卡片
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(BuildContext context) {
     return Card(
       elevation: 4,
+      color: DesignSystem.getBackgroundElevated(context),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -565,7 +566,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
-                    color: _getStatusColor(),
+                    color: _getStatusColor(context),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -575,7 +576,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _getStatusColor(),
+                    color: _getStatusColor(context),
                   ),
                 ),
                 const Spacer(),
@@ -585,8 +586,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       color: _currentPosition!.accuracy <= _minAccuracy
-                          ? Colors.green
-                          : Colors.orange,
+                          ? DesignSystem.getSuccess(context)
+                          : DesignSystem.getWarning(context),
                     ),
                   ),
               ],
@@ -598,16 +599,19 @@ class _NavigationScreenState extends State<NavigationScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildInfoItem(
+                  context: context,
                   icon: Icons.location_on,
                   value: '${_remainingDistance.toStringAsFixed(0)} m',
                   label: '剩余距离',
                 ),
                 _buildInfoItem(
+                  context: context,
                   icon: Icons.access_time,
                   value: '$_estimatedArrivalMinutes 分',
                   label: '预计时间',
                 ),
                 _buildInfoItem(
+                  context: context,
                   icon: Icons.trending_up,
                   value: '${((_totalDistance - _remainingDistance) / _totalDistance * 100).toStringAsFixed(0)}%',
                   label: '完成进度',
@@ -622,26 +626,28 @@ class _NavigationScreenState extends State<NavigationScreen> {
 
   /// 构建信息项
   Widget _buildInfoItem({
+    required BuildContext context,
     required IconData icon,
     required String value,
     required String label,
   }) {
     return Column(
       children: [
-        Icon(icon, color: DesignSystem.primary, size: 24),
+        Icon(icon, color: DesignSystem.getPrimary(context), size: 24),
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
+            color: DesignSystem.getTextPrimary(context),
           ),
         ),
         Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[600],
+            color: DesignSystem.getTextSecondary(context),
           ),
         ),
       ],
@@ -649,9 +655,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   /// 构建底部控制卡片
-  Widget _buildBottomCard() {
+  Widget _buildBottomCard(BuildContext context) {
     return Card(
       elevation: 4,
+      color: DesignSystem.getBackgroundElevated(context),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -659,9 +666,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
           children: [
             Text(
               widget.routeName,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: DesignSystem.getTextPrimary(context),
               ),
             ),
             const SizedBox(height: 12),
@@ -678,7 +686,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   },
                   icon: Icon(
                     _isTtsInitialized ? Icons.volume_up : Icons.volume_off,
-                    color: _isTtsInitialized ? DesignSystem.primary : Colors.grey,
+                    color: _isTtsInitialized ? DesignSystem.getPrimary(context) : DesignSystem.getTextTertiary(context),
                   ),
                 ),
 
@@ -689,8 +697,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
+                    backgroundColor: DesignSystem.getError(context),
+                    foregroundColor: DesignSystem.getTextInverse(context),
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   ),
                   icon: const Icon(Icons.stop),
@@ -703,8 +711,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
                     _speak('正在重新规划路线');
                     // TODO: 重新规划路线
                   },
-                  icon: const Icon(Icons.refresh),
-                  color: DesignSystem.primary,
+                  icon: Icon(
+                    Icons.refresh,
+                    color: DesignSystem.getPrimary(context),
+                  ),
                 ),
               ],
             ),
