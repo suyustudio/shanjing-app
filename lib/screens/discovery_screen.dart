@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide SearchBar;
 import '../widgets/search_bar.dart';
 import '../widgets/filter_tags.dart';
 import '../widgets/route_card.dart';
