@@ -24,88 +24,41 @@ jobs:
       
       - name: Create Android Project with Flutter
         run: |
-          # Remove existing android directory if any
           rm -rf android
-          
-          # Create .env file if not exists (required by flutter_dotenv)
           if [ ! -f .env ]; then
             echo "AMAP_KEY=your_amap_key_here" > .env
-            echo "Created .env file"
           fi
-          
-          # Use flutter create to generate proper Android project
           flutter config --enable-android
           flutter create --platforms=android --project-name=shanjing_app .
-          
-          echo "=== Flutter created Android project ==="
-          ls -la android/
       
       - name: Fix Kotlin version
         run: |
-          # Flutter 3.19 uses settings.gradle for plugin versions
-          echo "=== Original settings.gradle ==="
-          cat android/settings.gradle
-          
-          # Upgrade Kotlin version in settings.gradle (handle double quotes)
           sed -i 's/id "org.jetbrains.kotlin.android" version "1.7.10"/id "org.jetbrains.kotlin.android" version "1.9.10"/' android/settings.gradle
-          
-          echo "=== Fixed settings.gradle ==="
-          cat android/settings.gradle
       
-      - name: Fix Android build files
+      - name: Fix build files with Python
         run: |
-          python3 << 'PYEOF'
-          import re
-          
+          python3 << 'EOF'
           # Fix app/build.gradle
           with open('android/app/build.gradle', 'r') as f:
               content = f.read()
-          
-          # Replace flutter.minSdkVersion with 21
           content = content.replace('minSdkVersion flutter.minSdkVersion', 'minSdkVersion 21')
-          
-          # Add ndk abiFilters before the closing brace of defaultConfig
-          default_config_end = content.find('buildTypes')
-          if default_config_end != -1:
-              ndk_block = '''        ndk {
-            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"
-        }
-'''
-              content = content[:default_config_end] + ndk_block + '\n    ' + content[default_config_end:]
-          
+          # Add ndk block
+          content = content.replace('buildTypes', 'ndk { abiFilters "arm64-v8a", "armeabi-v7a", "x86_64" }\n    buildTypes')
           with open('android/app/build.gradle', 'w') as f:
               f.write(content)
-          
-          print("Fixed android/app/build.gradle")
           
           # Fix AndroidManifest.xml
           with open('android/app/src/main/AndroidManifest.xml', 'r') as f:
               content = f.read()
-          
-          # Add permissions after manifest tag
-          permissions = '''    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />'''
-          
-          if '<uses-permission' not in content:
-              content = content.replace('<manifest xmlns:android="http://schemas.android.com/apk/res/android">', 
-                                       '<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n' + permissions)
-          
-          # Fix flutterEmbedding to V2
-          if 'flutterEmbedding' not in content:
-              content = content.replace('</application>', 
-                                       '<meta-data android:name="flutterEmbedding" android:value="2" />\n    </application>')
-          else:
-              content = content.replace('android:value="1"', 'android:value="2"')
-          
+          perms = '''
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>'''
+          content = content.replace('<manifest xmlns:android="http://schemas.android.com/apk/res/android">', '<manifest xmlns:android="http://schemas.android.com/apk/res/android">' + perms)
+          content = content.replace('</application>', '<meta-data android:name="flutterEmbedding" android:value="2"/>\n    </application>')
           with open('android/app/src/main/AndroidManifest.xml', 'w') as f:
               f.write(content)
-          
-          print("Fixed AndroidManifest.xml")
-          PYEOF
+          EOF
       
       - name: Get dependencies
         run: flutter pub get
