@@ -25,6 +25,7 @@ jobs:
       with:
         flutter-version: '3.19.0'
         channel: 'stable'
+        cache: false
     
     - name: Check and create Android platform
       run: |
@@ -32,8 +33,32 @@ jobs:
           echo "Android directory not found, creating..."
           flutter config --enable-android
           flutter create --platforms=android --project-name=shanjing_app .
-        else
-          echo "Android directory already exists"
+          echo "Waiting for files..."
+          sleep 5
+        fi
+        echo "=== Android directory contents ==="
+        ls -la android/ || echo "Directory not found"
+        
+        # Ensure settings.gradle exists
+        if [ ! -f "android/settings.gradle" ]; then
+          echo "Creating settings.gradle..."
+          cat > android/settings.gradle << 'EOF'
+pluginManagement {
+    def flutterSdkPath = {
+        def properties = new Properties()
+        file("local.properties").withInputStream { properties.load(it) }
+        def flutterSdkPath = properties.getProperty("flutter.sdk")
+        assert flutterSdkPath != null, "flutter.sdk not set in local.properties"
+        return flutterSdkPath
+    }()
+    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+}
+plugins {
+    id "dev.flutter.flutter-plugin-loader" version "1.0.0"
+    id "com.android.application" version "8.1.0" apply false
+    id "org.jetbrains.kotlin.android" version "1.9.0" apply false
+}
+EOF
         fi
     
     - name: Update Kotlin version
