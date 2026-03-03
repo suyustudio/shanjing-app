@@ -38,6 +38,7 @@ jobs:
       - name: Fix build files with Python
         run: |
           python3 << 'EOF'
+          import os
           # Fix app/build.gradle
           with open('android/app/build.gradle', 'r') as f:
               content = f.read()
@@ -55,6 +56,9 @@ jobs:
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.INTERNET"/>'''
           content = content.replace('<manifest xmlns:android="http://schemas.android.com/apk/res/android">', '<manifest xmlns:android="http://schemas.android.com/apk/res/android">' + perms)
+          # Add AMap Key
+          amap_key = os.environ.get('AMAP_KEY', 'your_amap_key_here')
+          content = content.replace('<application', f'<application\n        <meta-data android:name="com.amap.api.v2.apikey" android:value="{amap_key}"/>')
           content = content.replace('</application>', '<meta-data android:name="flutterEmbedding" android:value="2"/>\n    </application>')
           with open('android/app/src/main/AndroidManifest.xml', 'w') as f:
               f.write(content)
