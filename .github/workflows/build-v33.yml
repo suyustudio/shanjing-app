@@ -111,33 +111,8 @@ jobs:
         if [ ! -f "android/app/src/main/AndroidManifest.xml" ]; then
           echo "Creating AndroidManifest.xml..."
           mkdir -p android/app/src/main
-          echo '<manifest xmlns:android="http://schemas.android.com/apk/res/android">' > android/app/src/main/AndroidManifest.xml
-          echo '    <application' >> android/app/src/main/AndroidManifest.xml
-          echo '        android:label="shanjing"' >> android/app/src/main/AndroidManifest.xml
-          echo '        android:name="${applicationName}"' >> android/app/src/main/AndroidManifest.xml
-          echo '        android:icon="@mipmap/ic_launcher">' >> android/app/src/main/AndroidManifest.xml
-          echo '        <activity' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:name=".MainActivity"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:exported="true"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:launchMode="singleTop"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:theme="@style/LaunchTheme"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:hardwareAccelerated="true"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:windowSoftInputMode="adjustResize">' >> android/app/src/main/AndroidManifest.xml
-          echo '            <meta-data' >> android/app/src/main/AndroidManifest.xml
-          echo '              android:name="io.flutter.embedding.android.NormalTheme"' >> android/app/src/main/AndroidManifest.xml
-          echo '              android:resource="@style/NormalTheme"' >> android/app/src/main/AndroidManifest.xml
-          echo '              />' >> android/app/src/main/AndroidManifest.xml
-          echo '            <intent-filter>' >> android/app/src/main/AndroidManifest.xml
-          echo '                <action android:name="android.intent.action.MAIN"/>' >> android/app/src/main/AndroidManifest.xml
-          echo '                <category android:name="android.intent.category.LAUNCHER"/>' >> android/app/src/main/AndroidManifest.xml
-          echo '            </intent-filter>' >> android/app/src/main/AndroidManifest.xml
-          echo '        </activity>' >> android/app/src/main/AndroidManifest.xml
-          echo '        <meta-data' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:name="flutterEmbedding"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:value="2" />' >> android/app/src/main/AndroidManifest.xml
-          echo '    </application>' >> android/app/src/main/AndroidManifest.xml
-          echo '</manifest>' >> android/app/src/main/AndroidManifest.xml
+          # Use base64 to avoid YAML escaping issues
+          echo 'PG1hbmlmZXN0IHhtbG5zOmFuZHJvaWQ9Imh0dHA6Ly9zY2hlbWFzLmFuZHJvaWQuY29tL2Fway9yZXMvYW5kcm9pZCI+CiAgICA8YXBwbGljYXRpb24KICAgICAgICBhbmRyb2lkOmxhYmVsPSJzaGFuamluZyIKICAgICAgICBhbmRyb2lkOm5hbWU9IiR7YXBwbGljYXRpb25OYW1lfSIKICAgICAgICBhbmRyb2lkOmljb249IkBtaXBhcC9pY19sYXVuY2hlciI+CiAgICAgICAgPGFjdGl2aXR5CiAgICAgICAgICAgIGFuZHJvaWQ6bmFtZT0iLk1haW5BY3Rpdml0eSIKICAgICAgICAgICAgYW5kcm9pZDpleHBvcnRlZD0idHJ1ZSIKICAgICAgICAgICAgYW5kcm9pZDpsYXVuY2hNb2RlPSJzaW5nbGVUb3AiCiAgICAgICAgICAgIGFuZHJvaWQ6dGhlbWU9IkBzdHlsZS9MYXVuY2hUaGVtZSIKICAgICAgICAgICAgYW5kcm9pZDpjb25maWdDaGFuZ2VzPSJvcmllbnRhdGlvbnxrZXlib2FyZEhpZGRlbnxrZXlib2FyZHxzY3JlZW5TaXplfHNtYWxsZXN0U2NyZWVuU2l6ZXxsb2NhbGV8bGF5b3V0RGlyZWN0aW9ufGZvbnRTY2FsZXxzY3JlZW5MYXlvdXR8ZGVuc2l0eHx1aU1vZGUiCiAgICAgICAgICAgIGFuZHJvaWQ6aGFyZHdhcmVBY2NlbGVyYXRlZD0idHJ1ZSIKICAgICAgICAgICAgYW5kcm9pZDp3aW5kb3dTb2Z0SW5wdXRNb2RlPSJhZGp1c3RSZXNpemUiPgogICAgICAgICAgICA8bWV0YS1kYXRhCiAgICAgICAgICAgICAgYW5kcm9pZDpuYW1lPSJpby5mbHV0dGVyLmVtYmVkZGluZy5hbmRyb2lkLk5vcm1hbFRoZW1lIgogICAgICAgICAgICAgIGFuZHJvaWQ6cmVzb3VyY2U9IkBzdHlsZS9Ob3JtYWxUaGVtZSIKICAgICAgICAgICAgICAvPgogICAgICAgICAgICA8aW50ZW50LWZpbHRlcj4KICAgICAgICAgICAgICAgIDxhY3Rpb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLmludGVudC5hY3Rpb24uTUFJTiIvPgogICAgICAgICAgICAgICAgPGNhdGVnb3J5IGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5pbnRlbnQuY2F0ZWdvcnkuTEFVTkNIRVIiLz4KICAgICAgICAgICAgPC9pbnRlbnQtZmlsdGVyPgogICAgICAgIDwvYWN0aXZpdHk+CiAgICAgICAgPG1ldGEtZGF0YQogICAgICAgICAgICBhbmRyb2lkOm5hbWU9ImZsdXR0ZXJFbWJlZGRpbmciCiAgICAgICAgICAgIGFuZHJvaWQ6dmFsdWU9IjIiIC8+CiAgICA8L2FwcGxpY2F0aW9uPgo8L21hbmlmZXN0Pgo=' | base64 -d > android/app/src/main/AndroidManifest.xml
         fi
     
     - name: Update Kotlin version
