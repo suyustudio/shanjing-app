@@ -59,19 +59,56 @@ jobs:
           echo '    id "org.jetbrains.kotlin.android" version "1.9.0" apply false' >> android/settings.gradle
           echo '}' >> android/settings.gradle
         fi
+        
+        # Ensure app/build.gradle exists
+        if [ ! -f "android/app/build.gradle" ]; then
+          echo "Creating app/build.gradle..."
+          mkdir -p android/app
+          echo 'plugins {' > android/app/build.gradle
+          echo '    id "com.android.application"' >> android/app/build.gradle
+          echo '    id "kotlin-android"' >> android/app/build.gradle
+          echo '    id "dev.flutter.flutter-gradle-plugin"' >> android/app/build.gradle
+          echo '}' >> android/app/build.gradle
+          echo '' >> android/app/build.gradle
+          echo 'android {' >> android/app/build.gradle
+          echo '    namespace = "com.example.shanjing"' >> android/app/build.gradle
+          echo '    compileSdk = flutter.compileSdkVersion' >> android/app/build.gradle
+          echo '    ndkVersion = flutter.ndkVersion' >> android/app/build.gradle
+          echo '' >> android/app/build.gradle
+          echo '    compileOptions {' >> android/app/build.gradle
+          echo '        sourceCompatibility = JavaVersion.VERSION_17' >> android/app/build.gradle
+          echo '        targetCompatibility = JavaVersion.VERSION_17' >> android/app/build.gradle
+          echo '    }' >> android/app/build.gradle
+          echo '' >> android/app/build.gradle
+          echo '    kotlinOptions {' >> android/app/build.gradle
+          echo '        jvmTarget = "17"' >> android/app/build.gradle
+          echo '    }' >> android/app/build.gradle
+          echo '' >> android/app/build.gradle
+          echo '    defaultConfig {' >> android/app/build.gradle
+          echo '        applicationId = "com.example.shanjing"' >> android/app/build.gradle
+          echo '        minSdk = 21' >> android/app/build.gradle
+          echo '        targetSdk = flutter.targetSdkVersion' >> android/app/build.gradle
+          echo '        versionCode = flutter.versionCode' >> android/app/build.gradle
+          echo '        versionName = flutter.versionName' >> android/app/build.gradle
+          echo '    }' >> android/app/build.gradle
+          echo '' >> android/app/build.gradle
+          echo '    buildTypes {' >> android/app/build.gradle
+          echo '        release {' >> android/app/build.gradle
+          echo '            signingConfig = signingConfigs.debug' >> android/app/build.gradle
+          echo '        }' >> android/app/build.gradle
+          echo '    }' >> android/app/build.gradle
+          echo '}' >> android/app/build.gradle
+          echo '' >> android/app/build.gradle
+          echo 'flutter {' >> android/app/build.gradle
+          echo '    source = "../.."' >> android/app/build.gradle
+          echo '}' >> android/app/build.gradle
+        fi
     
     - name: Update Kotlin version
       run: |
         echo "=== Updating Kotlin version in settings.gradle ==="
         sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.0"/' android/settings.gradle
         cat android/settings.gradle | grep "org.jetbrains.kotlin.android"
-    
-    - name: Update minSdkVersion
-      run: |
-        echo "=== Updating minSdkVersion in app/build.gradle ==="
-        # 更新 minSdkVersion 为 21
-        sed -i 's/minSdkVersion .*/minSdkVersion 21/' android/app/build.gradle
-        cat android/app/build.gradle | grep minSdkVersion
     
     - name: Get dependencies
       run: flutter pub get
