@@ -36,20 +36,15 @@ jobs:
       
       - name: Fix Kotlin version
         run: |
-          # Debug: show original build.gradle
-          echo "=== Original android/build.gradle ==="
-          cat android/build.gradle
+          # Flutter 3.19 uses settings.gradle for plugin versions
+          echo "=== Original settings.gradle ==="
+          cat android/settings.gradle
           
-          # Check and fix Kotlin version
-          if grep -q "ext.kotlin_version" android/build.gradle; then
-            sed -i "s/ext.kotlin_version = '1.7.10'/ext.kotlin_version = '1.9.10'/" android/build.gradle
-            echo "Upgraded Kotlin to 1.9.10"
-          else
-            echo "ERROR: No kotlin_version found in build.gradle"
-          fi
+          # Upgrade Kotlin version in settings.gradle
+          sed -i "s/id 'org.jetbrains.kotlin.android' version '1.7.10'/id 'org.jetbrains.kotlin.android' version '1.9.10'/" android/settings.gradle
           
-          echo "=== Fixed android/build.gradle ==="
-          cat android/build.gradle
+          echo "=== Fixed settings.gradle ==="
+          cat android/settings.gradle
       
       - name: Fix AndroidManifest to V2
         run: |
