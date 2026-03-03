@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/map_screen.dart';
+import 'screens/discovery_screen.dart';
 import 'screens/profile_screen.dart';
 
-void main() {
-  // 性能优化：设置首选方向
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 加载环境变量
+  await dotenv.load(fileName: ".env");
+  
+  // 性能优化：设置首选方向
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -50,7 +56,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     const KeepAlivePage(child: MapScreen()),
-    const KeepAlivePage(child: DiscoverScreen()),
+    const KeepAlivePage(child: DiscoveryScreen()),
     const KeepAlivePage(child: ProfileScreen()),
   ];
 
@@ -103,16 +109,4 @@ class _KeepAlivePageState extends State<KeepAlivePage>
 
   @override
   bool get wantKeepAlive => true;
-}
-
-/// 发现页面
-class DiscoverScreen extends StatelessWidget {
-  const DiscoverScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('发现页面', style: TextStyle(fontSize: 24)),
-    );
-  }
 }
