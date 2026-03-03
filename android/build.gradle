@@ -18,12 +18,10 @@ allprojects {
 }
 
 rootProject.buildDir = '../build'
-subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
-    project.evaluationDependsOn(':app')
-}
+
+// 不要在这里使用 evaluationDependsOn
+// 让 Flutter 插件自己处理依赖
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
