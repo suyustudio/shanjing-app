@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.amap_demo"
+    namespace = "com.example.hangzhou_guide"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -19,7 +19,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.amap_demo"
+        applicationId = "com.example.hangzhou_guide"
         minSdk = 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -31,6 +31,13 @@ android {
             signingConfig = signingConfigs.debug
         }
     }
+}
+
+dependencies {
+    // 高德地图SDK - 离线地图
+    implementation 'com.amap.api:map3d:latest.integration'
+    implementation 'com.amap.api:search:latest.integration'
+    implementation 'com.amap.api:location:latest.integration'
 }
 
 flutter {

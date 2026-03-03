@@ -319,8 +319,116 @@ OSS_REGION=...
 
 ## 最后更新
 
-- **更新时间**: 2026-03-03 13:50
+- **更新时间**: 2026-03-03 14:00
 - **更新内容**: 
-  - QA测试 + Product测试完成
-  - Design测试完成，发现P1问题5个，P2问题3个
-  - 总计：P0问题2个，P1问题11个，P2问题10个
+  - P0离线地图问题修复完成
+  - 新增离线地图管理器、存储管理、网络管理
+  - Android/iOS原生实现完成
+  - 待真机测试验证
+
+## P0 问题修复 - 离线地图功能（2026-03-03）
+
+### 问题描述
+离线地图功能为UI模拟，未接入真实的高德离线SDK
+
+### 修复内容
+1. **新增离线地图管理器** (`lib/services/offline_map_manager.dart`):
+   - ✅ 封装高德离线地图SDK接口
+   - ✅ 实现城市列表获取
+   - ✅ 实现下载/暂停/继续/删除功能
+   - ✅ 实现下载进度监听
+   - ✅ MethodChannel 与原生通信
+
+2. **新增离线地图存储** (`lib/services/offline_map_storage.dart`):
+   - ✅ 元数据管理（JSON序列化）
+   - ✅ 下载记录管理
+   - ✅ 存储空间统计
+   - ✅ 过期缓存清理
+
+3. **新增网络状态管理** (`lib/services/network_manager.dart`):
+   - ✅ 网络状态监听
+   - ✅ 自动切换在线/离线模式
+   - ✅ 状态变化通知
+
+4. **新增离线地图界面** (`lib/screens/offline_map_screen.dart`):
+   - ✅ 已下载城市列表（支持删除）
+   - ✅ 热门城市列表（支持下载）
+   - ✅ 全部城市列表（支持搜索）
+   - ✅ 下载进度显示
+   - ✅ 下载状态管理
+
+5. **Android原生实现** (`MainActivity.kt`):
+   - ✅ 集成高德地图离线SDK
+   - ✅ 实现所有MethodChannel接口
+   - ✅ 下载状态事件通知
+   - ✅ 城市数据转换
+
+6. **iOS原生实现** (`AppDelegate.swift`):
+   - ✅ 集成高德地图离线SDK
+   - ✅ 实现所有MethodChannel接口
+   - ✅ 下载状态事件通知
+
+7. **依赖配置**:
+   - ✅ `pubspec.yaml` 添加 `path_provider`, `connectivity_plus`
+   - ✅ `build.gradle` 添加高德地图SDK依赖
+   - ✅ `AndroidManifest.xml` 更新配置
+
+8. **更新现有代码**:
+   - ✅ `map_screen.dart` 接入真实离线地图功能
+   - ✅ `main.dart` 初始化离线地图管理器
+
+### 修复验证
+| 检查项 | 状态 |
+|--------|------|
+| Dart层代码 | ✅ 完成 |
+| Android原生代码 | ✅ 完成 |
+| iOS原生代码 | ✅ 完成 |
+| 依赖配置 | ✅ 完成 |
+| 界面实现 | ✅ 完成 |
+| 真机测试 | ⏳ 待执行 |
+
+### 测试报告
+详见: [OFFLINE_MAP_FIX_REPORT.md](./OFFLINE_MAP_FIX_REPORT.md)
+
+---
+
+## P0 问题修复 - 高德定位 API 配置（2026-03-03）
+
+### 修复内容
+1. **map_screen.dart**:
+   - ✅ 启用高德定位 API (`amap_flutter_location`)
+   - ✅ 实现 `_initLocation()` 初始化定位
+   - ✅ 实现 `_onLocationUpdate()` 处理定位更新
+   - ✅ 添加定位权限申请流程
+   - ✅ 启用地图 `myLocationEnabled` 显示当前位置
+   - ✅ `_goToMyLocation()` 使用真实GPS位置
+
+2. **navigation_screen.dart**:
+   - ✅ 启用高德定位 API (取消注释)
+   - ✅ 实现 `_requestLocationPermission()` 权限申请
+   - ✅ 实现 `_initLocation()` 初始化定位
+   - ✅ 添加 `myLocationEnabled` 和 `myLocationStyle` 配置
+   - ✅ 添加地图控制器 `_mapController`
+   - ✅ `dispose()` 中正确释放定位资源
+
+3. **AndroidManifest.xml**:
+   - ✅ 创建 `/android/app/src/main/AndroidManifest.xml`
+   - ✅ 添加高德地图 API Key 配置
+   - ✅ 添加定位服务 `APSService`
+   - ✅ 添加定位权限 (FINE, COARSE, BACKGROUND)
+   - ✅ 添加存储权限 (离线地图需要)
+   - ✅ 添加硬件特性声明
+
+### 修复验证
+| 检查项 | 状态 |
+|--------|------|
+| 高德定位 SDK 导入 | ✅ |
+| 定位权限申请 | ✅ |
+| 真实GPS获取 | ✅ |
+| 导航使用真实定位 | ✅ |
+| AndroidManifest权限 | ✅ |
+
+### 待验证（需真机）
+- [ ] 真实设备定位精度测试
+- [ ] 导航偏航检测测试
+- [ ] GPS信号弱场景测试

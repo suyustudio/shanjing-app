@@ -1,8 +1,10 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.hangzhou_guide">
     <application
-        android:label="amap_demo"
+        android:label="山径"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         
         <meta-data
             android:name="com.amap.api.v2.apikey"
