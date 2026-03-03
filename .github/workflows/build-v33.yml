@@ -52,24 +52,20 @@ jobs:
           echo "=== Fixed settings.gradle ==="
           cat android/settings.gradle
       
-      - name: Fix minSdkVersion
+      - name: Fix minSdkVersion and AndroidManifest
         run: |
           # Fix minSdkVersion to 21 for flutter_tts compatibility
           sed -i 's/minSdkVersion 19/minSdkVersion 21/' android/app/build.gradle
           echo "Fixed minSdkVersion to 21"
           grep minSdkVersion android/app/build.gradle
-        run: |
-          # Check if flutterEmbedding exists, if not add it
+          
+          # Fix AndroidManifest to V2
           if ! grep -q 'flutterEmbedding' android/app/src/main/AndroidManifest.xml; then
-            # Add before closing </application> tag
             sed -i 's|</application>|<meta-data android:name="flutterEmbedding" android:value="2" />\n    </application>|' android/app/src/main/AndroidManifest.xml
           else
-            # Change value to 2
             sed -i 's/android:value="1"/android:value="2"/' android/app/src/main/AndroidManifest.xml
           fi
-          
           echo "Fixed AndroidManifest.xml to V2"
-          grep -A1 'flutterEmbedding' android/app/src/main/AndroidManifest.xml || echo "No flutterEmbedding found"
       
       - name: Get dependencies
         run: flutter pub get
