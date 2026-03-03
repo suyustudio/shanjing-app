@@ -40,8 +40,8 @@ jobs:
           echo "=== Original settings.gradle ==="
           cat android/settings.gradle
           
-          # Upgrade Kotlin version in settings.gradle
-          sed -i "s/id 'org.jetbrains.kotlin.android' version '1.7.10'/id 'org.jetbrains.kotlin.android' version '1.9.10'/" android/settings.gradle
+          # Upgrade Kotlin version in settings.gradle (handle double quotes)
+          sed -i 's/id "org.jetbrains.kotlin.android" version "1.7.10"/id "org.jetbrains.kotlin.android" version "1.9.10"/' android/settings.gradle
           
           echo "=== Fixed settings.gradle ==="
           cat android/settings.gradle
