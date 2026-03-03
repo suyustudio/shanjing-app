@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
+import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../widgets/filter_tags.dart';
 import '../constants/design_system.dart';
+import '../services/offline_map_manager.dart';
 import 'trail_detail_screen.dart';
+import 'offline_map_screen.dart';
 
 class RouteInfo {
   final String name;
@@ -38,8 +41,16 @@ class _MapScreenState extends State<MapScreen> {
   AMapController? _mapController;
   double _currentZoom = 14;
   int _currentTab = 0; // 0: 地图, 1: 列表
-  double _downloadProgress = 0.0; // 离线下载进度
-  bool _isDownloading = false; // 是否正在下载
+  
+  // 离线地图管理
+  final OfflineMapManager _offlineManager = OfflineMapManager();
+  bool _isOfflineMode = false;
+  List<OfflineCity> _downloadedCities = [];
+  
+  // 高德定位
+  late AMapFlutterLocation _locationPlugin;
+  StreamSubscription<Map<String, Object>>? _locationSubscription;
+  LatLng? _currentLocation; // 当前真实GPS位置
 
   final List<RouteInfo> _routes = const [
     RouteInfo(
@@ -106,19 +117,91 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _requestPermission();
+    _initOfflineManager();
+  }
+  
+  /// 初始化离线地图管理器
+  Future<void> _initOfflineManager() async {
+    await _offlineManager.initialize();
+    _loadDownloadedCities();
+  }
+  
+  /// 加载已下载的离线地图
+  Future<void> _loadDownloadedCities() async {
+    final cities = await _offlineManager.getDownloadedOfflineMapList();
+    setState(() {
+      _downloadedCities = cities;
+    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    // 停止定位并释放资源
+    _locationSubscription?.cancel();
+    _locationPlugin.stopLocation();
+    _locationPlugin.destroy();
+    // 释放离线地图管理器
+    _offlineManager.dispose();
     super.dispose();
   }
 
   Future<void> _requestPermission() async {
+    // 请求定位权限
     final status = await Permission.location.request();
     setState(() {
       _hasPermission = status.isGranted;
     });
+    
+    if (status.isGranted) {
+      _initLocation();
+    }
+  }
+  
+  /// 初始化高德定位
+  void _initLocation() {
+    _locationPlugin = AMapFlutterLocation();
+    
+    // 设置定位参数
+    _locationPlugin.setLocationOption(
+      AMapLocationOption(
+        // 高精度定位模式
+        locationMode: AMapLocationMode.Hight_Accuracy,
+        // 获取逆地理编码信息
+        needAddress: true,
+        // 设置定位间隔（毫秒）
+        locationInterval: 5000,
+        // 设置是否单次定位
+        onceLocation: false,
+        // 设置是否返回地址信息
+        geoLanguage: GeoLanguage.DEFAULT,
+      ),
+    );
+
+    // 监听定位结果
+    _locationSubscription = _locationPlugin.onLocationChanged().listen(
+      _onLocationUpdate,
+      onError: (error) {
+        debugPrint('定位错误: $error');
+      },
+    );
+
+    // 开始定位
+    _locationPlugin.startLocation();
+  }
+  
+  /// 处理定位更新
+  void _onLocationUpdate(Map<String, Object> location) {
+    final double? latitude = location['latitude'] as double?;
+    final double? longitude = location['longitude'] as double?;
+    final double? accuracy = location['accuracy'] as double?;
+
+    if (latitude != null && longitude != null) {
+      setState(() {
+        _currentLocation = LatLng(latitude, longitude);
+      });
+      debugPrint('定位更新: lat=$latitude, lng=$longitude, accuracy=${accuracy ?? "unknown"}m');
+    }
   }
 
   void _onSearch(String text) {
@@ -230,6 +313,13 @@ class _MapScreenState extends State<MapScreen> {
             ),
             onMapCreated: _onMapCreated,
             onTap: (_) => _closeCard(),
+            myLocationEnabled: _hasPermission,
+            myLocationStyle: MyLocationStyle(
+              showMyLocation: true,
+              circleFillColor: Colors.blue.withOpacity(0.2),
+              circleStrokeColor: Colors.blue,
+              circleStrokeWidth: 1,
+            ),
             markers: _routes.asMap().entries.map((entry) {
               final index = entry.key;
               final route = entry.value;
@@ -453,9 +543,16 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _goToMyLocation() {
-    _mapController?.moveCamera(
-      CameraUpdate.newLatLng(const LatLng(30.25, 120.15)),
-    );
+    if (_currentLocation != null) {
+      _mapController?.moveCamera(
+        CameraUpdate.newLatLng(_currentLocation!),
+      );
+    } else {
+      // 如果还没有获取到定位，使用默认位置
+      _mapController?.moveCamera(
+        CameraUpdate.newLatLng(const LatLng(30.25, 120.15)),
+      );
+    }
   }
 
   void _zoomIn() {
@@ -478,76 +575,15 @@ class _MapScreenState extends State<MapScreen> {
 
   // 显示离线下载弹窗
   void _showOfflineDownloadDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('下载离线地图'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('当前路线: ${_selectedRoute?.name ?? "西湖环湖路线"}'),
-            const SizedBox(height: 8),
-            const Text('下载范围: 周边 500m'),
-            const Text('地图级别: 14-15级'),
-            const SizedBox(height: 8),
-            const Text('预估大小: ~12MB'),
-            if (_isDownloading) ...[
-              const SizedBox(height: 16),
-              LinearProgressIndicator(value: _downloadProgress),
-              const SizedBox(height: 8),
-              Text('${(_downloadProgress * 100).toInt()}%'),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          if (!_isDownloading)
-            ElevatedButton(
-              onPressed: () {
-                _startOfflineDownload();
-                Navigator.pop(context);
-              },
-              child: const Text('开始下载'),
-            ),
-        ],
+    // 跳转到离线地图管理页面
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const OfflineMapScreen(),
       ),
-    );
-  }
-
-  // 开始离线下载（模拟）
-  void _startOfflineDownload() {
-    setState(() {
-      _isDownloading = true;
-      _downloadProgress = 0.0;
-    });
-
-    // 模拟下载进度
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (!mounted) return;
-      setState(() => _downloadProgress = 0.3);
-    });
-    Future.delayed(const Duration(seconds: 1), () {
-      if (!mounted) return;
-      setState(() => _downloadProgress = 0.6);
-    });
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
-      setState(() => _downloadProgress = 0.9);
-    });
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      setState(() {
-        _downloadProgress = 1.0;
-        _isDownloading = false;
-      });
-      // 显示完成提示
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('离线地图下载完成')),
-      );
+    ).then((_) {
+      // 返回时刷新已下载列表
+      _loadDownloadedCities();
     });
   }
 

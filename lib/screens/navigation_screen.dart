@@ -6,6 +6,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../widgets/app_app_bar.dart';
 import '../constants/design_system.dart';
 
@@ -87,8 +88,8 @@ class NavigationScreen extends StatefulWidget {
 
 class _NavigationScreenState extends State<NavigationScreen> {
   // 高德地图定位
-  // late AMapFlutterLocation _locationPlugin;
-  // StreamSubscription<Map<String, Object>>? _locationSubscription;
+  late AMapFlutterLocation _locationPlugin;
+  StreamSubscription<Map<String, Object>>? _locationSubscription;
 
   // 语音播报
   final FlutterTts _flutterTts = FlutterTts();
@@ -122,11 +123,14 @@ class _NavigationScreenState extends State<NavigationScreen> {
   DateTime? _lastVoiceTime;
   static const int _minVoiceInterval = 10; // 最小语音间隔（秒）
 
+  // 地图控制器
+  AMapController? _mapController;
+
   @override
   void initState() {
     super.initState();
     _initRoutePoints();
-    _initLocation();
+    _requestLocationPermission();
     _initTts();
   }
 
@@ -167,16 +171,55 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   /// 初始化定位
+  Future<void> _requestLocationPermission() async {
+    // 请求定位权限
+    final status = await Permission.location.request();
+    if (status.isGranted) {
+      _initLocation();
+    } else {
+      // 权限被拒绝，使用默认位置
+      setState(() {
+        _currentPosition = GPSPoint(
+          latitude: 30.25,
+          longitude: 120.15,
+          accuracy: 5.0,
+          timestamp: DateTime.now(),
+        );
+        _currentLatLng = const LatLng(30.25, 120.15);
+      });
+    }
+  }
+
+  /// 初始化高德定位
   void _initLocation() {
-    // TODO: 高德定位 API 需要重新配置
-    // 暂时使用模拟定位
-    _currentPosition = GPSPoint(
-      latitude: 30.25,
-      longitude: 120.15,
-      accuracy: 5.0,
-      timestamp: DateTime.now(),
+    _locationPlugin = AMapFlutterLocation();
+    
+    // 设置定位参数
+    _locationPlugin.setLocationOption(
+      AMapLocationOption(
+        // 高精度定位模式
+        locationMode: AMapLocationMode.Hight_Accuracy,
+        // 获取逆地理编码信息
+        needAddress: true,
+        // 设置定位间隔（毫秒）
+        locationInterval: 2000,
+        // 设置是否单次定位
+        onceLocation: false,
+        // 设置是否返回地址信息
+        geoLanguage: GeoLanguage.DEFAULT,
+      ),
     );
-    _currentLatLng = const LatLng(30.25, 120.15);
+
+    // 监听定位结果
+    _locationSubscription = _locationPlugin.onLocationChanged().listen(
+      _onLocationUpdate,
+      onError: (error) {
+        debugPrint('定位错误: $error');
+      },
+    );
+
+    // 开始定位
+    _locationPlugin.startLocation();
   }
 
   /// 初始化语音播报
@@ -409,6 +452,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
   @override
   void dispose() {
     _flutterTts.stop();
+    // 停止定位并释放资源
+    _locationSubscription?.cancel();
+    _locationPlugin.stopLocation();
+    _locationPlugin.destroy();
     super.dispose();
   }
 
@@ -433,6 +480,16 @@ class _NavigationScreenState extends State<NavigationScreen> {
               target: _currentLatLng ?? const LatLng(30.25, 120.15),
               zoom: 17,
             ),
+            myLocationEnabled: true,
+            myLocationStyle: MyLocationStyle(
+              showMyLocation: true,
+              circleFillColor: Colors.blue.withOpacity(0.2),
+              circleStrokeColor: Colors.blue,
+              circleStrokeWidth: 1,
+            ),
+            onMapCreated: (controller) {
+              _mapController = controller;
+            },
             polylines: {
               Polyline(
                 points: _routePoints,

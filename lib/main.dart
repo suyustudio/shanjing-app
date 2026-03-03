@@ -4,6 +4,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/map_screen.dart';
 import 'screens/discovery_screen.dart';
 import 'screens/profile_screen.dart';
+import 'services/offline_map_manager.dart';
+import 'services/network_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +26,12 @@ void main() async {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
+  
+  // 初始化离线地图管理器
+  await OfflineMapManager().initialize();
+  
+  // 初始化网络管理器
+  await NetworkManager().initialize();
   
   runApp(const MyApp());
 }
