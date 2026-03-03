@@ -27,17 +27,20 @@ jobs:
         channel: 'stable'
         cache: false
     
-    - name: Check and create Android platform
+    - name: Get Flutter dependencies
       run: |
-        if [ ! -d "android" ]; then
-          echo "Android directory not found, creating..."
-          flutter config --enable-android
-          flutter create --platforms=android --project-name=shanjing_app .
-          echo "Waiting for files..."
-          sleep 5
-        fi
-        echo "=== Android directory contents ==="
-        ls -la android/ || echo "Directory not found"
+        # First get dependencies without Android platform
+        flutter config --no-enable-android
+        flutter pub get || true
+    
+    - name: Create Android platform
+      run: |
+        echo "Creating Android platform..."
+        flutter config --enable-android
+        # Don't use flutter create, manually create files
+        mkdir -p android/app/src/main/java/com/example/shanjing
+        mkdir -p android/app/src/main/res/values
+        mkdir -p android/gradle/wrapper
         
         # Ensure settings.gradle exists
         if [ ! -f "android/settings.gradle" ]; then
