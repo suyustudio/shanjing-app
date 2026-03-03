@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import '../constants/design_system.dart';
 
 /// 带标签的文本输入框组件
-/// 支持验证错误提示和密码模式
+/// 支持验证错误提示和密码模式，适配暗黑模式
 class AppInput extends StatelessWidget {
   /// 输入框标签
   final String label;
@@ -42,6 +43,7 @@ class AppInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,6 +54,7 @@ class AppInput extends StatelessWidget {
           label,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w500,
+            color: DesignSystem.getTextPrimary(context),
           ),
         ),
         const SizedBox(height: 6),
@@ -62,14 +65,22 @@ class AppInput extends StatelessWidget {
           keyboardType: keyboardType,
           onChanged: onChanged,
           onSubmitted: onSubmitted,
+          style: TextStyle(
+            color: DesignSystem.getTextPrimary(context),
+          ),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: TextStyle(
+              color: DesignSystem.getTextTertiary(context),
+            ),
             errorText: errorText,
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
               vertical: 12,
             ),
+            filled: true,
+            fillColor: isDark ? DesignSystem.backgroundTertiaryDark : theme.colorScheme.surfaceContainerHighest,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(

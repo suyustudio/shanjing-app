@@ -6,9 +6,9 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../widgets/app_app_bar.dart';
 import '../constants/design_system.dart';
+import '../utils/permission_manager.dart';
 
 /// 导航状态枚举
 enum NavigationStatus {
@@ -170,24 +170,75 @@ class _NavigationScreenState extends State<NavigationScreen> {
     return earthRadius * c;
   }
 
-  /// 初始化定位
+  /// 初始化定位权限
   Future<void> _requestLocationPermission() async {
-    // 请求定位权限
-    final status = await Permission.location.request();
-    if (status.isGranted) {
+    // 请求导航所需的所有权限（前台定位、后台定位、通知）
+    final results = await PermissionManager.requestNavigationPermissions();
+    
+    final locationStatus = results['location'];
+    final backgroundStatus = results['backgroundLocation'];
+    final notificationStatus = results['notification'];
+
+    if (locationStatus?.isGranted == true) {
       _initLocation();
-    } else {
-      // 权限被拒绝，使用默认位置
-      setState(() {
-        _currentPosition = GPSPoint(
-          latitude: 30.25,
-          longitude: 120.15,
-          accuracy: 5.0,
-          timestamp: DateTime.now(),
+      
+      // 检查后台定位权限
+      if (backgroundStatus?.isGranted != true) {
+        debugPrint('后台定位权限未授予，导航可能在后台无法正常工作');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('建议开启后台定位权限，以确保导航在锁屏时正常工作'),
+              duration: Duration(seconds: 5),
+              action: SnackBarAction(
+                label: '去设置',
+                onPressed: PermissionManager.openAppSettings,
+              ),
+            ),
+          );
+        }
+      }
+      
+      // 检查通知权限
+      if (notificationStatus?.isGranted != true) {
+        debugPrint('通知权限未授予，语音播报可能受限');
+      }
+    } else if (locationStatus?.isPermanentlyDenied == true) {
+      // 权限被永久拒绝
+      if (mounted) {
+        PermissionManager.showPermissionDeniedDialog(
+          context,
+          title: '需要定位权限',
+          content: '导航功能需要定位权限才能正常工作。请在系统设置中开启定位权限。',
         );
-        _currentLatLng = const LatLng(30.25, 120.15);
-      });
+      }
+      // 使用默认位置
+      _useDefaultLocation();
+    } else {
+      // 权限被拒绝
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('需要定位权限才能开始导航'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      _useDefaultLocation();
     }
+  }
+  
+  /// 使用默认位置
+  void _useDefaultLocation() {
+    setState(() {
+      _currentPosition = GPSPoint(
+        latitude: 30.25,
+        longitude: 120.15,
+        accuracy: 5.0,
+        timestamp: DateTime.now(),
+      );
+      _currentLatLng = const LatLng(30.25, 120.15);
+    });
   }
 
   /// 初始化高德定位

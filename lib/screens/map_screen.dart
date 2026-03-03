@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../widgets/filter_tags.dart';
 import '../constants/design_system.dart';
 import '../services/offline_map_manager.dart';
+import '../utils/permission_manager.dart';
 import 'trail_detail_screen.dart';
 import 'offline_map_screen.dart';
 
@@ -147,14 +147,41 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _requestPermission() async {
-    // 请求定位权限
-    final status = await Permission.location.request();
-    setState(() {
-      _hasPermission = status.isGranted;
-    });
+    // 请求地图所需权限（定位、存储）
+    final results = await PermissionManager.requestMapPermissions();
     
-    if (status.isGranted) {
+    final locationStatus = results['location'];
+    final storageStatus = results['storage'];
+
+    setState(() {
+      _hasPermission = locationStatus?.isGranted ?? false;
+    });
+
+    if (locationStatus?.isGranted == true) {
       _initLocation();
+    } else if (locationStatus?.isPermanentlyDenied == true) {
+      // 权限被永久拒绝，显示设置对话框
+      if (mounted) {
+        PermissionManager.showPermissionPermanentlyDeniedDialog(
+          context,
+          permissionName: '定位',
+        );
+      }
+    } else if (locationStatus?.isDenied == true) {
+      // 权限被拒绝，显示提示
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('需要定位权限才能显示当前位置'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+
+    // 检查存储权限（离线地图需要）
+    if (storageStatus?.isDenied == true || storageStatus?.isPermanentlyDenied == true) {
+      debugPrint('存储权限被拒绝，离线地图功能可能受限');
     }
   }
   
@@ -267,26 +294,27 @@ class _MapScreenState extends State<MapScreen> {
             children: [
               Text(
                 route.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: DesignSystem.getTextPrimary(context),
                 ),
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.straighten, size: 16, color: Colors.grey),
+                  Icon(Icons.straighten, size: 16, color: DesignSystem.getTextSecondary(context)),
                   const SizedBox(width: 4),
                   Text(
                     route.distance,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(color: DesignSystem.getTextSecondary(context)),
                   ),
                   const SizedBox(width: 16),
-                  const Icon(Icons.schedule, size: 16, color: Colors.grey),
+                  Icon(Icons.schedule, size: 16, color: DesignSystem.getTextSecondary(context)),
                   const SizedBox(width: 4),
                   Text(
                     route.duration,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(color: DesignSystem.getTextSecondary(context)),
                   ),
                 ],
               ),
@@ -389,14 +417,15 @@ class _MapScreenState extends State<MapScreen> {
                             Expanded(
                               child: Text(
                                 _selectedRoute!.name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
+                                  color: DesignSystem.getTextPrimary(context),
                                 ),
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.close, size: 20),
+                              icon: Icon(Icons.close, size: 20, color: DesignSystem.getTextSecondary(context)),
                               onPressed: _closeCard,
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
@@ -406,18 +435,18 @@ class _MapScreenState extends State<MapScreen> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Icon(Icons.straighten, size: 16, color: Colors.grey),
+                            Icon(Icons.straighten, size: 16, color: DesignSystem.getTextSecondary(context)),
                             const SizedBox(width: 4),
                             Text(
                               _selectedRoute!.distance,
-                              style: const TextStyle(color: Colors.grey),
+                              style: TextStyle(color: DesignSystem.getTextSecondary(context)),
                             ),
                             const SizedBox(width: 16),
-                            const Icon(Icons.schedule, size: 16, color: Colors.grey),
+                            Icon(Icons.schedule, size: 16, color: DesignSystem.getTextSecondary(context)),
                             const SizedBox(width: 4),
                             Text(
                               _selectedRoute!.duration,
-                              style: const TextStyle(color: Colors.grey),
+                              style: TextStyle(color: DesignSystem.getTextSecondary(context)),
                             ),
                           ],
                         ),
@@ -427,8 +456,8 @@ class _MapScreenState extends State<MapScreen> {
                           child: ElevatedButton(
                             onPressed: _viewDetails,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: DesignSystem.primary,
-                              foregroundColor: Colors.white,
+                              backgroundColor: DesignSystem.getPrimary(context),
+                              foregroundColor: DesignSystem.getTextInverse(context),
                             ),
                             child: const Text('查看详情'),
                           ),
@@ -487,11 +516,13 @@ class _MapScreenState extends State<MapScreen> {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: DesignSystem.getBackgroundElevated(context),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black.withOpacity(0.4)
+                  : Colors.black.withOpacity(0.15),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -499,7 +530,7 @@ class _MapScreenState extends State<MapScreen> {
         ),
         child: Icon(
           icon,
-          color: Colors.grey[800],
+          color: DesignSystem.getTextPrimary(context),
           size: 24,
         ),
       ),

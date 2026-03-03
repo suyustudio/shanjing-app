@@ -20,16 +20,6 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
   
-  // 性能优化：设置系统 UI 样式
-  // 使用自动适配亮暗模式的系统 UI 样式
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-    ),
-  );
-  
   // 初始化离线地图管理器
   await OfflineMapManager().initialize();
   
@@ -44,15 +34,31 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '杭州旅游指南',
-      // 亮色主题
-      theme: DesignSystem.lightTheme,
-      // 暗黑主题
-      darkTheme: DesignSystem.darkTheme,
-      // 跟随系统主题设置
-      themeMode: ThemeMode.system,
-      home: const MainScreen(),
+    // 使用 AnnotatedRegion 动态适配系统 UI 样式
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: MediaQuery.platformBrightnessOf(context) == Brightness.dark 
+            ? Brightness.light 
+            : Brightness.dark,
+        statusBarBrightness: MediaQuery.platformBrightnessOf(context) == Brightness.dark 
+            ? Brightness.dark 
+            : Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: MediaQuery.platformBrightnessOf(context) == Brightness.dark 
+            ? Brightness.light 
+            : Brightness.dark,
+      ),
+      child: MaterialApp(
+        title: '杭州旅游指南',
+        // 亮色主题
+        theme: DesignSystem.lightTheme,
+        // 暗黑主题
+        darkTheme: DesignSystem.darkTheme,
+        // 跟随系统主题设置
+        themeMode: ThemeMode.system,
+        home: const MainScreen(),
+      ),
     );
   }
 }

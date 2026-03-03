@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/design_system.dart';
 
 /// 按钮变体类型
 enum AppButtonVariant {
@@ -15,6 +16,8 @@ enum AppButtonSize {
 }
 
 /// App 按钮组件
+/// 
+/// 支持暗黑模式，自动根据当前主题调整颜色
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
@@ -41,27 +44,13 @@ class AppButton extends StatelessWidget {
 
   bool get _isEnabled => onPressed != null;
 
-  // 设计系统颜色 - 山青色
-  static const Color _primaryColor = Color(0xFF2D968A);
-  static const Color _primaryPressed = Color(0xFF25877C);
-  static const Color _primaryDisabled = Color(0xFFB8E0DA);
-  
-  static const Color _secondaryFg = Color(0xFF2D968A);
-  static const Color _secondaryBorder = Color(0xFF2D968A);
-  static const Color _secondaryBgPressed = Color(0xFFF3F4F6);
-  
-  static const Color _ghostFg = Color(0xFF2D968A);
-  static const Color _ghostFgDisabled = Color(0xFFA1A8B3);
-  
-  static const Color _disabledBg = Color(0xFFF3F4F6);
-  static const Color _disabledFg = Color(0xFFA1A8B3);
-  static const Color _disabledBorder = Color(0xFFD1D5DB);
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return ElevatedButton(
       onPressed: onPressed,
-      style: _buildStyle(),
+      style: _buildStyle(context, isDark),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -75,71 +64,84 @@ class AppButton extends StatelessWidget {
     );
   }
 
-  ButtonStyle _buildStyle() {
+  ButtonStyle _buildStyle(BuildContext context, bool isDark) {
     return ButtonStyle(
-      backgroundColor: _backgroundColor(),
-      foregroundColor: _foregroundColor(),
-      overlayColor: _overlayColor(),
+      backgroundColor: _backgroundColor(context, isDark),
+      foregroundColor: _foregroundColor(context, isDark),
+      overlayColor: _overlayColor(isDark),
       elevation: WidgetStateProperty.all(0),
       padding: WidgetStateProperty.all(_padding()),
       minimumSize: WidgetStateProperty.all(_minSize()),
       shape: WidgetStateProperty.all(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(_borderRadius()),
-          side: _borderSide(),
+          side: _borderSide(context, isDark),
         ),
       ),
       textStyle: WidgetStateProperty.all(_textStyle()),
     );
   }
 
-  WidgetStateProperty<Color?> _backgroundColor() {
+  WidgetStateProperty<Color?> _backgroundColor(BuildContext context, bool isDark) {
+    final primaryColor = DesignSystem.getPrimary(context);
+    final primaryPressed = isDark ? DesignSystem.primaryDarkDarkMode : DesignSystem.primaryDark;
+    final disabledBg = isDark ? DesignSystem.backgroundTertiaryDark : const Color(0xFFF3F4F6);
+    final secondaryBgPressed = isDark ? DesignSystem.backgroundTertiaryDark : const Color(0xFFF3F4F6);
+    
     return WidgetStateProperty.resolveWith((states) {
-      if (!_isEnabled) return _disabledBg;
+      if (!_isEnabled) return disabledBg;
       if (states.contains(WidgetState.pressed)) {
         return switch (variant) {
-          AppButtonVariant.primary => _primaryPressed,
-          AppButtonVariant.secondary => _secondaryBgPressed,
+          AppButtonVariant.primary => primaryPressed,
+          AppButtonVariant.secondary => secondaryBgPressed,
           AppButtonVariant.ghost => Colors.transparent,
         };
       }
       return switch (variant) {
-        AppButtonVariant.primary => _primaryColor,
-        AppButtonVariant.secondary => Colors.white,
+        AppButtonVariant.primary => primaryColor,
+        AppButtonVariant.secondary => isDark ? DesignSystem.backgroundSecondaryDark : Colors.white,
         AppButtonVariant.ghost => Colors.transparent,
       };
     });
   }
 
-  WidgetStateProperty<Color?> _foregroundColor() {
+  WidgetStateProperty<Color?> _foregroundColor(BuildContext context, bool isDark) {
+    final primaryColor = DesignSystem.getPrimary(context);
+    final disabledFg = isDark ? DesignSystem.textTertiaryDark : const Color(0xFFA1A8B3);
+    
     return WidgetStateProperty.resolveWith((states) {
-      if (!_isEnabled) return _disabledFg;
+      if (!_isEnabled) return disabledFg;
       return switch (variant) {
-        AppButtonVariant.primary => Colors.white,
-        AppButtonVariant.secondary => _secondaryFg,
-        AppButtonVariant.ghost => _ghostFg,
+        AppButtonVariant.primary => isDark ? DesignSystem.textInverseDark : Colors.white,
+        AppButtonVariant.secondary => primaryColor,
+        AppButtonVariant.ghost => primaryColor,
       };
     });
   }
 
-  WidgetStateProperty<Color?> _overlayColor() {
+  WidgetStateProperty<Color?> _overlayColor(bool isDark) {
     return WidgetStateProperty.resolveWith((states) {
       if (states.contains(WidgetState.pressed)) {
-        return Colors.black.withOpacity(0.05);
+        return isDark 
+            ? Colors.white.withOpacity(0.05) 
+            : Colors.black.withOpacity(0.05);
       }
       return null;
     });
   }
 
-  BorderSide _borderSide() {
+  BorderSide _borderSide(BuildContext context, bool isDark) {
+    final primaryColor = DesignSystem.getPrimary(context);
+    final disabledBorder = isDark ? DesignSystem.borderDark : const Color(0xFFD1D5DB);
+    
     if (!_isEnabled) {
       return variant == AppButtonVariant.secondary 
-          ? const BorderSide(color: _disabledBorder)
+          ? BorderSide(color: disabledBorder)
           : BorderSide.none;
     }
     return switch (variant) {
       AppButtonVariant.primary => BorderSide.none,
-      AppButtonVariant.secondary => const BorderSide(color: _secondaryBorder),
+      AppButtonVariant.secondary => BorderSide(color: primaryColor),
       AppButtonVariant.ghost => BorderSide.none,
     };
   }
