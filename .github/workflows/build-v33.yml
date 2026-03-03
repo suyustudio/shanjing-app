@@ -36,16 +36,20 @@ jobs:
       
       - name: Fix Kotlin version
         run: |
-          # Check current Kotlin version and upgrade if needed
+          # Debug: show original build.gradle
+          echo "=== Original android/build.gradle ==="
+          cat android/build.gradle
+          
+          # Check and fix Kotlin version
           if grep -q "ext.kotlin_version" android/build.gradle; then
-            sed -i "s/ext.kotlin_version = '1.7.10'/ext.kotlin_version = '1.8.22'/" android/build.gradle
-            echo "Upgraded Kotlin from 1.7.10 to 1.8.22"
+            sed -i "s/ext.kotlin_version = '1.7.10'/ext.kotlin_version = '1.9.10'/" android/build.gradle
+            echo "Upgraded Kotlin to 1.9.10"
           else
-            # Add kotlin_version if not exists
-            sed -i "/buildscript {/a\    ext.kotlin_version = '1.8.22'" android/build.gradle
-            echo "Added Kotlin version 1.8.22"
+            echo "ERROR: No kotlin_version found in build.gradle"
           fi
-          grep kotlin_version android/build.gradle || echo "No kotlin_version line found"
+          
+          echo "=== Fixed android/build.gradle ==="
+          cat android/build.gradle
       
       - name: Fix AndroidManifest to V2
         run: |
