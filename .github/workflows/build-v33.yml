@@ -54,18 +54,18 @@ jobs:
       
       - name: Fix minSdkVersion and AndroidManifest
         run: |
-          # Fix minSdkVersion to 21 for flutter_tts compatibility
-          sed -i 's/minSdkVersion 19/minSdkVersion 21/' android/app/build.gradle
-          echo "Fixed minSdkVersion to 21"
-          grep minSdkVersion android/app/build.gradle
+          # Debug: show original build.gradle
+          echo "=== Original android/app/build.gradle ==="
+          cat android/app/build.gradle
           
-          # Fix AndroidManifest to V2
-          if ! grep -q 'flutterEmbedding' android/app/src/main/AndroidManifest.xml; then
-            sed -i 's|</application>|<meta-data android:name="flutterEmbedding" android:value="2" />\n    </application>|' android/app/src/main/AndroidManifest.xml
-          else
-            sed -i 's/android:value="1"/android:value="2"/' android/app/src/main/AndroidManifest.xml
-          fi
-          echo "Fixed AndroidManifest.xml to V2"
+          # Fix minSdkVersion to 21 for flutter_tts compatibility
+          # Try different patterns
+          sed -i 's/minSdkVersion = 19/minSdkVersion = 21/' android/app/build.gradle
+          sed -i 's/minSdkVersion 19/minSdkVersion 21/' android/app/build.gradle
+          sed -i 's/minSdk = 19/minSdk = 21/' android/app/build.gradle
+          sed -i 's/minSdk 19/minSdk 21/' android/app/build.gradle
+          echo "Fixed minSdkVersion to 21"
+          grep -i "minsdk" android/app/build.gradle || echo "No minSdk found"
       
       - name: Get dependencies
         run: flutter pub get
