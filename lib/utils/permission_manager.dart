@@ -40,10 +40,10 @@ class PermissionManager {
   static Future<PermissionStatus> requestBackgroundLocationPermission() async {
     // 首先检查前台定位权限
     final locationStatus = await Permission.location.status;
-    if (!locationStatus.isGranted) {
+    if (locationStatus != PermissionStatus.granted) {
       // 先申请前台定位权限
       final foregroundStatus = await Permission.location.request();
-      if (!foregroundStatus.isGranted) {
+      if (foregroundStatus != PermissionStatus.granted) {
         return foregroundStatus;
       }
     }
@@ -105,14 +105,14 @@ class PermissionManager {
   /// 检查是否所有地图权限都已授予
   static Future<bool> hasAllMapPermissions() async {
     final locationStatus = await Permission.location.status;
-    return locationStatus.isGranted;
+    return locationStatus == PermissionStatus.granted;
   }
 
   /// 检查是否所有导航权限都已授予
   static Future<bool> hasAllNavigationPermissions() async {
     final locationStatus = await Permission.location.status;
     final backgroundStatus = await Permission.locationAlways.status;
-    return locationStatus.isGranted && backgroundStatus.isGranted;
+    return locationStatus == PermissionStatus.granted && backgroundStatus == PermissionStatus.granted;
   }
 
   /// 打开应用设置页面

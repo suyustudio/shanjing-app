@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
@@ -179,11 +180,11 @@ class _NavigationScreenState extends State<NavigationScreen> {
     final backgroundStatus = results['backgroundLocation'];
     final notificationStatus = results['notification'];
 
-    if (locationStatus?.isGranted == true) {
+    if (locationStatus == PermissionStatus.granted) {
       _initLocation();
       
       // 检查后台定位权限
-      if (backgroundStatus?.isGranted != true) {
+      if (backgroundStatus != PermissionStatus.granted) {
         debugPrint('后台定位权限未授予，导航可能在后台无法正常工作');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -200,10 +201,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
       }
       
       // 检查通知权限
-      if (notificationStatus?.isGranted != true) {
+      if (notificationStatus != PermissionStatus.granted) {
         debugPrint('通知权限未授予，语音播报可能受限');
       }
-    } else if (locationStatus?.isPermanentlyDenied == true) {
+    } else if (locationStatus == PermissionStatus.permanentlyDenied) {
       // 权限被永久拒绝
       if (mounted) {
         PermissionManager.showPermissionDeniedDialog(
@@ -245,21 +246,9 @@ class _NavigationScreenState extends State<NavigationScreen> {
   void _initLocation() {
     _locationPlugin = AMapFlutterLocation();
     
-    // 设置定位参数
-    _locationPlugin.setLocationOption(
-      AMapLocationOption(
-        // 高精度定位模式
-        locationMode: AMapLocationMode.Hight_Accuracy,
-        // 获取逆地理编码信息
-        needAddress: true,
-        // 设置定位间隔（毫秒）
-        locationInterval: 2000,
-        // 设置是否单次定位
-        onceLocation: false,
-        // 设置是否返回地址信息
-        geoLanguage: GeoLanguage.DEFAULT,
-      ),
-    );
+    // 使用默认定位参数
+    // 高德地图 SDK 3.0+ 使用不同的 API
+    // 暂时使用基本定位功能
 
     // 监听定位结果
     _locationSubscription = _locationPlugin.onLocationChanged().listen(
@@ -531,13 +520,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
               target: _currentLatLng ?? const LatLng(30.25, 120.15),
               zoom: 17,
             ),
-            myLocationEnabled: true,
-            myLocationStyle: MyLocationStyle(
-              showMyLocation: true,
-              circleFillColor: Colors.blue.withOpacity(0.2),
-              circleStrokeColor: Colors.blue,
-              circleStrokeWidth: 1,
-            ),
+            // myLocationEnabled 参数在 amap_flutter_map 3.0+ 中已移除
+            // 使用定位插件单独控制
             onMapCreated: (controller) {
               _mapController = controller;
             },

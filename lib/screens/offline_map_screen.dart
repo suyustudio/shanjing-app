@@ -434,7 +434,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                       ),
                       // 存储空间提示
                       Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, bottom: 8),
+                        margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: DesignSystem.getInfo(context).withOpacity(0.1),
