@@ -27,6 +27,12 @@ jobs:
           # Remove existing android directory if any
           rm -rf android
           
+          # Create .env file if not exists (required by flutter_dotenv)
+          if [ ! -f .env ]; then
+            echo "AMAP_KEY=your_amap_key_here" > .env
+            echo "Created .env file"
+          fi
+          
           # Use flutter create to generate proper Android project
           flutter config --enable-android
           flutter create --platforms=android --project-name=shanjing_app .
