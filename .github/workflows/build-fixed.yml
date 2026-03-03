@@ -32,15 +32,25 @@ jobs:
           echo "Android directory not found, creating..."
           flutter config --enable-android
           flutter create --platforms=android --project-name=shanjing_app .
+          echo "Waiting for Android files to be created..."
+          sleep 5
+          ls -la android/ || echo "Android directory still not found"
         else
           echo "Android directory already exists"
         fi
+        ls -la android/settings.gradle || echo "settings.gradle not found"
     
     - name: Update Kotlin version
       run: |
         echo "=== Updating Kotlin version in settings.gradle ==="
-        sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.0"/' android/settings.gradle
-        cat android/settings.gradle | grep "org.jetbrains.kotlin.android"
+        if [ -f "android/settings.gradle" ]; then
+          sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.0"/' android/settings.gradle
+          cat android/settings.gradle | grep "org.jetbrains.kotlin.android" || echo "Kotlin plugin not found in settings.gradle"
+        else
+          echo "ERROR: android/settings.gradle not found"
+          ls -la android/
+          exit 1
+        fi
     
     - name: Update minSdkVersion
       run: |
