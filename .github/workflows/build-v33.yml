@@ -29,7 +29,7 @@ jobs:
           
           # Use flutter create to generate proper Android project
           flutter config --enable-android
-          flutter create --platforms=android .
+          flutter create --platforms=android --project-name=shanjing_app .
           
           echo "=== Flutter created Android project ==="
           ls -la android/
