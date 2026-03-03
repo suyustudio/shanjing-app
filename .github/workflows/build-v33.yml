@@ -34,6 +34,13 @@ jobs:
           echo "=== Flutter created Android project ==="
           ls -la android/
       
+      - name: Fix Kotlin version
+        run: |
+          # Upgrade Kotlin version in android/build.gradle
+          sed -i "s/ext.kotlin_version = '1.7.10'/ext.kotlin_version = '1.9.0'/" android/build.gradle
+          echo "Fixed Kotlin version to 1.9.0"
+          grep kotlin_version android/build.gradle
+      
       - name: Fix AndroidManifest to V2
         run: |
           # Check if flutterEmbedding exists, if not add it
