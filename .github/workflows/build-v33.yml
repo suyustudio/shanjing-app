@@ -58,12 +58,9 @@ jobs:
           echo "=== Original android/app/build.gradle ==="
           cat android/app/build.gradle
           
-          # Fix minSdkVersion to 21 for flutter_tts compatibility
-          # Try different patterns
-          sed -i 's/minSdkVersion = 19/minSdkVersion = 21/' android/app/build.gradle
-          sed -i 's/minSdkVersion 19/minSdkVersion 21/' android/app/build.gradle
-          sed -i 's/minSdk = 19/minSdk = 21/' android/app/build.gradle
-          sed -i 's/minSdk 19/minSdk 21/' android/app/build.gradle
+          # Fix minSdkVersion - Flutter uses flutter.minSdkVersion variable
+          # Replace flutter.minSdkVersion with hardcoded 21
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
           echo "Fixed minSdkVersion to 21"
           grep -i "minsdk" android/app/build.gradle || echo "No minSdk found"
       
