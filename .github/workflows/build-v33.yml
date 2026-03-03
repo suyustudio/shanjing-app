@@ -111,35 +111,33 @@ jobs:
         if [ ! -f "android/app/src/main/AndroidManifest.xml" ]; then
           echo "Creating AndroidManifest.xml..."
           mkdir -p android/app/src/main
-          cat > android/app/src/main/AndroidManifest.xml << 'EOF'
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application
-        android:label="shanjing"
-        android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
-            <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
-        <meta-data
-            android:name="flutterEmbedding"
-            android:value="2" />
-    </application>
-</manifest>
-EOF
+          echo '<manifest xmlns:android="http://schemas.android.com/apk/res/android">' > android/app/src/main/AndroidManifest.xml
+          echo '    <application' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:label="shanjing"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:name="${applicationName}"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:icon="@mipmap/ic_launcher">' >> android/app/src/main/AndroidManifest.xml
+          echo '        <activity' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:name=".MainActivity"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:exported="true"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:launchMode="singleTop"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:theme="@style/LaunchTheme"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:hardwareAccelerated="true"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:windowSoftInputMode="adjustResize">' >> android/app/src/main/AndroidManifest.xml
+          echo '            <meta-data' >> android/app/src/main/AndroidManifest.xml
+          echo '              android:name="io.flutter.embedding.android.NormalTheme"' >> android/app/src/main/AndroidManifest.xml
+          echo '              android:resource="@style/NormalTheme"' >> android/app/src/main/AndroidManifest.xml
+          echo '              />' >> android/app/src/main/AndroidManifest.xml
+          echo '            <intent-filter>' >> android/app/src/main/AndroidManifest.xml
+          echo '                <action android:name="android.intent.action.MAIN"/>' >> android/app/src/main/AndroidManifest.xml
+          echo '                <category android:name="android.intent.category.LAUNCHER"/>' >> android/app/src/main/AndroidManifest.xml
+          echo '            </intent-filter>' >> android/app/src/main/AndroidManifest.xml
+          echo '        </activity>' >> android/app/src/main/AndroidManifest.xml
+          echo '        <meta-data' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:name="flutterEmbedding"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:value="2" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    </application>' >> android/app/src/main/AndroidManifest.xml
+          echo '</manifest>' >> android/app/src/main/AndroidManifest.xml
         fi
     
     - name: Update Kotlin version
