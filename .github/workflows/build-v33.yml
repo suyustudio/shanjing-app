@@ -72,3 +72,4 @@ jobs:
           name: shanjing-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: warn
+# Force refresh Tue Mar  3 08:05:56 PM CST 2026
