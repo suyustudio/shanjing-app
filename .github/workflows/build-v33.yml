@@ -47,13 +47,7 @@ jobs:
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
           # Add ndk block inside defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
-          # 添加高德 SDK 依赖 - 只引入 3dmap（最新版已包含定位功能）
-          cat >> android/app/build.gradle << 'GRADLEOF'
-          
-          dependencies {
-              implementation 'com.amap.api:3dmap:latest.integration'
-          }
-          GRADLEOF
+          # 不手动添加高德 SDK 依赖 - 使用插件自带的依赖
       
       - name: Fix AndroidManifest.xml
         run: |
@@ -98,6 +92,19 @@ jobs:
       
       - name: Get dependencies
         run: flutter pub get
+      
+      - name: Fix amap_flutter_map plugin dependencies
+        run: |
+          # 修改插件的 build.gradle，使用最新版 3dmap
+          PLUGIN_GRADLE="$PUB_CACHE/hosted/pub.dev/amap_flutter_map-3.0.0/android/build.gradle"
+          if [ -f "$PLUGIN_GRADLE" ]; then
+            sed -i "s/implementation 'com.amap.api:3dmap:.*'/implementation 'com.amap.api:3dmap:latest.integration'/" "$PLUGIN_GRADLE"
+            echo "Fixed amap_flutter_map plugin dependencies"
+            cat "$PLUGIN_GRADLE" | grep -A5 "dependencies"
+          else
+            echo "Plugin gradle not found at $PLUGIN_GRADLE"
+            find $PUB_CACHE -name "build.gradle" -path "*amap_flutter_map*" 2>/dev/null | head -5
+          fi
       
       - name: Build APK
         run: flutter build apk --release
