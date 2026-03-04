@@ -34,8 +34,14 @@ jobs:
       
       - name: Fix Kotlin version
         run: |
-          # Flutter 3.19.0 默认使用 Kotlin 1.9.0+，与插件兼容
-          echo "Using Flutter 3.19.0 default Kotlin version"
+          # 必须在 settings.gradle 中设置正确的 Kotlin 版本
+          sed -i 's/id "org.jetbrains.kotlin.android" version "1.7.10"/id "org.jetbrains.kotlin.android" version "1.9.10"/' android/settings.gradle
+          # 同时在 android/build.gradle 中设置 ext.kotlin_version
+          sed -i '/buildscript {/,/}/ s/ext.kotlin_version = .*/ext.kotlin_version = "1.9.10"/' android/build.gradle || \
+          sed -i '/allprojects {/a\    ext.kotlin_version = "1.9.10"' android/build.gradle
+          echo "Fixed Kotlin version to 1.9.10"
+          cat android/settings.gradle | grep kotlin
+          cat android/build.gradle | grep kotlin_version
       
       - name: Add AMap Maven repository
         run: |
