@@ -95,16 +95,37 @@ jobs:
       
       - name: Fix amap_flutter_map plugin dependencies
         run: |
-          # 修改插件的 build.gradle，使用固定版本 8.1.0（与插件兼容）
-          PLUGIN_GRADLE="$PUB_CACHE/hosted/pub.dev/amap_flutter_map-3.0.0/android/build.gradle"
-          if [ -f "$PLUGIN_GRADLE" ]; then
-            sed -i "s/implementation 'com.amap.api:3dmap:.*/implementation 'com.amap.api:3dmap:8.1.0'/" "$PLUGIN_GRADLE"
-            echo "Fixed amap_flutter_map plugin dependencies to 8.1.0"
-            cat "$PLUGIN_GRADLE" | grep -A5 "dependencies"
-          else
-            echo "Plugin gradle not found at $PLUGIN_GRADLE"
-            find $PUB_CACHE -name "build.gradle" -path "*amap_flutter_map*" 2>/dev/null | head -5
+          # 找到插件目录
+          PLUGIN_DIR=$(find $PUB_CACHE -name "amap_flutter_map" -type d 2>/dev/null | head -1)
+          if [ -z "$PLUGIN_DIR" ]; then
+            PLUGIN_DIR="$PUB_CACHE/hosted/pub.dev/amap_flutter_map-3.0.0"
           fi
+          
+          PLUGIN_GRADLE="$PLUGIN_DIR/android/build.gradle"
+          echo "Plugin dir: $PLUGIN_DIR"
+          echo "Plugin gradle: $PLUGIN_GRADLE"
+          
+          if [ -f "$PLUGIN_GRADLE" ]; then
+            echo "Before fix:"
+            cat "$PLUGIN_GRADLE" | grep -A2 "dependencies"
+            
+            # 修改依赖版本
+            sed -i "s/implementation 'com.amap.api:3dmap:.*/implementation 'com.amap.api:3dmap:8.1.0'/" "$PLUGIN_GRADLE"
+            
+            echo "After fix:"
+            cat "$PLUGIN_GRADLE" | grep -A2 "dependencies"
+          else
+            echo "Plugin gradle not found!"
+            find $PUB_CACHE -name "build.gradle" 2>/dev/null | xargs grep -l "amap" 2>/dev/null | head -5
+          fi
+      
+      - name: Clean and rebuild
+        run: |
+          cd android
+          ./gradlew clean
+          cd ..
+          flutter clean
+          flutter pub get
       
       - name: Build APK
         run: flutter build apk --release
