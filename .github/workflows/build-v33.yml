@@ -47,13 +47,35 @@ jobs:
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
           # Add ndk block inside defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
-          # Add AMap dependencies
+          # Add AMap dependencies (use 3dmap-location-search)
           cat >> android/app/build.gradle << 'GRADLEOF'
           
           dependencies {
-              implementation 'com.amap.api:navi-3dmap:latest.integration'
+              implementation 'com.amap.api:3dmap-location-search:latest.integration'
           }
           GRADLEOF
+      
+      - name: Create MainActivity with privacy compliance
+        run: |
+          mkdir -p android/app/src/main/kotlin/com/example/shanjing_app
+          cat > android/app/src/main/kotlin/com/example/shanjing_app/MainActivity.kt << 'KOTLINEOF'
+          package com.example.shanjing_app
+
+          import android.os.Bundle
+          import com.amap.api.maps.MapsInitializer
+          import io.flutter.embedding.android.FlutterActivity
+
+          class MainActivity: FlutterActivity() {
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  // 隐私合规 - 必须在 super.onCreate 之前调用
+                  MapsInitializer.updatePrivacyShow(this, true, true)
+                  MapsInitializer.updatePrivacyAgree(this, true)
+                  
+                  super.onCreate(savedInstanceState)
+              }
+          }
+          KOTLINEOF
+          echo "Created MainActivity.kt with privacy compliance"
       
       - name: Fix AndroidManifest.xml
         run: |
