@@ -18,7 +18,7 @@ jobs:
       
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.0'
+          flutter-version: '3.16.9'
           channel: 'stable'
           cache: false
       
@@ -47,8 +47,21 @@ jobs:
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
           # Add ndk block inside defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
-          # 不强制版本，让插件使用自带的依赖
-          echo "Using plugin default dependencies"
+          # 强制使用 3dmap 8.1.0
+          cat >> android/app/build.gradle << 'GRADLEOF'
+          
+          configurations.all {
+              resolutionStrategy {
+                  force "com.amap.api:3dmap:8.1.0"
+              }
+          }
+          
+          dependencies {
+              implementation "com.amap.api:3dmap:8.1.0"
+          }
+          GRADLEOF
+          echo "Fixed app/build.gradle"
+          tail -15 android/app/build.gradle
       
       - name: Fix AndroidManifest.xml
         run: |
