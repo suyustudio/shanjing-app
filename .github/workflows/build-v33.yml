@@ -34,7 +34,11 @@ jobs:
       
       - name: Fix Kotlin version
         run: |
+          # 在 settings.gradle 中设置 Kotlin 版本
           sed -i 's/id "org.jetbrains.kotlin.android" version "1.7.10"/id "org.jetbrains.kotlin.android" version "1.9.22"/' android/settings.gradle
+          # 同时在 build.gradle 中设置 ext.kotlin_version
+          sed -i '/allprojects {/a\    ext.kotlin_version = "1.9.22"' android/build.gradle
+          echo "Fixed Kotlin version to 1.9.22"
       
       - name: Add AMap Maven repository
         run: |
