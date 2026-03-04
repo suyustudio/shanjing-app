@@ -47,12 +47,11 @@ jobs:
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
           # Add ndk block inside defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
-          # 添加高德 SDK 依赖 - 使用 latest.integration 自动获取兼容版本
+          # 添加高德 SDK 依赖 - 只引入 3dmap（最新版已包含定位功能）
           cat >> android/app/build.gradle << 'GRADLEOF'
           
           dependencies {
               implementation 'com.amap.api:3dmap:latest.integration'
-              implementation 'com.amap.api:location:latest.integration'
           }
           GRADLEOF
       
