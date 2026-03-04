@@ -47,17 +47,14 @@ jobs:
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
           # Add ndk block inside defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
-          # 在 android 块中添加 resolutionStrategy 强制使用 3dmap 8.1.0
-          sed -i '/^android {/a\    configurations.all {\n        resolutionStrategy {\n            force "com.amap.api:3dmap:8.1.0"\n        }\n    }' android/app/build.gradle
-          # 同时添加 dependencies
+          # 使用 3dmap-location-search 组合包（包含地图+定位+搜索）
           cat >> android/app/build.gradle << 'GRADLEOF'
           
           dependencies {
-              implementation 'com.amap.api:3dmap:8.1.0'
+              implementation 'com.amap.api:3dmap-location-search:9.2.1'
           }
           GRADLEOF
-          echo "Added resolutionStrategy and 3dmap:8.1.0 dependency"
-          cat android/app/build.gradle | grep -A10 "resolutionStrategy"
+          echo "Added 3dmap-location-search:9.2.1 dependency"
       
       - name: Fix AndroidManifest.xml
         run: |
