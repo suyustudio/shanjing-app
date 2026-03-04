@@ -25,11 +25,12 @@ jobs:
       - name: Create Android Project with Flutter
         run: |
           rm -rf android
-          if [ ! -f .env ]; then
-            echo "AMAP_KEY=your_amap_key_here" > .env
-          fi
           flutter config --enable-android
           flutter create --platforms=android --project-name=shanjing_app .
+      
+      - name: Setup .env with real AMap Key
+        run: |
+          echo "AMAP_KEY=e17f8ae117d84e2d2d394a2124866603" > .env
       
       - name: Fix Kotlin version
         run: |
@@ -53,8 +54,9 @@ jobs:
               <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
               <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
               <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               <application
-                  android:label="shanjing_app"
+                  android:label="山径"
                   android:name="${applicationName}"
                   android:icon="@mipmap/ic_launcher">
                   <meta-data
