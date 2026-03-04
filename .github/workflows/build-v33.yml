@@ -47,11 +47,12 @@ jobs:
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
           # Add ndk block inside defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
-          # Add AMap dependencies (use 3dmap-location-search)
+          # Add AMap dependencies (fixed versions for Flutter compatibility)
           cat >> android/app/build.gradle << 'GRADLEOF'
           
           dependencies {
-              implementation 'com.amap.api:3dmap-location-search:latest.integration'
+              implementation 'com.amap.api:3dmap:8.0.1'
+              implementation 'com.amap.api:location:5.5.1'
           }
           GRADLEOF
       
