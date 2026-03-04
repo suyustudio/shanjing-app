@@ -37,8 +37,10 @@ jobs:
       
       - name: Fix app/build.gradle
         run: |
+          # Fix minSdkVersion
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
-          sed -i 's/buildTypes/ndk { abiFilters "arm64-v8a", "armeabi-v7a", "x86_64" }\n    buildTypes/' android/app/build.gradle
+          # Add ndk block inside defaultConfig (not outside)
+          sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
       
       - name: Fix AndroidManifest.xml
         run: |
