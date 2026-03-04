@@ -47,12 +47,23 @@ jobs:
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
           # Add ndk block inside defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
-          # 在 dependencies 之前添加 configurations
-          sed -i '/^dependencies {/i\configurations {\n    all {\n        resolutionStrategy {\n            force "com.amap.api:3dmap:8.1.0"\n        }\n    }\n}' android/app/build.gradle
-          # 添加高德依赖
-          sed -i '/^dependencies {/a\    implementation "com.amap.api:3dmap:8.1.0"' android/app/build.gradle
-          echo "Fixed app/build.gradle with configurations"
-          cat android/app/build.gradle | head -50
+          # 在文件末尾添加 configurations 和 dependencies
+          cat >> android/app/build.gradle << 'GRADLEOF'
+          
+          configurations {
+              all {
+                  resolutionStrategy {
+                      force "com.amap.api:3dmap:8.1.0"
+                  }
+              }
+          }
+          
+          dependencies {
+              implementation "com.amap.api:3dmap:8.1.0"
+          }
+          GRADLEOF
+          echo "Fixed app/build.gradle"
+          tail -20 android/app/build.gradle
       
       - name: Fix AndroidManifest.xml
         run: |
