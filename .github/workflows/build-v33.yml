@@ -62,21 +62,12 @@ jobs:
           cat > android/app/src/main/kotlin/com/example/shanjing_app/MainActivity.kt << 'KOTLINEOF'
           package com.example.shanjing_app
 
-          import android.os.Bundle
-          import com.amap.api.maps.MapsInitializer
           import io.flutter.embedding.android.FlutterActivity
 
           class MainActivity: FlutterActivity() {
-              override fun onCreate(savedInstanceState: Bundle?) {
-                  // 隐私合规 - 必须在 super.onCreate 之前调用
-                  MapsInitializer.updatePrivacyShow(this, true, true)
-                  MapsInitializer.updatePrivacyAgree(this, true)
-                  
-                  super.onCreate(savedInstanceState)
-              }
           }
           KOTLINEOF
-          echo "Created MainActivity.kt with privacy compliance"
+          echo "Created MainActivity.kt"
       
       - name: Fix AndroidManifest.xml
         run: |
