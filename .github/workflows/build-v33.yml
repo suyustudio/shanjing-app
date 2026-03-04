@@ -36,6 +36,11 @@ jobs:
         run: |
           sed -i 's/id "org.jetbrains.kotlin.android" version "1.7.10"/id "org.jetbrains.kotlin.android" version "1.9.10"/' android/settings.gradle
       
+      - name: Add AMap Maven repository
+        run: |
+          # Add AMap Maven repository to settings.gradle
+          sed -i '/mavenCentral()/a\        maven { url "https://maven.aliyun.com/repository/public" }\n        maven { url "https://repo1.maven.org/maven2" }' android/settings.gradle
+      
       - name: Fix app/build.gradle
         run: |
           # Fix minSdkVersion
