@@ -55,31 +55,45 @@ jobs:
           mkdir -p android/app/src/main/jniLibs/armeabi-v7a
           mkdir -p android/app/src/main/jniLibs/x86_64
           
-          # Download AMap SDK AAR files
-          cd /tmp
-          # Download navi-3dmap AAR
-          curl -L -o amap-navi-3dmap.aar "https://maven.aliyun.com/repository/public/com/amap/api/navi-3dmap/latest.integration/navi-3dmap-latest.integration.aar" || true
-          # Download location AAR
-          curl -L -o amap-location.aar "https://maven.aliyun.com/repository/public/com/amap/api/location/latest.integration/location-latest.integration.aar" || true
+          # Use Gradle to download AAR files and extract SO libraries
+          cd android
           
-          # Extract SO libraries from AAR files
-          for aar in *.aar; do
-            if [ -f "$aar" ]; then
-              unzip -o "$aar" -d "${aar%.aar}"
-              # Copy SO files to jniLibs
-              find "${aar%.aar}" -name "*.so" | while read sofile; do
-                arch=$(basename $(dirname "$sofile"))
-                if [ -d "android/app/src/main/jniLibs/$arch" ]; then
-                  cp "$sofile" "android/app/src/main/jniLibs/$arch/"
-                  echo "Copied $(basename $sofile) to $arch"
-                fi
-              done
-            fi
-          done
+          # Add AMap dependencies to build.gradle
+          cat >> app/build.gradle << 'GRADLEOF'
+          
+          dependencies {
+              implementation 'com.amap.api:navi-3dmap:latest.integration'
+              implementation 'com.amap.api:search:latest.integration'
+              implementation 'com.amap.api:location:latest.integration'
+          }
+          GRADLEOF
+          
+          # Sync and download dependencies
+          ./gradlew dependencies --configuration releaseRuntimeClasspath 2>/dev/null || true
+          
+          # Find and extract SO files from cached AARs
+          AAR_CACHE="$HOME/.gradle/caches/modules-2/files-2.1/com.amap.api"
+          if [ -d "$AAR_CACHE" ]; then
+            find "$AAR_CACHE" -name "*.aar" | while read aar; do
+              echo "Processing: $aar"
+              unzip -o "$aar" -d "${aar%.aar}_extracted" 2>/dev/null || true
+            done
+            
+            # Copy SO files to jniLibs
+            find "$AAR_CACHE" -path "*/jni/*/*.so" | while read sofile; do
+              arch=$(basename $(dirname "$sofile"))
+              if [ -d "app/src/main/jniLibs/$arch" ]; then
+                cp "$sofile" "app/src/main/jniLibs/$arch/"
+                echo "Copied $(basename $sofile) to jniLibs/$arch/"
+              fi
+            done
+          fi
+          
+          cd ..
           
           # List extracted SO files
           echo "=== Extracted SO libraries ==="
-          find android/app/src/main/jniLibs -name "*.so" -exec ls -lh {} \;
+          find android/app/src/main/jniLibs -name "*.so" -exec ls -lh {} \; 2>/dev/null || echo "No SO files found"
       
       - name: Fix AndroidManifest.xml
         run: |
