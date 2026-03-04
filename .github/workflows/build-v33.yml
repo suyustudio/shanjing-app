@@ -47,7 +47,16 @@ jobs:
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
           # Add ndk block inside defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
-          # 不手动添加高德 SDK 依赖 - 使用插件自带的依赖
+          # 强制使用 3dmap 8.1.0，排除插件的其他版本
+          cat >> android/app/build.gradle << 'GRADLEOF'
+          
+          dependencies {
+              implementation('com.amap.api:3dmap:8.1.0') {
+                  force = true
+              }
+          }
+          GRADLEOF
+          echo "Added forced 3dmap:8.1.0 dependency"
       
       - name: Fix AndroidManifest.xml
         run: |
@@ -93,37 +102,8 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
       
-      - name: Fix amap_flutter_map plugin dependencies
+      - name: Clean build
         run: |
-          # 找到插件目录
-          PLUGIN_DIR=$(find $PUB_CACHE -name "amap_flutter_map" -type d 2>/dev/null | head -1)
-          if [ -z "$PLUGIN_DIR" ]; then
-            PLUGIN_DIR="$PUB_CACHE/hosted/pub.dev/amap_flutter_map-3.0.0"
-          fi
-          
-          PLUGIN_GRADLE="$PLUGIN_DIR/android/build.gradle"
-          echo "Plugin dir: $PLUGIN_DIR"
-          echo "Plugin gradle: $PLUGIN_GRADLE"
-          
-          if [ -f "$PLUGIN_GRADLE" ]; then
-            echo "Before fix:"
-            cat "$PLUGIN_GRADLE" | grep -A2 "dependencies"
-            
-            # 修改依赖版本
-            sed -i "s/implementation 'com.amap.api:3dmap:.*/implementation 'com.amap.api:3dmap:8.1.0'/" "$PLUGIN_GRADLE"
-            
-            echo "After fix:"
-            cat "$PLUGIN_GRADLE" | grep -A2 "dependencies"
-          else
-            echo "Plugin gradle not found!"
-            find $PUB_CACHE -name "build.gradle" 2>/dev/null | xargs grep -l "amap" 2>/dev/null | head -5
-          fi
-      
-      - name: Clean and rebuild
-        run: |
-          cd android
-          ./gradlew clean
-          cd ..
           flutter clean
           flutter pub get
       
