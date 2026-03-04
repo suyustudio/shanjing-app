@@ -18,7 +18,7 @@ jobs:
       
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.16.9'
+          flutter-version: '3.19.0'
           channel: 'stable'
           cache: false
       
@@ -34,11 +34,8 @@ jobs:
       
       - name: Fix Kotlin version
         run: |
-          # 在 settings.gradle 中设置 Kotlin 版本
-          sed -i 's/id "org.jetbrains.kotlin.android" version "1.7.10"/id "org.jetbrains.kotlin.android" version "1.9.22"/' android/settings.gradle
-          # 同时在 build.gradle 中设置 ext.kotlin_version
-          sed -i '/allprojects {/a\    ext.kotlin_version = "1.9.22"' android/build.gradle
-          echo "Fixed Kotlin version to 1.9.22"
+          # Flutter 3.19.0 默认使用 Kotlin 1.9.0+，与插件兼容
+          echo "Using Flutter 3.19.0 default Kotlin version"
       
       - name: Add AMap Maven repository
         run: |
