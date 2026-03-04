@@ -516,6 +516,12 @@ class _NavigationScreenState extends State<NavigationScreen> {
               iosKey: dotenv.env['AMAP_KEY'] ?? '',
               androidKey: dotenv.env['AMAP_KEY'] ?? '',
             ),
+            // 隐私合规声明 - 必须设置，否则地图不会显示
+            privacyStatement: const AMapPrivacyStatement(
+              hasContains: true,
+              hasShow: true,
+              hasAgree: true,
+            ),
             initialCameraPosition: CameraPosition(
               target: _currentLatLng ?? const LatLng(30.25, 120.15),
               zoom: 17,
