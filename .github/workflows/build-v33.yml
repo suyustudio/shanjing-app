@@ -39,8 +39,10 @@ jobs:
         run: |
           # Fix minSdkVersion
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
-          # Add ndk block inside defaultConfig (not outside)
+          # Add ndk block inside defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
+          # Add AMap SDK dependencies
+          sed -i '/dependencies {/a\    implementation "com.amap.api:navi-3dmap:latest.integration"\n    implementation "com.amap.api:search:latest.integration"\n    implementation "com.amap.api:location:latest.integration"' android/app/build.gradle
       
       - name: Fix AndroidManifest.xml
         run: |
