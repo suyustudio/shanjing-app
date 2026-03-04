@@ -95,11 +95,11 @@ jobs:
       
       - name: Fix amap_flutter_map plugin dependencies
         run: |
-          # 修改插件的 build.gradle，使用最新版 3dmap
+          # 修改插件的 build.gradle，使用固定版本 8.1.0（与插件兼容）
           PLUGIN_GRADLE="$PUB_CACHE/hosted/pub.dev/amap_flutter_map-3.0.0/android/build.gradle"
           if [ -f "$PLUGIN_GRADLE" ]; then
-            sed -i "s/implementation 'com.amap.api:3dmap:.*'/implementation 'com.amap.api:3dmap:latest.integration'/" "$PLUGIN_GRADLE"
-            echo "Fixed amap_flutter_map plugin dependencies"
+            sed -i "s/implementation 'com.amap.api:3dmap:.*/implementation 'com.amap.api:3dmap:8.1.0'/" "$PLUGIN_GRADLE"
+            echo "Fixed amap_flutter_map plugin dependencies to 8.1.0"
             cat "$PLUGIN_GRADLE" | grep -A5 "dependencies"
           else
             echo "Plugin gradle not found at $PLUGIN_GRADLE"
