@@ -48,20 +48,38 @@ jobs:
           # Add ndk block inside defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
       
-      - name: Add AMap SDK dependencies
+      - name: Download and extract AMap SDK SO libraries
         run: |
-          cat > /tmp/add_amap_deps.py << 'EOF'
-          import re
-          with open('android/app/build.gradle', 'r') as f:
-              content = f.read()
-          deps = '    implementation "com.amap.api:navi-3dmap:latest.integration"\n    implementation "com.amap.api:search:latest.integration"\n    implementation "com.amap.api:location:latest.integration"\n'
-          pattern = r'(dependencies\s*\{[^}]+)(\})'
-          content = re.sub(pattern, r'\1' + deps + r'\2', content, flags=re.DOTALL)
-          with open('android/app/build.gradle', 'w') as f:
-              f.write(content)
-          print("Added AMap SDK dependencies")
-          EOF
-          python3 /tmp/add_amap_deps.py
+          # Create jniLibs directory
+          mkdir -p android/app/src/main/jniLibs/arm64-v8a
+          mkdir -p android/app/src/main/jniLibs/armeabi-v7a
+          mkdir -p android/app/src/main/jniLibs/x86_64
+          
+          # Download AMap SDK AAR files
+          cd /tmp
+          # Download navi-3dmap AAR
+          curl -L -o amap-navi-3dmap.aar "https://maven.aliyun.com/repository/public/com/amap/api/navi-3dmap/latest.integration/navi-3dmap-latest.integration.aar" || true
+          # Download location AAR
+          curl -L -o amap-location.aar "https://maven.aliyun.com/repository/public/com/amap/api/location/latest.integration/location-latest.integration.aar" || true
+          
+          # Extract SO libraries from AAR files
+          for aar in *.aar; do
+            if [ -f "$aar" ]; then
+              unzip -o "$aar" -d "${aar%.aar}"
+              # Copy SO files to jniLibs
+              find "${aar%.aar}" -name "*.so" | while read sofile; do
+                arch=$(basename $(dirname "$sofile"))
+                if [ -d "android/app/src/main/jniLibs/$arch" ]; then
+                  cp "$sofile" "android/app/src/main/jniLibs/$arch/"
+                  echo "Copied $(basename $sofile) to $arch"
+                fi
+              done
+            fi
+          done
+          
+          # List extracted SO files
+          echo "=== Extracted SO libraries ==="
+          find android/app/src/main/jniLibs -name "*.so" -exec ls -lh {} \;
       
       - name: Fix AndroidManifest.xml
         run: |
