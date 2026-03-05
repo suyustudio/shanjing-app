@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <!-- 单色版本 - 用于通知栏/状态栏/系统图标 -->
+  <!-- 规格：Android 通知栏 24dp，状态栏 24dp，iOS 20pt/29pt -->
+  
+  <!-- 纯白色版本（用于深色背景） -->
+  <g fill="#FFFFFF">
+    <!-- 简化山形 -->
+    <polygon points="20,76 36,36 48,56" opacity="0.9"/>
+    <polygon points="48,56 60,40 76,76" opacity="0.8"/>
+    <polygon points="32,76 48,28 64,76" opacity="1"/>
+    
+    <!-- 简化路径 -->
+    <path d="M40,84 Q44,60 48,48 Q52,32 60,28" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

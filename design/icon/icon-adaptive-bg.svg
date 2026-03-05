@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- Android Adaptive Icon - 背景层 -->
+  
+  <defs>
+    <linearGradient id="bgGradientAdaptive" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2D3436"/>
+      <stop offset="100%" style="stop-color:#1A1D1E"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 深色背景 -->
+  <rect width="108" height="108" fill="url(#bgGradientAdaptive)"/>
+  
+  <!-- 微妙的纹理/光晕 -->
+  <circle cx="54" cy="54" r="50" fill="none" stroke="#F39C12" stroke-width="0.5" opacity="0.1"/>
+</svg>

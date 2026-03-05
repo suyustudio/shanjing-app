@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- iOS 图标 -->
+  
+  <defs>
+    <linearGradient id="iosGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F39C12"/>
+      <stop offset="60%" stop-color="#E67E22"/>
+      <stop offset="100%" stop-color="#2D3436"/>
+    </linearGradient>
+    
+    <linearGradient id="sheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#iosGrad)"/>
+  
+  <!-- 山形 -->
+  <g transform="translate(512, 560)" fill="#FFFFFF">
+    <polygon points="-260,110 -110,-170 0,15" opacity="0.95"/>
+    <polygon points="0,15 110,-130 260,110" opacity="0.85"/>
+    <polygon points="-75,110 0,-200 75,110" opacity="1"/>
+  </g>
+  
+  <!-- 路径 -->
+  <g transform="translate(512, 560)" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round">
+    <path d="M-55,190 Q-35,95 0,5 Q35,-75 75,-95"/>
+    <path d="M-55,190 Q-35,95 0,5 Q35,-75 75,-95" stroke="#F39C12" stroke-width="7" opacity="0.5"/>
+  </g>
+  
+  <!-- 终点 -->
+  <circle cx="587" cy="465" r="15" fill="#F39C12"/>
+  <circle cx="587" cy="465" r="7" fill="#FFFFFF"/>
+  
+  <!-- iOS 光泽 -->
+  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#sheen)"/>
+</svg>
