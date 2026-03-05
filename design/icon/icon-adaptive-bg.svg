@@ -1,16 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
-  <!-- Android Adaptive Icon - 背景层 -->
-  
   <defs>
-    <linearGradient id="bgGradientAdaptive" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#2D3436"/>
-      <stop offset="100%" style="stop-color:#1A1D1E"/>
+    <!-- 温暖的日出天空渐变 -->
+    <linearGradient id="bgSunrise" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF8F0"/>
+      <stop offset="40%" stop-color="#FFE4B5"/>
+      <stop offset="100%" stop-color="#F4D03F"/>
     </linearGradient>
+    
+    <!-- 微妙的纹理 -->
+    <filter id="paperTexture">
+      <feTurbulence type="fractalNoise" baseFrequency="0.3" numOctaves="3" result="noise"/>
+      <feBlend in="SourceGraphic" in2="noise" mode="multiply"/>
+    </filter>
   </defs>
   
-  <!-- 深色背景 -->
-  <rect width="108" height="108" fill="url(#bgGradientAdaptive)"/>
+  <!-- 背景 -->
+  <rect width="108" height="108" fill="url(#bgSunrise)"/>
   
-  <!-- 微妙的纹理/光晕 -->
-  <circle cx="54" cy="54" r="50" fill="none" stroke="#F39C12" stroke-width="0.5" opacity="0.1"/>
+  <!-- 微妙的太阳光晕 -->
+  <circle cx="54" cy="40" r="35" fill="#FFF" opacity="0.3"/>
+  <circle cx="54" cy="45" r="25" fill="#FFE4B5" opacity="0.4"/>
+  
+  <!-- 底部大地色渐变 -->
+  <rect x="0" y="70" width="108" height="38" fill="#F39C12" opacity="0.1"/>
+  
 </svg>

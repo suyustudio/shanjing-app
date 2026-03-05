@@ -1,39 +1,131 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <!-- iOS 图标 -->
-  
   <defs>
-    <linearGradient id="iosGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F39C12"/>
-      <stop offset="60%" stop-color="#E67E22"/>
-      <stop offset="100%" stop-color="#2D3436"/>
+    <!-- 温暖的大地色渐变 - iOS 版本更饱和 -->
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF5E6"/>
+      <stop offset="30%" stop-color="#FFE4B5"/>
+      <stop offset="70%" stop-color="#F4D03F"/>
+      <stop offset="100%" stop-color="#F39C12"/>
     </linearGradient>
     
-    <linearGradient id="sheen" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.2"/>
-      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0"/>
+    <!-- 远山暖灰 -->
+    <linearGradient id="mountainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#D4C4B0"/>
+      <stop offset="100%" stop-color="#A89880"/>
     </linearGradient>
+    
+    <!-- 路径金色 -->
+    <linearGradient id="pathGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#D4A84B"/>
+      <stop offset="50%" stop-color="#F4D03F"/>
+      <stop offset="100%" stop-color="#F39C12"/>
+    </linearGradient>
+    
+    <!-- iOS 光泽效果 -->
+    <linearGradient id="sheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.25"/>
+      <stop offset="40%" stop-color="#FFFFFF" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    
+    <!-- 路径笔触纹理 -->
+    <filter id="brushStroke">
+      <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5"/>
+    </filter>
   </defs>
   
   <!-- 背景 -->
-  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#iosGrad)"/>
+  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#skyGrad)"/>
   
-  <!-- 山形 -->
-  <g transform="translate(512, 560)" fill="#FFFFFF">
-    <polygon points="-260,110 -110,-170 0,15" opacity="0.95"/>
-    <polygon points="0,15 110,-130 260,110" opacity="0.85"/>
-    <polygon points="-75,110 0,-200 75,110" opacity="1"/>
+  <!-- 远山轮廓 - 柔和的手绘感 -->
+  <g opacity="0.55">
+    <!-- 左侧远山 -->
+    <path d="M60,720 
+             Q160,520 290,470 
+             Q360,440 410,500
+             Q460,570 510,720
+             Z" 
+          fill="#C9B8A0" opacity="0.5"/>
+    
+    <!-- 右侧远山 -->
+    <path d="M514,720
+             Q570,540 670,500
+             Q770,460 840,520
+             Q910,580 964,720
+             Z"
+          fill="#B8A890" opacity="0.4"/>
+    
+    <!-- 中央主峰 -->
+    <path d="M210,770
+             Q360,370 512,300
+             Q674,370 814,770
+             Z"
+          fill="url(#mountainGrad)" opacity="0.65"/>
   </g>
   
-  <!-- 路径 -->
-  <g transform="translate(512, 560)" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round">
-    <path d="M-55,190 Q-35,95 0,5 Q35,-75 75,-95"/>
-    <path d="M-55,190 Q-35,95 0,5 Q35,-75 75,-95" stroke="#F39C12" stroke-width="7" opacity="0.5"/>
+  <!-- 手绘风格路径 - 主体 -->
+  <g filter="url(#brushStroke)">
+    <!-- 主路径底色 -->
+    <path d="M290,800
+             C330,740 310,700 350,660
+             C390,620 370,580 410,540
+             C450,500 430,460 470,420
+             C510,380 490,340 512,300"
+          fill="none"
+          stroke="#8B7355"
+          stroke-width="26"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          opacity="0.3"/>
+    
+    <!-- 主路径金色主体 -->
+    <path d="M290,800
+             C330,740 310,700 350,660
+             C390,620 370,580 410,540
+             C450,500 430,460 470,420
+             C510,380 490,340 512,300"
+          fill="none"
+          stroke="url(#pathGrad)"
+          stroke-width="18"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+    
+    <!-- 路径高光 -->
+    <path d="M290,795
+             C330,735 310,695 350,655
+             C390,615 370,575 410,535
+             C450,495 430,455 470,415
+             C510,375 490,335 512,295"
+          fill="none"
+          stroke="#FFF8DC"
+          stroke-width="5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          opacity="0.7"/>
+    
+    <!-- 路径步点 -->
+    <ellipse cx="350" cy="660" rx="7" ry="5" fill="#D4A84B" opacity="0.8"/>
+    <ellipse cx="410" cy="540" rx="7" ry="5" fill="#D4A84B" opacity="0.8"/>
+    <ellipse cx="470" cy="420" rx="7" ry="5" fill="#D4A84B" opacity="0.8"/>
   </g>
   
-  <!-- 终点 -->
-  <circle cx="587" cy="465" r="15" fill="#F39C12"/>
-  <circle cx="587" cy="465" r="7" fill="#FFFFFF"/>
+  <!-- 山顶终点标记 -->
+  <g transform="translate(512, 300)">
+    <line x1="0" y1="0" x2="0" y2="-38" stroke="#8B4513" stroke-width="4" stroke-linecap="round"/>
+    <path d="M2,-36 L28,-27 L2,-17 Z" fill="#E74C3C"/>
+    <circle cx="0" cy="0" r="22" fill="#F39C12" opacity="0.2"/>
+    <circle cx="0" cy="0" r="13" fill="#F4D03F" opacity="0.4"/>
+  </g>
+  
+  <!-- 起点标记 -->
+  <g transform="translate(290, 800)">
+    <circle cx="0" cy="0" r="16" fill="#2C3E50" opacity="0.2"/>
+    <circle cx="0" cy="0" r="11" fill="#27AE60"/>
+    <circle cx="0" cy="0" r="5" fill="#FFF"/>
+  </g>
   
   <!-- iOS 光泽 -->
   <rect width="1024" height="1024" rx="180" ry="180" fill="url(#sheen)"/>
+  
 </svg>

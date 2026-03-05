@@ -1,29 +1,132 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
-    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#F39C12"/>
-      <stop offset="50%" stop-color="#E67E22"/>
-      <stop offset="100%" stop-color="#2D3436"/>
+    <!-- 温暖的大地色渐变 -->
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F5E6D3"/>
+      <stop offset="40%" stop-color="#FFE4B5"/>
+      <stop offset="100%" stop-color="#F4D03F"/>
     </linearGradient>
+    
+    <!-- 远山暖灰 -->
+    <linearGradient id="mountainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#D4C4B0"/>
+      <stop offset="100%" stop-color="#A89880"/>
+    </linearGradient>
+    
+    <!-- 路径金色 -->
+    <linearGradient id="pathGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#D4A84B"/>
+      <stop offset="50%" stop-color="#F4D03F"/>
+      <stop offset="100%" stop-color="#F39C12"/>
+    </linearGradient>
+    
+    <!-- 手绘路径的粗糙滤镜 -->
+    <filter id="roughPaper">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2"/>
+    </filter>
+    
+    <!-- 路径笔触纹理 -->
+    <filter id="brushStroke">
+      <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5"/>
+    </filter>
   </defs>
   
-  <!-- 背景 -->
-  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#mainGrad)"/>
+  <!-- 背景 - 温暖的日出天空 -->
+  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#skyGrad)"/>
   
-  <!-- 山形 -->
-  <g transform="translate(512, 580)" fill="#FFFFFF">
-    <polygon points="-280,120 -120,-180 0,20" opacity="0.95"/>
-    <polygon points="0,20 120,-140 280,120" opacity="0.85"/>
-    <polygon points="-80,120 0,-220 80,120" opacity="1"/>
+  <!-- 远山轮廓 - 柔和的手绘感，作为背景 -->
+  <g opacity="0.6">
+    <!-- 左侧远山 -->
+    <path d="M50,700 
+             Q150,500 280,450 
+             Q350,420 400,480
+             Q450,550 500,700
+             Z" 
+          fill="#C9B8A0" opacity="0.5"/>
+    
+    <!-- 右侧远山 -->
+    <path d="M524,700
+             Q580,520 680,480
+             Q780,440 850,500
+             Q920,560 974,700
+             Z"
+          fill="#B8A890" opacity="0.4"/>
+    
+    <!-- 中央主峰 - 柔和轮廓 -->
+    <path d="M200,750
+             Q350,350 512,280
+             Q674,350 824,750
+             Z"
+          fill="url(#mountainGrad)" opacity="0.7"/>
   </g>
   
-  <!-- 路径 -->
-  <g transform="translate(512, 580)" fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round">
-    <path d="M-60,200 Q-40,100 0,0 Q40,-80 80,-100"/>
-    <path d="M-60,200 Q-40,100 0,0 Q40,-80 80,-100" stroke="#F39C12" stroke-width="8" opacity="0.6"/>
+  <!-- 手绘风格路径 - 主体元素，蜿蜒向上 -->
+  <g filter="url(#brushStroke)">
+    <!-- 主路径 - 较粗的底色 -->
+    <path d="M280,780
+             C320,720 300,680 340,640
+             C380,600 360,560 400,520
+             C440,480 420,440 460,400
+             C500,360 480,320 512,280"
+          fill="none"
+          stroke="#8B7355"
+          stroke-width="28"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          opacity="0.3"/>
+    
+    <!-- 主路径 - 金色主体 -->
+    <path d="M280,780
+             C320,720 300,680 340,640
+             C380,600 360,560 400,520
+             C440,480 420,440 460,400
+             C500,360 480,320 512,280"
+          fill="none"
+          stroke="url(#pathGrad)"
+          stroke-width="20"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+    
+    <!-- 路径高光 -->
+    <path d="M280,775
+             C320,715 300,675 340,635
+             C380,595 360,555 400,515
+             C440,475 420,435 460,395
+             C500,355 480,315 512,275"
+          fill="none"
+          stroke="#FFF8DC"
+          stroke-width="6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          opacity="0.6"/>
+    
+    <!-- 路径上的步点 - 手绘感 -->
+    <ellipse cx="340" cy="640" rx="8" ry="6" fill="#D4A84B" opacity="0.8"/>
+    <ellipse cx="400" cy="520" rx="8" ry="6" fill="#D4A84B" opacity="0.8"/>
+    <ellipse cx="460" cy="400" rx="8" ry="6" fill="#D4A84B" opacity="0.8"/>
   </g>
   
-  <!-- 终点 -->
-  <circle cx="592" cy="480" r="16" fill="#F39C12"/>
-  <circle cx="592" cy="480" r="8" fill="#FFFFFF"/>
+  <!-- 山顶终点标记 - 小旗帜/地标 -->
+  <g transform="translate(512, 280)">
+    <!-- 旗杆 -->
+    <line x1="0" y1="0" x2="0" y2="-40" stroke="#8B4513" stroke-width="4" stroke-linecap="round"/>
+    <!-- 旗帜 - 手绘感 -->
+    <path d="M2,-38 L30,-28 L2,-18 Z" fill="#E74C3C"/>
+    <!-- 山顶光晕 -->
+    <circle cx="0" cy="0" r="25" fill="#F39C12" opacity="0.2"/>
+    <circle cx="0" cy="0" r="15" fill="#F4D03F" opacity="0.4"/>
+  </g>
+  
+  <!-- 起点标记 - 徒步者视角 -->
+  <g transform="translate(280, 780)">
+    <circle cx="0" cy="0" r="18" fill="#2C3E50" opacity="0.2"/>
+    <circle cx="0" cy="0" r="12" fill="#27AE60"/>
+    <circle cx="0" cy="0" r="6" fill="#FFF"/>
+  </g>
+  
+  <!-- 微妙的纸张纹理覆盖 -->
+  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#skyGrad)" opacity="0.05" filter="url(#roughPaper)"/>
+  
 </svg>
