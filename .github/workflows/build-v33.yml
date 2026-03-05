@@ -163,7 +163,6 @@ jobs:
             --device model=redfin,version=30,locale=zh_CN,orientation=portrait \
             --device model=oriole,version=33,locale=zh_CN,orientation=portrait \
             --timeout 10m \
-            --results-bucket=gs://${{ secrets.FIREBASE_TEST_BUCKET }} \
             --results-dir=shanjing-app/${{ github.run_number }}
         continue-on-error: true
       
