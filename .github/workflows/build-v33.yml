@@ -124,3 +124,47 @@ jobs:
           name: shanjing-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: warn
+
+  # Firebase Test Lab 云测试任务
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: shanjing-apk
+          path: ./apk
+      
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.FIREBASE_PROJECT_ID }}
+          service_account_key: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          export_default_credentials: true
+      
+      - name: Install gcloud components
+        run: |
+          gcloud components install beta
+          gcloud components update
+      
+      - name: Run Firebase Test Lab (Robo Test)
+        run: |
+          gcloud firebase test android run \
+            --type robo \
+            --app ./apk/app-release.apk \
+            --device model=redfin,version=30,locale=zh_CN,orientation=portrait \
+            --device model=oriole,version=33,locale=zh_CN,orientation=portrait \
+            --timeout 10m \
+            --results-bucket=gs://${{ secrets.FIREBASE_TEST_BUCKET }} \
+            --results-dir=shanjing-app/${{ github.run_number }}
+        continue-on-error: true
+      
+      - name: Get Test Results URL
+        if: always()
+        run: |
+          echo "Firebase Test Lab Results:"
+          echo "https://console.firebase.google.com/project/${{ secrets.FIREBASE_PROJECT_ID }}/testlab/histories"
