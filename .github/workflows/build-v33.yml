@@ -164,6 +164,14 @@ jobs:
           gcloud components install beta
           gcloud components update
       
+      - name: Create Test Results Bucket
+        run: |
+          echo "=== Creating test results bucket ==="
+          gsutil mb -p ${{ secrets.FIREBASE_PROJECT_ID }} gs://shanjing-app-test-results-${{ secrets.FIREBASE_PROJECT_ID }} 2>/dev/null || echo "Bucket may already exist"
+          
+          echo "=== Granting access to service account ==="
+          gsutil iam ch serviceAccount:$(gcloud auth list --filter=status:ACTIVE --format='value(account)'):objectAdmin gs://shanjing-app-test-results-${{ secrets.FIREBASE_PROJECT_ID }} || echo "Could not grant access"
+      
       - name: Run Firebase Test Lab (Robo Test)
         run: |
           gcloud firebase test android run \
@@ -171,7 +179,8 @@ jobs:
             --app ./apk/app-release.apk \
             --device model=redfin,version=30,locale=zh_CN,orientation=portrait \
             --device model=oriole,version=33,locale=zh_CN,orientation=portrait \
-            --timeout 10m
+            --timeout 10m \
+            --results-bucket=gs://shanjing-app-test-results-${{ secrets.FIREBASE_PROJECT_ID }}
         continue-on-error: true
       
       - name: Get Test Results URL
