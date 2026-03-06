@@ -159,13 +159,6 @@ jobs:
           echo "=== IAM policy for current user ==="
           gcloud projects get-iam-policy ${{ secrets.FIREBASE_PROJECT_ID }} --flatten="bindings[].members" --format="table(bindings.role)" --filter="bindings.members:$(gcloud auth list --filter=status:ACTIVE --format='value(account)')" || echo "Could not get IAM policy"
       
-      - name: Grant Bucket Access
-        run: |
-          echo "=== Granting bucket access to service account ==="
-          gcloud storage buckets add-iam-policy-binding gs://test-lab-771fq9d1vh7nw-yajqjiiu1ipcq \
-            --member="serviceAccount:$(gcloud auth list --filter=status:ACTIVE --format='value(account)')" \
-            --role="roles/storage.objectAdmin" || echo "Could not grant bucket access"
-      
       - name: Install gcloud components
         run: |
           gcloud components install beta
@@ -178,8 +171,7 @@ jobs:
             --app ./apk/app-release.apk \
             --device model=redfin,version=30,locale=zh_CN,orientation=portrait \
             --device model=oriole,version=33,locale=zh_CN,orientation=portrait \
-            --timeout 10m \
-            --results-dir=shanjing-app/${{ github.run_number }}
+            --timeout 10m
         continue-on-error: true
       
       - name: Get Test Results URL
