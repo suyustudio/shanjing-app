@@ -53,9 +53,16 @@ jobs:
           # 添加 ndk 块到 defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
           
-          # 不手动添加高德 SDK 依赖，让 amap_flutter_map 插件自动处理
-          # 避免版本冲突导致 JNI 崩溃
-          echo "Fixed app/build.gradle (no manual AMap SDK dependency)"
+          # 添加高德 SDK 依赖（与 amap_flutter_map 3.0.0 匹配的版本 8.1.0）
+          cat >> android/app/build.gradle << 'GRADLEOF'
+          
+          dependencies {
+              implementation 'com.amap.api:3dmap:8.1.0'
+              implementation 'com.amap.api:location:5.6.1'
+              implementation 'com.amap.api:search:8.1.0'
+          }
+          GRADLEOF
+          echo "Fixed app/build.gradle with AMap SDK 8.1.0"
           tail -10 android/app/build.gradle
       
       - name: Fix AndroidManifest.xml
