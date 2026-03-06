@@ -150,6 +150,15 @@ jobs:
         with:
           project_id: ${{ secrets.FIREBASE_PROJECT_ID }}
       
+      - name: Verify Service Account
+        run: |
+          echo "=== Current gcloud account ==="
+          gcloud auth list --filter=status:ACTIVE --format="value(account)"
+          echo "=== Current project ==="
+          gcloud config get-value project
+          echo "=== IAM policy for current user ==="
+          gcloud projects get-iam-policy ${{ secrets.FIREBASE_PROJECT_ID }} --flatten="bindings[].members" --format="table(bindings.role)" --filter="bindings.members:$(gcloud auth list --filter=status:ACTIVE --format='value(account)')" || echo "Could not get IAM policy"
+      
       - name: Install gcloud components
         run: |
           gcloud components install beta
