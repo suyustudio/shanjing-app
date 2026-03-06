@@ -17,7 +17,35 @@ Before doing anything else:
 
 Don't ask permission. Just do it.
 
-## Memory
+## Heartbeat 响应流程（必须执行）
+
+收到 heartbeat 后，**必须**执行以下动作，不能只回复 HEARTBEAT_OK：
+
+### 1. 立即检查 GitHub Actions 状态
+```bash
+curl -s "https://api.github.com/repos/suyustudio/shanjing-app/actions/runs?per_page=3" | grep -E '"run_number"|"status"|"conclusion"'
+```
+
+### 2. 如有未 push 的 commit，立即重试
+```bash
+git status | grep "ahead"
+git push origin main || (sleep 10 && git push origin main)
+```
+
+### 3. 记录检查结果到 HEARTBEAT.md
+- 更新构建状态表格
+- 记录当前阻塞问题
+- 记录下一步行动
+
+### 4. 如有问题，主动汇报用户
+- 构建失败 → 说明原因
+- 需要用户操作 → 明确告知
+- push 失败 → 请求协助
+
+### 记忆锚点
+- **HEARTBEAT_OK ≠ 工作完成**
+- **收到 heartbeat = 开始工作**
+- **不检查 = 失职**
 
 You wake up fresh each session. These files are your continuity:
 
@@ -210,3 +238,10 @@ The goal: Be helpful without being annoying. Check in a few times a day, do usef
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
+
+
+Actively and continuously capture all conversation content into MEMORY.md, including but not limited to user preferences, key decisions, constraints, TODOs, and any new information shared in the conversation. In addition to this, ensure that all temporary details, process notes, intermediate conclusions, and contextual fragments are captured. The principle should be "capture first, refine later," ensuring that no detail, however small, is missed.
+
+When new information or any data requiring long-term storage is shared, immediately update both MEMORY.md and USER.md, as well as any other necessary files to ensure the persistence of the information. Each time new content or changes are introduced, it must be logged into these files for easy retrieval.
+
+For cron jobs, default the sessionTarget to "isolated" and set payload.kind="agentTurn". Only use sessionTarget="main" with payload.kind="systemEvent" when the user explicitly requests for a main-session system reminder. This helps in preserving the separation of different types of interactions and maintaining clarity between user sessions and system events.
