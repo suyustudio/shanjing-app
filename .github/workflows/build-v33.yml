@@ -31,6 +31,27 @@ jobs:
           rm -rf android
           flutter config --enable-android
           flutter create --platforms=android --project-name=shanjing_app .
+          
+          # 创建 MainActivity.kt 目录结构并写入隐私合规代码
+          mkdir -p android/app/src/main/kotlin/com/suyustudio/shanjing
+          cat > android/app/src/main/kotlin/com/suyustudio/shanjing/MainActivity.kt << 'EOF'
+          package com.suyustudio.shanjing
+
+          import android.os.Bundle
+          import com.amap.api.maps.MapsInitializer
+          import io.flutter.embedding.android.FlutterActivity
+
+          class MainActivity : FlutterActivity() {
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  // ⚠️ 必须在 super.onCreate 之前调用隐私合规接口
+                  MapsInitializer.updatePrivacyShow(this, true, true)
+                  MapsInitializer.updatePrivacyAgree(this, true)
+                  
+                  super.onCreate(savedInstanceState)
+              }
+          }
+          EOF
+          echo "Created MainActivity.kt with privacy initialization"
       
       - name: Fix Kotlin version in settings.gradle
         run: |
@@ -42,8 +63,10 @@ jobs:
       
       - name: Add AMap Maven repository
         run: |
-          # 添加高德 Maven 仓库到 settings.gradle
-          sed -i '/mavenCentral()/a\        maven { url "https://maven.aliyun.com/repository/public" }' android/settings.gradle
+          # 添加高德官方 Maven 仓库（关键修复）
+          sed -i '/mavenCentral()/a\        maven { url "https://repository.amap.com/repository/maven-public/" }' android/settings.gradle
+          echo "Added AMap official Maven repository"
+          cat android/settings.gradle | grep -A2 "mavenCentral"
       
       - name: Fix app/build.gradle
         run: |
@@ -111,6 +134,18 @@ jobs:
       
       - name: Build APK
         run: flutter build apk --release
+      
+      - name: Verify APK contents
+        run: |
+          echo "=== APK 内容检查 ==="
+          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -E "libAMapSDK|lib.*amap" || echo "未找到高德 SO 库"
+          echo ""
+          echo "=== APK 大小 ==="
+          ls -lh build/app/outputs/flutter-apk/app-release.apk
+          echo ""
+          echo "=== 依赖分析 ==="
+          cd android
+          ./gradlew app:dependencies --configuration releaseRuntimeClasspath | grep -E "(amap|AMap)" || echo "依赖分析完成"
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
