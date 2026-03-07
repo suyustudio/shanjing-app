@@ -26,49 +26,61 @@ jobs:
         run: |
           echo "AMAP_KEY=e17f8ae117d84e2d2d394a2124866603" > .env
       
-      # 关键修改：不删除 android 目录！保留现有配置
-      - name: Get Flutter dependencies
+      # 关键：检查 android 目录是否存在且完整
+      - name: Check and Create Android Project
         run: |
-          flutter pub get
-          echo "Flutter dependencies resolved"
-      
-      - name: Ensure Android dependencies
-        run: |
-          cd android
-          ./gradlew dependencies --configuration releaseRuntimeClasspath 2>/dev/null | head -50 || echo "Dependencies check complete"
-      
-      - name: Fix Android configuration
-        run: |
-          # 修复 minSdkVersion（高德 SDK 要求最低 21）
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
-          echo "Fixed minSdkVersion"
-          
-          # 修复 AndroidManifest.xml（添加高德 API Key）
-          if ! grep -q "com.amap.api.v2.apikey" android/app/src/main/AndroidManifest.xml; then
-            sed -i '/<application/a\        <meta-data android:name="com.amap.api.v2.apikey" android:value="e17f8ae117d84e2d2d394a2124866603" />' android/app/src/main/AndroidManifest.xml
-            echo "Added AMap API Key to AndroidManifest.xml"
+          if [ ! -f "android/app/build.gradle" ]; then
+            echo "Android project missing or incomplete, creating..."
+            flutter config --enable-android
+            flutter create --platforms=android --project-name=shanjing_app .
+          else
+            echo "Android project exists"
           fi
       
-      - name: Build APK
-        run: flutter build apk --release --verbose 2>&1 | tail -100
+      - name: Get Flutter dependencies
+        run: flutter pub get
       
-      - name: Verify APK contents
+      # 确保使用 Android embedding v2
+      - name: Configure Android V2 Embedding
+        run: |
+          # 确保 AndroidManifest.xml 有正确的 embedding 版本
+          if ! grep -q 'android:name="flutterEmbedding"' android/app/src/main/AndroidManifest.xml; then
+            sed -i '/<application/i\        <meta-data android:name="flutterEmbedding" android:value="2" />' android/app/src/main/AndroidManifest.xml
+          else
+            sed -i 's/android:value="1"/android:value="2"/' android/app/src/main/AndroidManifest.xml
+          fi
+          
+          # 确保 MainActivity 使用正确的 FlutterActivity
+          cat > android/app/src/main/kotlin/com/suyustudio/shanjing/MainActivity.kt << 'EOF'
+          package com.suyustudio.shanjing
+          import io.flutter.embedding.android.FlutterActivity
+          class MainActivity: FlutterActivity()
+          EOF
+          
+          # 添加高德 API Key
+          if ! grep -q "com.amap.api.v2.apikey" android/app/src/main/AndroidManifest.xml; then
+            sed -i '/<application/a\        <meta-data android:name="com.amap.api.v2.apikey" android:value="e17f8ae117d84e2d2d394a2124866603" />' android/app/src/main/AndroidManifest.xml
+          fi
+          
+          # 设置 minSdkVersion
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
+      
+      - name: Build APK
+        run: flutter build apk --release
+      
+      - name: Verify APK
         run: |
           echo "=== APK 大小 ==="
           ls -lh build/app/outputs/flutter-apk/app-release.apk
           echo ""
-          echo "=== SO 库检查 ==="
+          echo "=== SO 库 ==="
           unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -E "\.so$" | head -20
-          echo ""
-          echo "=== 高德相关文件 ==="
-          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -iE "amap|autonavi|3dmap" || echo "未找到高德相关文件"
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: shanjing-apk
           path: build/app/outputs/flutter-apk/app-release.apk
-          if-no-files-found: warn
 
   test:
     needs: build
@@ -76,29 +88,20 @@ jobs:
     if: ${{ github.event_name == 'push' }}
     steps:
       - uses: actions/checkout@v4
-      
       - name: Download APK
         uses: actions/download-artifact@v4
         with:
           name: shanjing-apk
           path: ./apk
-      
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           project_id: ${{ secrets.FIREBASE_PROJECT_ID }}
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-      
       - name: Setup Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.FIREBASE_PROJECT_ID }}
-      
-      - name: Install gcloud components
-        run: |
-          gcloud components install beta
-          gcloud components update
-      
       - name: Run Firebase Test Lab
         run: |
           gcloud firebase test android run \
@@ -108,9 +111,3 @@ jobs:
             --device model=oriole,version=33,locale=zh_CN,orientation=portrait \
             --timeout 10m
         continue-on-error: true
-      
-      - name: Get Test Results URL
-        if: always()
-        run: |
-          echo "Firebase Test Lab Results:"
-          echo "https://console.firebase.google.com/project/${{ secrets.FIREBASE_PROJECT_ID }}/testlab/histories"
