@@ -43,14 +43,26 @@ jobs:
       # 确保使用 Android embedding v2
       - name: Configure Android V2 Embedding
         run: |
+          set -x  # 打印执行的命令
+          
+          # 检查 android/build.gradle 是否存在
+          if [ ! -f "android/build.gradle" ]; then
+            echo "ERROR: android/build.gradle not found"
+            exit 1
+          fi
+          
+          echo "=== Current Kotlin version ==="
+          grep -i "kotlin" android/build.gradle || echo "No kotlin version found"
+          
           # 更新 Kotlin 版本到 1.9.10（与 flutter_tts 兼容）
-          # Flutter 3.19 生成的 build.gradle 格式可能不同，使用更通用的替换
-          cat android/build.gradle | grep -i kotlin
-          sed -i 's/kotlin_version = "1\.[0-9]\+\.[0-9]\+"/kotlin_version = "1.9.10"/' android/build.gradle
-          echo "Updated Kotlin version:"
-          cat android/build.gradle | grep -i kotlin
+          # 使用更宽松的匹配
+          sed -i 's/kotlin_version.*=.*"1\.[0-9]\+\.[0-9]\+"/kotlin_version = "1.9.10"/' android/build.gradle || true
+          
+          echo "=== Updated Kotlin version ==="
+          grep -i "kotlin" android/build.gradle || echo "No kotlin version found"
           
           # 重写 AndroidManifest.xml，确保格式正确
+          mkdir -p android/app/src/main
           cat > android/app/src/main/AndroidManifest.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -88,6 +100,7 @@ jobs:
               </application>
           </manifest>
           EOF
+          echo "Created AndroidManifest.xml"
           
           # 确保 MainActivity 使用正确的 FlutterActivity
           mkdir -p android/app/src/main/kotlin/com/suyustudio/shanjing
@@ -96,9 +109,13 @@ jobs:
           import io.flutter.embedding.android.FlutterActivity
           class MainActivity: FlutterActivity()
           EOF
+          echo "Created MainActivity.kt"
           
           # 设置 minSdkVersion
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
+          if [ -f "android/app/build.gradle" ]; then
+            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
+            echo "Updated minSdkVersion"
+          fi
       
       - name: Build APK
         run: flutter build apk --release
