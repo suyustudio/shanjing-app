@@ -51,15 +51,27 @@ jobs:
             exit 1
           fi
           
-          echo "=== Current Kotlin version ==="
-          grep -i "kotlin" android/build.gradle || echo "No kotlin version found"
+          echo "=== Current settings.gradle Kotlin ==="
+          cat android/settings.gradle | grep -i kotlin || echo "Not found in settings.gradle"
           
-          # 更新 Kotlin 版本到 1.9.10（与 flutter_tts 兼容）
-          # 使用更宽松的匹配
+          echo "=== Current build.gradle Kotlin ==="
+          cat android/build.gradle | grep -i kotlin || echo "Not found in build.gradle"
+          
+          # Flutter 3.19+ 的 Kotlin 版本在 settings.gradle 中
+          if [ -f "android/settings.gradle" ]; then
+            # 更新 settings.gradle 中的 Kotlin 版本（Flutter 3.19 新格式）
+            sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.10"/' android/settings.gradle
+            echo "Updated Kotlin version in settings.gradle"
+          fi
+          
+          # 同时更新 build.gradle（旧格式兼容）
           sed -i 's/kotlin_version.*=.*"1\.[0-9]\+\.[0-9]\+"/kotlin_version = "1.9.10"/' android/build.gradle || true
           
-          echo "=== Updated Kotlin version ==="
-          grep -i "kotlin" android/build.gradle || echo "No kotlin version found"
+          echo "=== Updated settings.gradle ==="
+          cat android/settings.gradle | grep -i kotlin || echo "Not found"
+          
+          echo "=== Updated build.gradle ==="
+          cat android/build.gradle | grep -i kotlin || echo "Not found"
           
           # 重写 AndroidManifest.xml，确保格式正确
           mkdir -p android/app/src/main
