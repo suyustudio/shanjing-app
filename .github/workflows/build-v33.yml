@@ -49,12 +49,19 @@ jobs:
           echo "Fixed Kotlin version in settings.gradle:"
           cat android/settings.gradle | grep kotlin
       
-      - name: Add AMap Maven repository
+      - name: Add AMap Maven repository to settings.gradle
         run: |
-          # 添加高德官方 Maven 仓库（关键修复）
+          # 添加高德官方 Maven 仓库到 settings.gradle
           sed -i '/mavenCentral()/a\        maven { url "https://repository.amap.com/repository/maven-public/" }' android/settings.gradle
-          echo "Added AMap official Maven repository"
+          echo "Added AMap Maven repository to settings.gradle"
           cat android/settings.gradle | grep -A2 "mavenCentral"
+      
+      - name: Add AMap Maven repository to project build.gradle
+        run: |
+          # 添加高德官方 Maven 仓库到项目级 build.gradle（关键）
+          sed -i '/mavenCentral()/a\        maven { url "https://repository.amap.com/repository/maven-public/" }' android/build.gradle
+          echo "Added AMap Maven repository to project build.gradle"
+          cat android/build.gradle | grep -A5 "repositories"
       
       - name: Fix app/build.gradle
         run: |
@@ -64,12 +71,14 @@ jobs:
           # 添加 ndk 块到 defaultConfig
           sed -i '/minSdkVersion 21/a\        ndk {\n            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"\n        }' android/app/build.gradle
           
+          # 添加高德 Maven 仓库到应用级 build.gradle（repositories 块）
+          sed -i '/repositories {/,/}/ { /mavenCentral()/a\        maven { url "https://repository.amap.com/repository/maven-public/" } }' android/app/build.gradle
+          
           # 注意：不手动添加高德 SDK 依赖
           # amap_flutter_map 插件会自动引入正确版本
-          # 手动添加会导致 JNI 版本冲突崩溃
           
-          echo "Fixed app/build.gradle (SDK deps handled by Flutter plugin)"
-          cat android/app/build.gradle | grep -A5 "dependencies"
+          echo "Fixed app/build.gradle"
+          cat android/app/build.gradle | head -50
       
       - name: Fix AndroidManifest.xml
         run: |
