@@ -31,27 +31,15 @@ jobs:
           rm -rf android
           flutter config --enable-android
           flutter create --platforms=android --project-name=shanjing_app .
-          
-          # 创建 MainActivity.kt 目录结构并写入隐私合规代码
+          echo "Created Android project"
+      
+      - name: Copy MainActivity with Privacy Init
+        run: |
+          # 复制预置的 MainActivity.kt（包含隐私合规初始化）
           mkdir -p android/app/src/main/kotlin/com/suyustudio/shanjing
-          cat > android/app/src/main/kotlin/com/suyustudio/shanjing/MainActivity.kt << 'EOF'
-          package com.suyustudio.shanjing
-
-          import android.os.Bundle
-          import com.amap.api.maps.MapsInitializer
-          import io.flutter.embedding.android.FlutterActivity
-
-          class MainActivity : FlutterActivity() {
-              override fun onCreate(savedInstanceState: Bundle?) {
-                  // ⚠️ 必须在 super.onCreate 之前调用隐私合规接口
-                  MapsInitializer.updatePrivacyShow(this, true, true)
-                  MapsInitializer.updatePrivacyAgree(this, true)
-                  
-                  super.onCreate(savedInstanceState)
-              }
-          }
-          EOF
-          echo "Created MainActivity.kt with privacy initialization"
+          cp MainActivity.kt android/app/src/main/kotlin/com/suyustudio/shanjing/MainActivity.kt
+          echo "Copied MainActivity.kt with privacy initialization"
+          cat android/app/src/main/kotlin/com/suyustudio/shanjing/MainActivity.kt
       
       - name: Fix Kotlin version in settings.gradle
         run: |
