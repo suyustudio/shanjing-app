@@ -27,10 +27,7 @@ jobs:
           echo "AMAP_KEY=e17f8ae117d84e2d2d394a2124866603" > .env
       
       - name: Get Flutter dependencies
-        run: |
-          flutter pub get
-          # 确保插件依赖被正确链接
-          flutter build apk --release --verbose 2>&1 | head -50 || true
+        run: flutter pub get
       
       - name: Configure Android Project
         run: |
