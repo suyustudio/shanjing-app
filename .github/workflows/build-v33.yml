@@ -43,6 +43,10 @@ jobs:
       # 确保使用 Android embedding v2
       - name: Configure Android V2 Embedding
         run: |
+          # 更新 Kotlin 版本到 1.9.10（与 flutter_tts 兼容）
+          sed -i 's/ext.kotlin_version = "1.7.10"/ext.kotlin_version = "1.9.10"/' android/build.gradle || true
+          sed -i 's/ext.kotlin_version = "1.7.1"/ext.kotlin_version = "1.9.10"/' android/build.gradle || true
+          
           # 重写 AndroidManifest.xml，确保格式正确
           cat > android/app/src/main/AndroidManifest.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
