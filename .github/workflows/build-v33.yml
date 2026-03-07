@@ -26,60 +26,53 @@ jobs:
         run: |
           echo "AMAP_KEY=e17f8ae117d84e2d2d394a2124866603" > .env
       
-      # 关键：检查 android 目录是否存在且完整
-      - name: Check and Create Android Project
-        run: |
-          if [ ! -f "android/app/build.gradle" ]; then
-            echo "Android project missing or incomplete, creating..."
-            flutter config --enable-android
-            flutter create --platforms=android --project-name=shanjing_app .
-            echo "Created Android project"
-          else
-            echo "Android project exists"
-          fi
-      
       - name: Get Flutter dependencies
         run: |
           flutter pub get
-          echo "Flutter dependencies resolved"
-          # 关键：确保插件的 Android 依赖也被下载
-          cd android
-          ./gradlew dependencies --configuration releaseRuntimeClasspath 2>/dev/null | head -20 || echo "Gradle dependencies check completed"
+          # 确保插件依赖被正确链接
+          flutter build apk --release --verbose 2>&1 | head -50 || true
       
-      # 确保使用 Android embedding v2
-      - name: Configure Android V2 Embedding
+      - name: Configure Android Project
         run: |
-          set -x  # 打印执行的命令
+          set -x
           
-          # 检查 android/build.gradle 是否存在
-          if [ ! -f "android/build.gradle" ]; then
-            echo "ERROR: android/build.gradle not found"
-            exit 1
-          fi
-          
-          echo "=== Current settings.gradle Kotlin ==="
-          cat android/settings.gradle | grep -i kotlin || echo "Not found in settings.gradle"
-          
-          echo "=== Current build.gradle Kotlin ==="
-          cat android/build.gradle | grep -i kotlin || echo "Not found in build.gradle"
-          
-          # Flutter 3.19+ 的 Kotlin 版本在 settings.gradle 中
+          # 修复 settings.gradle - 添加高德 Maven 仓库和 Kotlin 版本
           if [ -f "android/settings.gradle" ]; then
-            # 更新 settings.gradle 中的 Kotlin 版本（Flutter 3.19 新格式）
+            echo "=== Updating settings.gradle ==="
+            # 更新 Kotlin 插件版本
             sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.10"/' android/settings.gradle
-            echo "Updated Kotlin version in settings.gradle"
+            # 添加高德 Maven 仓库（如果还没有）
+            if ! grep -q "amap.com" android/settings.gradle; then
+              sed -i '/mavenCentral()/a\        maven { url "https://repository.amap.com/repository/maven-public/" }' android/settings.gradle
+            fi
+            cat android/settings.gradle
           fi
           
-          # 同时更新 build.gradle（旧格式兼容）
-          sed -i 's/kotlin_version.*=.*"1\.[0-9]\+\.[0-9]\+"/kotlin_version = "1.9.10"/' android/build.gradle || true
+          # 修复 build.gradle (项目级)
+          if [ -f "android/build.gradle" ]; then
+            echo "=== Updating build.gradle ==="
+            # 更新 Kotlin 版本（旧格式）
+            sed -i 's/kotlin_version.*=.*"1\.[0-9]\+\.[0-9]\+"/kotlin_version = "1.9.10"/' android/build.gradle || true
+            # 添加高德 Maven 仓库
+            if ! grep -q "amap.com" android/build.gradle; then
+              sed -i '/mavenCentral()/a\        maven { url "https://repository.amap.com/repository/maven-public/" }' android/build.gradle || true
+            fi
+            cat android/build.gradle
+          fi
           
-          echo "=== Updated settings.gradle ==="
-          cat android/settings.gradle | grep -i kotlin || echo "Not found"
+          # 修复 app/build.gradle
+          if [ -f "android/app/build.gradle" ]; then
+            echo "=== Updating app/build.gradle ==="
+            # 设置 minSdkVersion
+            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
+            # 添加高德 Maven 仓库到 repositories
+            if ! grep -q "amap.com" android/app/build.gradle; then
+              sed -i '/repositories {/,/}/ { /mavenCentral()/a\        maven { url "https://repository.amap.com/repository/maven-public/" } }' android/app/build.gradle || true
+            fi
+            cat android/app/build.gradle
+          fi
           
-          echo "=== Updated build.gradle ==="
-          cat android/build.gradle | grep -i kotlin || echo "Not found"
-          
-          # 重写 AndroidManifest.xml，确保格式正确
+          # 重写 AndroidManifest.xml
           mkdir -p android/app/src/main
           cat > android/app/src/main/AndroidManifest.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -118,22 +111,14 @@ jobs:
               </application>
           </manifest>
           EOF
-          echo "Created AndroidManifest.xml"
           
-          # 确保 MainActivity 使用正确的 FlutterActivity
+          # 确保 MainActivity 存在
           mkdir -p android/app/src/main/kotlin/com/suyustudio/shanjing
           cat > android/app/src/main/kotlin/com/suyustudio/shanjing/MainActivity.kt << 'EOF'
           package com.suyustudio.shanjing
           import io.flutter.embedding.android.FlutterActivity
           class MainActivity: FlutterActivity()
           EOF
-          echo "Created MainActivity.kt"
-          
-          # 设置 minSdkVersion
-          if [ -f "android/app/build.gradle" ]; then
-            sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle
-            echo "Updated minSdkVersion"
-          fi
       
       - name: Build APK
         run: flutter build apk --release
@@ -145,6 +130,9 @@ jobs:
           echo ""
           echo "=== SO 库 ==="
           unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -E "\.so$" | head -20
+          echo ""
+          echo "=== 高德相关 ==="
+          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -iE "amap|autonavi" | head -10 || echo "未找到高德相关文件"
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
