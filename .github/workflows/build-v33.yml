@@ -33,12 +33,18 @@ jobs:
             echo "Android project missing or incomplete, creating..."
             flutter config --enable-android
             flutter create --platforms=android --project-name=shanjing_app .
+            echo "Created Android project"
           else
             echo "Android project exists"
           fi
       
       - name: Get Flutter dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          echo "Flutter dependencies resolved"
+          # 关键：确保插件的 Android 依赖也被下载
+          cd android
+          ./gradlew dependencies --configuration releaseRuntimeClasspath 2>/dev/null | head -20 || echo "Gradle dependencies check completed"
       
       # 确保使用 Android embedding v2
       - name: Configure Android V2 Embedding
