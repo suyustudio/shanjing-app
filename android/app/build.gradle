@@ -69,16 +69,10 @@ repositories {
 }
 
 dependencies {
-    // 高德3D地图SDK
-    implementation 'com.amap.api:3dmap:10.0.600'
+    // 使用2D地图SDK(不包含定位/搜索)，避免与独立SDK冲突
+    implementation 'com.amap.api:map2d:latest.integration'
     
-    // 定位SDK - 排除与3dmap重复的类
-    implementation('com.amap.api:location:6.5.1') {
-        exclude group: 'com.amap.api', module: '3dmap'
-    }
-    
-    // 搜索SDK - 排除与3dmap重复的类  
-    implementation('com.amap.api:search:9.7.1') {
-        exclude group: 'com.amap.api', module: '3dmap'
-    }
+    // 独立的定位和搜索SDK
+    implementation 'com.amap.api:location:latest.integration'
+    implementation 'com.amap.api:search:latest.integration'
 }
