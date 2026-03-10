@@ -34,12 +34,20 @@ jobs:
         run: |
           echo "=== APK Size ==="
           ls -lh build/app/outputs/flutter-apk/app-release.apk
+          du -h build/app/outputs/flutter-apk/app-release.apk
           echo ""
-          echo "=== SO Libraries ==="
-          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -E "\.so$" | head -20
+          echo "=== All SO Libraries ==="
+          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -E "\.so$" | wc -l
+          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -E "\.so$"
           echo ""
-          echo "=== AMap Files ==="
-          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -iE "amap|autonavi" | head -10 || echo "No AMap files found"
+          echo "=== AMap/Autonavi SO Libraries ==="
+          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -iE "amap|autonavi" || echo "No AMap files found"
+          echo ""
+          echo "=== lib/arm64-v8a/ contents ==="
+          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep "lib/arm64-v8a/" | head -30
+          echo ""
+          echo "=== Total SO lib size ==="
+          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep "\.so$" | awk '{sum+=$1} END {print sum/1024/1024 " MB"}'
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
