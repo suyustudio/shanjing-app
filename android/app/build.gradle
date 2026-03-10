@@ -69,8 +69,10 @@ repositories {
 }
 
 dependencies {
-    // 高德地图 SDK - 使用3D地图完整版，包含原生SO库
+    // 高德地图 SDK - 3D地图完整版已包含定位功能
     implementation 'com.amap.api:3dmap:10.0.600'
-    implementation 'com.amap.api:location:6.4.0'
-    implementation 'com.amap.api:search:9.7.0'
+    // 搜索SDK - 排除与3dmap重复的定位类
+    implementation('com.amap.api:search:9.7.0') {
+        exclude group: 'com.amap.api', module: 'location'
+    }
 }
