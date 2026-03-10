@@ -69,6 +69,8 @@ repositories {
 }
 
 dependencies {
-    // 不手动添加高德SDK依赖，让amap_flutter_map插件自动处理
-    // 避免版本冲突和重复类问题
+    // 高德地图 SDK - 与 amap_flutter_map 插件版本兼容
+    implementation 'com.amap.api:map2d:6.0.0'
+    implementation 'com.amap.api:location:6.4.0'
+    implementation 'com.amap.api:search:9.7.0'
 }
