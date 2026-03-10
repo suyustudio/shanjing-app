@@ -69,10 +69,6 @@ repositories {
 }
 
 dependencies {
-    // 高德地图 SDK - 使用 8.x 版本与 amap_flutter_map 3.0.0 兼容
-    implementation 'com.amap.api:3dmap:8.0.0'
-    // 搜索SDK - 使用与3dmap 8.x兼容的版本
-    implementation('com.amap.api:search:8.1.0') {
-        exclude group: 'com.amap.api', module: 'location'
-    }
+    // 不手动添加高德SDK依赖
+    // 让 amap_flutter_map 插件自动处理正确的版本
 }
