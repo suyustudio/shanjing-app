@@ -69,10 +69,9 @@ repositories {
 }
 
 dependencies {
-    // 高德地图 SDK - 排除 location 避免与 amap_flutter_location 插件冲突
-    implementation('com.amap.api:3dmap:9.4.0') {
-        exclude group: 'com.amap.api', module: 'location'
-    }
+    // 高德地图 SDK - 只添加 location，让插件自己处理 3dmap
+    // 注意：amap_flutter_location 插件需要独立的 location SDK
+    implementation 'com.amap.api:location:6.4.0'
     // 搜索 SDK
     implementation 'com.amap.api:search:9.4.0'
 }
