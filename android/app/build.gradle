@@ -69,9 +69,6 @@ repositories {
 }
 
 dependencies {
-    // 高德地图 SDK - 只添加 location，让插件自己处理 3dmap
-    // 注意：amap_flutter_location 插件需要独立的 location SDK
-    implementation 'com.amap.api:location:6.4.0'
-    // 搜索 SDK
-    implementation 'com.amap.api:search:9.4.0'
+    // 高德地图 SDK - 使用整合版（包含3D地图+定位+搜索）
+    implementation 'com.amap.api:3dmap-location-search:latest.integration'
 }
