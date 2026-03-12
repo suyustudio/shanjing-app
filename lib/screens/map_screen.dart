@@ -337,11 +337,8 @@ class _MapScreenState extends State<MapScreen> {
             ),
             onMapCreated: _onMapCreated,
             onTap: (_) => _closeCard(),
-            // 启用手势 - 必须设置，否则地图无法拖动和缩放
-            scrollGesturesEnabled: true,
-            zoomGesturesEnabled: true,
-            rotateGesturesEnabled: true,
-            tiltGesturesEnabled: true,
+            // 手势控制 - amap_flutter_map 3.0 使用 gesturesEnabled
+            gesturesEnabled: true,
             // myLocationEnabled 参数在 amap_flutter_map 3.0+ 中已移除
             // 使用定位插件单独控制
             markers: _routes.asMap().entries.map((entry) {
@@ -373,23 +370,27 @@ class _MapScreenState extends State<MapScreen> {
             top: 8,
             left: 16,
             right: 16,
-            child: Column(
-              children: [
-                SearchBar(
-                  hintText: '搜索地点',
-                  onSubmitted: _onSearch,
-                ),
-                const SizedBox(height: 8),
-                FilterTags(
-                  selectedTag: _selectedTag,
-                  onSelect: (tag) {
-                    debugPrint('筛选标签: $tag');
-                    setState(() {
-                      _selectedTag = tag;
-                    });
-                  },
-                ),
-              ],
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {},
+              child: Column(
+                children: [
+                  SearchBar(
+                    hintText: '搜索地点',
+                    onSubmitted: _onSearch,
+                  ),
+                  const SizedBox(height: 8),
+                  FilterTags(
+                    selectedTag: _selectedTag,
+                    onSelect: (tag) {
+                      debugPrint('筛选标签: $tag');
+                      setState(() {
+                        _selectedTag = tag;
+                      });
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           if (_selectedRoute != null)

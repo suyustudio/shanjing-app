@@ -15,9 +15,11 @@ class TrailDetailScreen extends StatefulWidget {
   State<TrailDetailScreen> createState() => _TrailDetailScreenState();
 }
 
-class _TrailDetailScreenState extends State<TrailDetailScreen> {
+class _TrailDetailScreenState extends State<TrailDetailScreen>
+    with SingleTickerProviderStateMixin {
   bool _isFavorite = false;
   bool _isLoading = false;
+  late TabController _tabController;
 
   /// 获取路线数据（优先使用传递的数据）
   Map<String, dynamic> get _trailData {
@@ -43,6 +45,13 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   void initState() {
     super.initState();
     _isFavorite = _trailData['isFavorite'] ?? false;
+    _tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   /// 切换收藏状态
@@ -109,66 +118,72 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
       return _buildEmptyState();
     }
 
-    return DefaultTabController(
-      length: 4,
-      initialIndex: 0, // 默认选中"简介"Tab
-      child: Scaffold(
-        backgroundColor: DesignSystem.getBackground(context),
-        body: SafeArea(
-          child: Column(
-            children: [
-              // 主内容区域
-              Expanded(
-                child: SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: DesignSystem.getBackground(context),
+      body: SafeArea(
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              // 封面图
+              SliverToBoxAdapter(
+                child: _buildCoverImage(context),
+              ),
+              // 标题区域
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 封面图区域
-                      _buildCoverImage(context),
-                      
-                      // 内容区域
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 路线名称 + 难度标签
-                            _buildTitleSection(context),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // 距离/时长/海拔信息行
-                            _buildInfoRow(context),
-                            
-                            const SizedBox(height: 24),
-                            
-                            // 路线简介
-                            _buildDescription(context),
-                            
-                            const SizedBox(height: 24),
-                            
-                            // TabBar
-                            _buildTabBar(context),
-                          ],
-                        ),
-                      ),
-                      
-                      // TabBarView 内容
-                      SizedBox(
-                        height: 300,
-                        child: _buildTabBarView(context),
-                      ),
+                      _buildTitleSection(context),
+                      const SizedBox(height: 16),
+                      _buildInfoRow(context),
+                      const SizedBox(height: 24),
+                      _buildDescription(context),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
               ),
-              
-              // 底部开始导航按钮
-              _buildBottomButton(context),
+              // TabBar - 吸顶
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _TabBarDelegate(
+                  child: Container(
+                    color: DesignSystem.getBackground(context),
+                    child: TabBar(
+                      controller: _tabController,
+                      labelColor: DesignSystem.getPrimary(context),
+                      unselectedLabelColor: DesignSystem.getTextSecondary(context),
+                      indicatorColor: DesignSystem.getPrimary(context),
+                      tabs: const [
+                        Tab(text: '简介'),
+                        Tab(text: '轨迹'),
+                        Tab(text: '评价'),
+                        Tab(text: '攻略'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ];
+          },
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              // 简介 Tab
+              _buildIntroductionTab(),
+              // 轨迹 Tab
+              _buildTrackTab(),
+              // 评价 Tab
+              _buildReviewTab(),
+              // 攻略 Tab
+              _buildGuideTab(),
             ],
           ),
         ),
       ),
+      bottomNavigationBar: _buildBottomButton(context),
     );
   }
 
@@ -190,7 +205,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
             ),
           ),
         ),
-        
         // 收藏按钮 - 右上角
         Positioned(
           top: 24,
@@ -210,6 +224,25 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
             ),
           ),
         ),
+        // 返回按钮 - 左上角
+        Positioned(
+          top: 24,
+          left: 24,
+          child: Container(
+            decoration: BoxDecoration(
+              color: DesignSystem.getBackgroundElevated(context).withOpacity(0.9),
+              shape: BoxShape.circle,
+              boxShadow: DesignSystem.getShadowLight(context),
+            ),
+            child: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: Icon(
+                Icons.arrow_back,
+                color: DesignSystem.getTextPrimary(context),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -219,7 +252,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 路线名称
+        // 路线名称 - 22px Semibold
         Text(
           _trailData['name'],
           style: TextStyle(
@@ -228,9 +261,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
             color: DesignSystem.getTextPrimary(context),
           ),
         ),
-        
         const SizedBox(height: 8),
-        
         // 星级 + 难度标签
         Row(
           children: [
@@ -246,9 +277,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                 );
               }),
             ),
-            
             const SizedBox(width: 8),
-            
             // 难度标签
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -282,37 +311,28 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          // 距离
           _buildInfoItem(
             context: context,
             icon: Icons.location_on_outlined,
             value: '${_trailData['distance']} km',
             label: '距离',
           ),
-          
-          // 分隔线
           Container(
             height: 40,
             width: 1,
             color: DesignSystem.getDivider(context),
           ),
-          
-          // 时长
           _buildInfoItem(
             context: context,
             icon: Icons.timer_outlined,
             value: _formatDuration(_trailData['duration']),
             label: '时长',
           ),
-          
-          // 分隔线
           Container(
             height: 40,
             width: 1,
             color: DesignSystem.getDivider(context),
           ),
-          
-          // 海拔
           _buildInfoItem(
             context: context,
             icon: Icons.trending_up_outlined,
@@ -361,75 +381,43 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
     );
   }
 
-  /// 构建 TabBar
-  Widget _buildTabBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: DesignSystem.getDivider(context)),
-        ),
-      ),
-      child: TabBar(
-        labelColor: DesignSystem.getPrimary(context),
-        unselectedLabelColor: DesignSystem.getTextSecondary(context),
-        indicatorColor: DesignSystem.getPrimary(context),
-        tabs: const [
-          Tab(text: '简介'),
-          Tab(text: '轨迹'),
-          Tab(text: '评价'),
-          Tab(text: '攻略'),
-        ],
-      ),
-    );
-  }
-
-  /// 构建 TabBarView
-  Widget _buildTabBarView(BuildContext context) {
-    return TabBarView(
+  /// 构建路线简介
+  Widget _buildDescription(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 简介 Tab - 显示路线详细信息
-        _buildIntroductionTab(context),
-        // 轨迹 Tab
-        Center(
-          child: Text(
-            '轨迹内容',
-            style: TextStyle(color: DesignSystem.getTextTertiary(context)),
+        Text(
+          '路线简介',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: DesignSystem.getTextPrimary(context),
           ),
         ),
-        // 评价 Tab
-        Center(
-          child: Text(
-            '评价内容',
-            style: TextStyle(color: DesignSystem.getTextTertiary(context)),
+        const SizedBox(height: 8),
+        Text(
+          _trailData['description'],
+          style: TextStyle(
+            fontSize: 14,
+            color: DesignSystem.getTextSecondary(context),
+            height: 1.6,
           ),
-        ),
-        // 攻略 Tab
-        Center(
-          child: Text(
-            '攻略内容',
-            style: TextStyle(color: DesignSystem.getTextTertiary(context)),
-          ),
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
   }
 
-  /// 构建简介 Tab 内容
-  Widget _buildIntroductionTab(BuildContext context) {
+  /// 构建简介 Tab
+  Widget _buildIntroductionTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 路线描述
-          Text(
-            '路线描述',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: DesignSystem.getTextPrimary(context),
-            ),
-          ),
+          _buildSectionTitle('路线描述'),
           const SizedBox(height: 12),
           Text(
             _trailData['description'],
@@ -441,14 +429,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
           ),
           const SizedBox(height: 24),
           // 难度说明
-          Text(
-            '难度说明',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: DesignSystem.getTextPrimary(context),
-            ),
-          ),
+          _buildSectionTitle('难度说明'),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -471,14 +452,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
           ),
           const SizedBox(height: 24),
           // 适合人群
-          Text(
-            '适合人群',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: DesignSystem.getTextPrimary(context),
-            ),
-          ),
+          _buildSectionTitle('适合人群'),
           const SizedBox(height: 12),
           Text(
             '适合喜欢自然风光、希望轻松徒步的户外爱好者。全程路况良好，无技术难点。',
@@ -488,36 +462,42 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
               height: 1.8,
             ),
           ),
+          const SizedBox(height: 100), // 底部留白
         ],
       ),
     );
   }
 
-  /// 构建路线简介
-  Widget _buildDescription(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '路线简介',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: DesignSystem.getTextPrimary(context),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          _trailData['description'],
-          style: TextStyle(
-            fontSize: 14,
-            color: DesignSystem.getTextSecondary(context),
-            height: 1.6,
-          ),
-          maxLines: 4,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+  /// 构建轨迹 Tab
+  Widget _buildTrackTab() {
+    return const Center(
+      child: Text('轨迹内容'),
+    );
+  }
+
+  /// 构建评价 Tab
+  Widget _buildReviewTab() {
+    return const Center(
+      child: Text('评价内容'),
+    );
+  }
+
+  /// 构建攻略 Tab
+  Widget _buildGuideTab() {
+    return const Center(
+      child: Text('攻略内容'),
+    );
+  }
+
+  /// 构建章节标题
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: DesignSystem.getTextPrimary(context),
+      ),
     );
   }
 
@@ -633,5 +613,28 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
         retryText: '返回',
       ),
     );
+  }
+}
+
+/// TabBar 吸顶委托
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+
+  _TabBarDelegate({required this.child});
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return child;
+  }
+
+  @override
+  double get maxExtent => 48;
+
+  @override
+  double get minExtent => 48;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+    return false;
   }
 }
