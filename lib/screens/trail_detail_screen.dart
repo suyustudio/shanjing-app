@@ -110,7 +110,8 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
     }
 
     return DefaultTabController(
-      length: 3,
+      length: 4,
+      initialIndex: 0, // 默认选中"简介"Tab
       child: Scaffold(
         backgroundColor: DesignSystem.getBackground(context),
         body: SafeArea(
@@ -222,8 +223,8 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
         Text(
           _trailData['name'],
           style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
             color: DesignSystem.getTextPrimary(context),
           ),
         ),
@@ -337,16 +338,18 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
           color: DesignSystem.getPrimary(context),
           size: 24,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
+        // 核心数据 - 24px 大号字体
         Text(
           value,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 24,
             fontWeight: FontWeight.w600,
             color: DesignSystem.getTextPrimary(context),
+            letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(
@@ -371,6 +374,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
         unselectedLabelColor: DesignSystem.getTextSecondary(context),
         indicatorColor: DesignSystem.getPrimary(context),
         tabs: const [
+          Tab(text: '简介'),
           Tab(text: '轨迹'),
           Tab(text: '评价'),
           Tab(text: '攻略'),
@@ -383,6 +387,8 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
   Widget _buildTabBarView(BuildContext context) {
     return TabBarView(
       children: [
+        // 简介 Tab - 显示路线详细信息
+        _buildIntroductionTab(context),
         // 轨迹 Tab
         Center(
           child: Text(
@@ -405,6 +411,85 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  /// 构建简介 Tab 内容
+  Widget _buildIntroductionTab(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 路线描述
+          Text(
+            '路线描述',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: DesignSystem.getTextPrimary(context),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _trailData['description'],
+            style: TextStyle(
+              fontSize: 14,
+              color: DesignSystem.getTextSecondary(context),
+              height: 1.8,
+            ),
+          ),
+          const SizedBox(height: 24),
+          // 难度说明
+          Text(
+            '难度说明',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: DesignSystem.getTextPrimary(context),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _getDifficultyColor(_trailData['difficulty']).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  _trailData['difficulty'],
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _getDifficultyColor(_trailData['difficulty']),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          // 适合人群
+          Text(
+            '适合人群',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: DesignSystem.getTextPrimary(context),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '适合喜欢自然风光、希望轻松徒步的户外爱好者。全程路况良好，无技术难点。',
+            style: TextStyle(
+              fontSize: 14,
+              color: DesignSystem.getTextSecondary(context),
+              height: 1.8,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -454,19 +539,61 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
         top: false,
         child: Row(
           children: [
-            // 左侧：收藏按钮
-            IconButton(
-              onPressed: _toggleFavorite,
-              icon: Icon(
-                _isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: _isFavorite ? Colors.red : DesignSystem.getTextSecondary(context),
+            // 收藏按钮 - 固定56px宽度
+            SizedBox(
+              width: 56,
+              height: 48,
+              child: IconButton(
+                onPressed: _toggleFavorite,
+                icon: Icon(
+                  _isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: _isFavorite ? Colors.red : DesignSystem.getTextSecondary(context),
+                  size: 24,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ),
-            const SizedBox(width: 8),
-            // 中间：开始导航按钮
+            const SizedBox(width: 12),
+            // 下载按钮 - 固定120px宽度
+            SizedBox(
+              width: 120,
+              height: 48,
+              child: OutlinedButton(
+                onPressed: _downloadTrail,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: DesignSystem.getTextPrimary(context),
+                  side: BorderSide(color: DesignSystem.getDivider(context)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.download_outlined,
+                      size: 20,
+                      color: DesignSystem.getTextSecondary(context),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '下载路线',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: DesignSystem.getTextSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // 开始导航按钮 - flex填充剩余空间
             Expanded(
               child: SizedBox(
-                height: 44,
+                height: 48,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _startNavigation,
                   style: ElevatedButton.styleFrom(
@@ -487,15 +614,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen> {
                           ),
                         ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            // 右侧：下载按钮
-            IconButton(
-              onPressed: _downloadTrail,
-              icon: Icon(
-                Icons.download_outlined,
-                color: DesignSystem.getTextSecondary(context),
               ),
             ),
           ],
