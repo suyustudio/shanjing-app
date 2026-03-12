@@ -333,7 +333,7 @@ class _AnimatedRouteCardState extends State<_AnimatedRouteCard>
   }
 
   void _onTapUp(TapUpDetails details) {
-    _scaleController.reverse().then((_) => widget.onTap());
+    _scaleController.reverse();
   }
 
   void _onTapCancel() {
@@ -346,6 +346,7 @@ class _AnimatedRouteCardState extends State<_AnimatedRouteCard>
       onTapDown: _onTapDown,
       onTapUp: _onTapUp,
       onTapCancel: _onTapCancel,
+      onTap: widget.onTap,
       child: AnimatedBuilder(
         animation: _scaleAnimation,
         builder: (context, child) {

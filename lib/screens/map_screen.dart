@@ -337,6 +337,11 @@ class _MapScreenState extends State<MapScreen> {
             ),
             onMapCreated: _onMapCreated,
             onTap: (_) => _closeCard(),
+            // 启用手势 - 必须设置，否则地图无法拖动和缩放
+            scrollGesturesEnabled: true,
+            zoomGesturesEnabled: true,
+            rotateGesturesEnabled: true,
+            tiltGesturesEnabled: true,
             // myLocationEnabled 参数在 amap_flutter_map 3.0+ 中已移除
             // 使用定位插件单独控制
             markers: _routes.asMap().entries.map((entry) {
