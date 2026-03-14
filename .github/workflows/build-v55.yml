@@ -18,7 +18,7 @@ jobs:
       
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.0'
+          flutter-version: '3.22.0'
           channel: 'stable'
       
       - name: Setup .env with AMap Key
@@ -35,9 +35,12 @@ jobs:
       
       - name: Get Flutter dependencies
         run: |
-          flutter doctor -v
-          flutter pub get --verbose 2>&1 | head -200
-          flutter pub get
+          echo "=== Flutter Version ==="
+          flutter --version
+          echo "=== Flutter Doctor ==="
+          flutter doctor -v || true
+          echo "=== Pub Get Verbose ==="
+          flutter pub get --verbose 2>&1 || (echo "=== PUB GET FAILED ==="; cat /tmp/flutter_pub_get.log 2>/dev/null || true; exit 1)
       
       - name: Build APK
         run: flutter build apk --release
