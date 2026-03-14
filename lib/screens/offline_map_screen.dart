@@ -26,6 +26,8 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
   bool _isLoading = true;
   bool _isInitialized = false;
   String? _errorMessage;
+  bool _isOfflineMode = false;
+  int _totalStorageUsed = 0;
   
   // 下载中的城市进度
   final Map<String, int> _downloadProgress = {};
@@ -35,6 +37,15 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
   void initState() {
     super.initState();
     _initialize();
+    
+    // 监听网络状态变化
+    _offlineManager.offlineModeStream.listen((isOffline) {
+      if (mounted) {
+        setState(() {
+          _isOfflineMode = isOffline;
+        });
+      }
+    });
   }
 
   @override
@@ -62,11 +73,13 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
       }
 
       _isInitialized = true;
+      _isOfflineMode = _offlineManager.isOfflineMode;
 
       // 并行加载数据
       await Future.wait([
         _loadCities(),
         _loadDownloadedCities(),
+        _loadStorageInfo(),
       ]);
     } catch (e) {
       setState(() {
@@ -81,16 +94,18 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
 
   Future<void> _loadCities() async {
     try {
-      final cities = await _offlineManager.getOfflineCityList();
-      final hotCities = await _offlineManager.getHotCityList();
+      final results = await Future.wait([
+        _offlineManager.getOfflineCityList(),
+        _offlineManager.getHotCityList(),
+      ]);
       
       setState(() {
-        _allCities = cities;
-        _hotCities = hotCities;
-        _filteredCities = cities;
+        _allCities = results[0];
+        _hotCities = results[1];
+        _filteredCities = _allCities;
       });
     } catch (e) {
-      print('加载城市列表失败: $e');
+      debugPrint('加载城市列表失败: $e');
     }
   }
 
@@ -101,7 +116,18 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
         _downloadedCities = downloaded;
       });
     } catch (e) {
-      print('加载已下载列表失败: $e');
+      debugPrint('加载已下载列表失败: $e');
+    }
+  }
+
+  Future<void> _loadStorageInfo() async {
+    try {
+      final size = await _offlineManager.getTotalOfflineMapSize();
+      setState(() {
+        _totalStorageUsed = size;
+      });
+    } catch (e) {
+      debugPrint('加载存储信息失败: $e');
     }
   }
 
@@ -129,18 +155,40 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
       // 下载完成时刷新列表
       if (status == OfflineMapDownloadStatus.completed.value) {
         _loadDownloadedCities();
+        _loadStorageInfo();
         _offlineManager.removeDownloadListener(city.cityCode);
+        
+        // 上报下载完成事件
+        AnalyticsService().trackEvent(
+          MapEvents.offlineMapDownload,
+          params: {
+            MapEvents.paramCityCode: city.cityCode,
+            MapEvents.paramCityName: city.cityName,
+            MapEvents.paramDownloadResult: 'success',
+          },
+        );
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${city.cityName} 下载完成'),
+              backgroundColor: DesignSystem.getSuccess(context),
+            ),
+          );
+        }
       }
     });
 
     final success = await _offlineManager.downloadOfflineMap(city.cityCode, city.cityName);
     if (!success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${city.cityName} 下载启动失败'),
-          backgroundColor: DesignSystem.getError(context),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${city.cityName} 下载启动失败'),
+            backgroundColor: DesignSystem.getError(context),
+          ),
+        );
+      }
     } else {
       setState(() {
         _downloadStatus[city.cityCode] = OfflineMapDownloadStatus.downloading;
@@ -176,7 +224,7 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
           style: TextStyle(color: DesignSystem.getTextPrimary(context)),
         ),
         content: Text(
-          '确定要删除 ${city.cityName} 的离线地图吗？',
+          '确定要删除 ${city.cityName} 的离线地图吗？\n将释放 ${city.formattedSize} 空间',
           style: TextStyle(color: DesignSystem.getTextSecondary(context)),
         ),
         actions: [
@@ -199,20 +247,82 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
     if (confirmed == true) {
       final success = await _offlineManager.deleteOfflineMap(city.cityCode);
       if (success) {
-        _loadDownloadedCities();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${city.cityName} 已删除'),
-            backgroundColor: DesignSystem.getSuccess(context),
-          ),
+        await _loadDownloadedCities();
+        await _loadStorageInfo();
+        
+        // 上报删除事件
+        AnalyticsService().trackEvent(
+          MapEvents.offlineMapDelete,
+          params: {
+            MapEvents.paramCityCode: city.cityCode,
+            MapEvents.paramCityName: city.cityName,
+          },
         );
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${city.cityName} 已删除'),
+              backgroundColor: DesignSystem.getSuccess(context),
+            ),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${city.cityName} 删除失败'),
-            backgroundColor: DesignSystem.getError(context),
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${city.cityName} 删除失败'),
+              backgroundColor: DesignSystem.getError(context),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _deleteAllOfflineMaps() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: DesignSystem.getBackgroundElevated(context),
+        title: Text(
+          '确认删除全部',
+          style: TextStyle(color: DesignSystem.getTextPrimary(context)),
+        ),
+        content: Text(
+          '确定要删除所有离线地图吗？\n共 ${_offlineManager.formatSize(_totalStorageUsed)}',
+          style: TextStyle(color: DesignSystem.getTextSecondary(context)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
           ),
-        );
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: DesignSystem.getError(context)),
+            child: Text(
+              '全部删除',
+              style: TextStyle(color: DesignSystem.getTextInverse(context)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await _offlineManager.clearAllOfflineMaps();
+      if (success) {
+        await _loadDownloadedCities();
+        await _loadStorageInfo();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('所有离线地图已删除'),
+              backgroundColor: DesignSystem.getSuccess(context),
+            ),
+          );
+        }
       }
     }
   }
@@ -225,28 +335,86 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
   }
 
   String _getStatusText(OfflineMapDownloadStatus status) {
-    switch (status) {
-      case OfflineMapDownloadStatus.waiting:
-        return '等待中';
-      case OfflineMapDownloadStatus.downloading:
-        return '下载中';
-      case OfflineMapDownloadStatus.paused:
-        return '已暂停';
-      case OfflineMapDownloadStatus.completed:
-        return '已完成';
-      case OfflineMapDownloadStatus.error:
-        return '下载错误';
-      case OfflineMapDownloadStatus.networkError:
-        return '网络错误';
-      case OfflineMapDownloadStatus.ioError:
-        return '存储错误';
-      case OfflineMapDownloadStatus.wifiError:
-        return 'WiFi错误';
-      case OfflineMapDownloadStatus.noSpaceError:
-        return '空间不足';
-      default:
-        return '未知状态';
-    }
+    return status.displayName;
+  }
+
+  Widget _buildNetworkStatusBanner() {
+    if (!_isOfflineMode) return const SizedBox.shrink();
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: DesignSystem.getWarning(context).withOpacity(0.1),
+      child: Row(
+        children: [
+          Icon(
+            Icons.wifi_off,
+            color: DesignSystem.getWarning(context),
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '当前处于离线模式',
+            style: TextStyle(
+              color: DesignSystem.getWarning(context),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStorageInfo() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: DesignSystem.getBackgroundSecondary(context),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.storage,
+            color: DesignSystem.getPrimary(context),
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '已使用存储空间',
+                  style: TextStyle(
+                    color: DesignSystem.getTextSecondary(context),
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  _offlineManager.formatSize(_totalStorageUsed),
+                  style: TextStyle(
+                    color: DesignSystem.getTextPrimary(context),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_totalStorageUsed > 0)
+            TextButton.icon(
+              onPressed: _deleteAllOfflineMaps,
+              icon: Icon(Icons.delete_outline, color: DesignSystem.getError(context)),
+              label: Text(
+                '清理',
+                style: TextStyle(color: DesignSystem.getError(context)),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCityList(List<OfflineCity> cities, {bool showDownloaded = false}) {
@@ -265,6 +433,16 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
               showDownloaded ? '暂无已下载的离线地图' : '没有找到城市',
               style: TextStyle(color: DesignSystem.getTextSecondary(context)),
             ),
+            if (showDownloaded && _isOfflineMode) ...[
+              const SizedBox(height: 8),
+              Text(
+                '离线模式下无法下载新地图',
+                style: TextStyle(
+                  color: DesignSystem.getWarning(context),
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ],
         ),
       );
@@ -281,9 +459,10 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
         final isPaused = status == OfflineMapDownloadStatus.paused;
 
         return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           color: DesignSystem.getBackgroundElevated(context),
           child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: Container(
               width: 48,
               height: 48,
@@ -300,30 +479,38 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
             ),
             title: Text(
               city.cityName,
-              style: TextStyle(color: DesignSystem.getTextPrimary(context)),
+              style: TextStyle(
+                color: DesignSystem.getTextPrimary(context),
+                fontWeight: FontWeight.w500,
+              ),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _formatSize(city.dataSize),
+                  city.formattedSize,
                   style: TextStyle(color: DesignSystem.getTextSecondary(context)),
                 ),
                 if (isDownloading || isPaused) ...[
-                  const SizedBox(height: 4),
-                  LinearProgressIndicator(
-                    value: progress / 100,
-                    backgroundColor: DesignSystem.getBackgroundTertiary(context),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      isPaused ? DesignSystem.getWarning(context) : DesignSystem.getPrimary(context),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: progress / 100,
+                      backgroundColor: DesignSystem.getBackgroundTertiary(context),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isPaused ? DesignSystem.getWarning(context) : DesignSystem.getPrimary(context),
+                      ),
+                      minHeight: 6,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     '${_getStatusText(status!)}: $progress%',
                     style: TextStyle(
                       fontSize: 12,
-                      color: DesignSystem.getTextSecondary(context),
+                      color: isPaused ? DesignSystem.getWarning(context) : DesignSystem.getPrimary(context),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -340,28 +527,48 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                 : isDownloading
                     ? IconButton(
                         icon: Icon(
-                          Icons.pause,
+                          Icons.pause_circle_outline,
                           color: DesignSystem.getWarning(context),
+                          size: 28,
                         ),
                         onPressed: () => _pauseDownload(city),
                       )
                     : isPaused
                         ? IconButton(
                             icon: Icon(
-                              Icons.play_arrow,
+                              Icons.play_circle_outline,
                               color: DesignSystem.getPrimary(context),
+                              size: 28,
                             ),
                             onPressed: () => _resumeDownload(city),
                           )
-                        : ElevatedButton(
-                            onPressed: () => _startDownload(city),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: DesignSystem.getPrimary(context),
-                              foregroundColor: DesignSystem.getTextInverse(context),
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                            ),
-                            child: const Text('下载'),
-                          ),
+                        : _isOfflineMode
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.cloud_off,
+                                  color: DesignSystem.getTextTertiary(context),
+                                ),
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text('离线模式下无法下载'),
+                                      backgroundColor: DesignSystem.getWarning(context),
+                                    ),
+                                  );
+                                },
+                              )
+                            : ElevatedButton(
+                                onPressed: () => _startDownload(city),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: DesignSystem.getPrimary(context),
+                                  foregroundColor: DesignSystem.getTextInverse(context),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text('下载'),
+                              ),
           ),
         );
       },
@@ -381,10 +588,35 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
             labelColor: DesignSystem.getTextInverse(context),
             unselectedLabelColor: DesignSystem.getTextInverse(context).withOpacity(0.7),
             indicatorColor: DesignSystem.getTextInverse(context),
-            tabs: const [
-              Tab(text: '已下载'),
-              Tab(text: '热门城市'),
-              Tab(text: '全部城市'),
+            tabs: [
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('已下载'),
+                    if (_downloadedCities.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: DesignSystem.getTextInverse(context),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${_downloadedCities.length}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: DesignSystem.getPrimary(context),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const Tab(text: '热门城市'),
+              const Tab(text: '全部城市'),
             ],
           ),
         ),
@@ -397,6 +629,8 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                   )
                 : Column(
                     children: [
+                      // 网络状态提示
+                      _buildNetworkStatusBanner(),
                       // 搜索栏
                       Padding(
                         padding: const EdgeInsets.all(16),
@@ -432,7 +666,9 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                           onChanged: _onSearch,
                         ),
                       ),
-                      // 存储空间提示
+                      // 存储空间信息
+                      _buildStorageInfo(),
+                      // 提示信息
                       Container(
                         margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
                         padding: const EdgeInsets.all(12),
@@ -450,7 +686,9 @@ class _OfflineMapScreenState extends State<OfflineMapScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                '离线地图可在无网络环境下使用，建议在WiFi环境下下载',
+                                _isOfflineMode 
+                                    ? '当前离线模式，只能使用已下载的离线地图'
+                                    : '离线地图可在无网络环境下使用，建议在WiFi环境下下载',
                                 style: TextStyle(
                                   color: DesignSystem.getInfo(context),
                                   fontSize: 12,

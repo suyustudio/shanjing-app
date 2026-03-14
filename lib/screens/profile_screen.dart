@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
+import '../analytics/analytics.dart';
 import '../constants/design_system.dart';
 import '../widgets/app_app_bar.dart';
 
 /// 我的页面
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
+  // 埋点相关
+  @override
+  String get pageId => PageEvents.pageProfile;
+
+  @override
+  String get pageName => PageEvents.nameProfile;
 
   @override
   Widget build(BuildContext context) {

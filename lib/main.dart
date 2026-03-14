@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'analytics/analytics.dart';
 import 'screens/map_screen.dart';
 import 'screens/discovery_screen.dart';
 import 'screens/profile_screen.dart';
@@ -10,22 +11,40 @@ import 'constants/design_system.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 加载环境变量
   await dotenv.load(fileName: ".env");
-  
+
   // 性能优化：设置首选方向
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   // 初始化离线地图管理器
   await OfflineMapManager().initialize();
-  
+
   // 初始化网络管理器
   await NetworkManager().initialize();
-  
+
+  // 初始化埋点 SDK（DEBUG 模式关闭、发布模式开启）
+  const bool isDebugMode = bool.fromEnvironment('dart.vm.product') == false;
+  await AnalyticsService().initialize(
+    androidKey: 'YOUR_UMENG_ANDROID_KEY', // 替换为实际友盟 Android AppKey
+    iosKey: 'YOUR_UMENG_IOS_KEY',         // 替换为实际友盟 iOS AppKey
+    channel: 'official',
+    debugMode: isDebugMode,
+  );
+
+  // 上报应用启动事件
+  AnalyticsService().trackEvent(
+    UserEvents.appLaunch,
+    params: {
+      UserEvents.paramLaunchSource: 'direct',
+      UserEvents.paramLaunchTime: DateTime.now().millisecondsSinceEpoch,
+    },
+  );
+
   runApp(const MyApp());
 }
 

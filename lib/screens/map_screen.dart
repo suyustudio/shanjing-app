@@ -5,6 +5,7 @@ import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../analytics/analytics.dart';
 import '../widgets/filter_tags.dart';
 import '../constants/design_system.dart';
 import '../services/offline_map_manager.dart';
@@ -35,7 +36,7 @@ class MapScreen extends StatefulWidget {
   State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
   bool _hasPermission = false;
   String _selectedTag = '全部';
   RouteInfo? _selectedRoute;
@@ -43,12 +44,20 @@ class _MapScreenState extends State<MapScreen> {
   AMapController? _mapController;
   double _currentZoom = 14;
   int _currentTab = 0; // 0: 地图, 1: 列表
-  
+
+  // 埋点相关
+  @override
+  String get pageId => PageEvents.pageMap;
+
+  @override
+  String get pageName => PageEvents.nameMap;
+
   // 离线地图管理
   final OfflineMapManager _offlineManager = OfflineMapManager();
   bool _isOfflineMode = false;
   List<OfflineCity> _downloadedCities = [];
-  
+  StreamSubscription<bool>? _offlineModeSubscription;
+
   // 高德定位
   late AMapFlutterLocation _locationPlugin;
   StreamSubscription<Map<String, Object>>? _locationSubscription;
@@ -126,6 +135,19 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _initOfflineManager() async {
     await _offlineManager.initialize();
     _loadDownloadedCities();
+    
+    // 监听离线模式变化
+    _offlineModeSubscription = _offlineManager.offlineModeStream.listen((isOffline) {
+      setState(() {
+        _isOfflineMode = isOffline;
+      });
+      
+      if (isOffline) {
+        debugPrint('地图: 进入离线模式');
+      } else {
+        debugPrint('地图: 恢复在线模式');
+      }
+    });
   }
   
   /// 加载已下载的离线地图
@@ -143,6 +165,8 @@ class _MapScreenState extends State<MapScreen> {
     _locationSubscription?.cancel();
     _locationPlugin.stopLocation();
     _locationPlugin.destroy();
+    // 取消离线模式监听
+    _offlineModeSubscription?.cancel();
     // 释放离线地图管理器
     _offlineManager.dispose();
     super.dispose();
@@ -367,6 +391,48 @@ class _MapScreenState extends State<MapScreen> {
             ),
           },
         ),
+        // 离线模式指示器
+        if (_isOfflineMode)
+          Positioned(
+            top: 8,
+            left: 16,
+            child: SafeArea(
+              bottom: false,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.wifi_off,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '离线模式',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         // 搜索栏和筛选标签
         Positioned(
           top: 8,
@@ -595,6 +661,14 @@ class _MapScreenState extends State<MapScreen> {
     _mapController?.moveCamera(
       CameraUpdate.zoomTo(_currentZoom),
     );
+    // 上报地图缩放事件
+    AnalyticsService().trackEvent(
+      MapEvents.mapZoom,
+      params: {
+        MapEvents.paramZoomLevel: _currentZoom,
+        MapEvents.paramZoomDirection: 'in',
+      },
+    );
   }
 
   void _zoomOut() {
@@ -603,6 +677,14 @@ class _MapScreenState extends State<MapScreen> {
     });
     _mapController?.moveCamera(
       CameraUpdate.zoomTo(_currentZoom),
+    );
+    // 上报地图缩放事件
+    AnalyticsService().trackEvent(
+      MapEvents.mapZoom,
+      params: {
+        MapEvents.paramZoomLevel: _currentZoom,
+        MapEvents.paramZoomDirection: 'out',
+      },
     );
   }
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../analytics/analytics.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
 import '../constants/design_system.dart';
@@ -18,14 +19,27 @@ class TrailDetailScreen extends StatefulWidget {
 }
 
 class _TrailDetailScreenState extends State<TrailDetailScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AnalyticsMixin {
   bool _isFavorite = false;
   bool _isLoading = false;
   bool _isDownloading = false;
   double _downloadProgress = 0.0;
   bool _isTogglingFavorite = false;
   late TabController _tabController;
-  
+
+  // 埋点相关
+  @override
+  String get pageId => PageEvents.pageTrailDetail;
+
+  @override
+  String get pageName => PageEvents.nameTrailDetail;
+
+  @override
+  Map<String, dynamic>? get pageParams => {
+        if (_trailData['id'] != null) 'route_id': _trailData['id'],
+        if (_trailData['name'] != null) 'route_name': _trailData['name'],
+      };
+
   // 收藏服务
   final FavoriteService _favoriteService = FavoriteService();
 
@@ -86,6 +100,16 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         });
 
         _showSuccessSnackBar(result.message);
+
+        // 上报收藏事件
+        AnalyticsService().trackEvent(
+          TrailEvents.trailFavorite,
+          params: {
+            TrailEvents.paramRouteId: trailId,
+            TrailEvents.paramRouteName: _trailData['name'] ?? '',
+            TrailEvents.paramFavoriteAction: result.isFavorited ? 'add' : 'remove',
+          },
+        );
       }
     } on ApiException catch (e) {
       if (mounted) {
@@ -141,6 +165,27 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
   /// 开始导航
   void _startNavigation() {
     final trailName = _trailData['name']?.toString() ?? '未知路线';
+    final trailId = _trailData['id']?.toString() ?? '';
+    
+    // 上报导航开始事件
+    AnalyticsService().trackEvent(
+      TrailEvents.trailNavigateStart,
+      params: {
+        TrailEvents.paramRouteId: trailId,
+        TrailEvents.paramRouteName: trailName,
+        TrailEvents.paramSource: 'trail_detail',
+      },
+    );
+    
+    // 上报导航开始事件（导航模块专用）
+    AnalyticsService().trackEvent(
+      NavigationEvents.navigationStart,
+      params: {
+        NavigationEvents.paramRouteId: trailId,
+        NavigationEvents.paramRouteName: trailName,
+      },
+    );
+    
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -152,6 +197,19 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
   /// 下载路线
   void _downloadTrail() {
     if (_isDownloading) return;
+    
+    final trailId = _trailData['id']?.toString() ?? '';
+    final trailName = _trailData['name']?.toString() ?? '';
+    
+    // 上报下载事件
+    AnalyticsService().trackEvent(
+      TrailEvents.trailDownload,
+      params: {
+        TrailEvents.paramRouteId: trailId,
+        TrailEvents.paramRouteName: trailName,
+        'start_time': DateTime.now().millisecondsSinceEpoch,
+      },
+    );
     
     setState(() {
       _isDownloading = true;

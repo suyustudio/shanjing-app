@@ -15,6 +15,21 @@
 - 安全分享功能
 - 个人中心页面
 
+### 数据埋点 (M2)
+- ✅ 友盟+ U-App SDK 集成
+- ✅ 埋点框架搭建（AnalyticsService + AnalyticsMixin）
+- ✅ 页面浏览事件（6 个页面）
+- ✅ 路线交互事件（trail_view, trail_favorite, trail_download, trail_navigate_start, trail_navigate_complete）
+- ✅ 地图交互事件（map_zoom, offline_map_download, offline_map_delete）
+- ✅ 导航事件（navigation_start, navigation_pause, navigation_resume, navigation_off_track, navigation_complete）
+- ✅ 用户行为事件（app_launch, app_background, app_foreground, search, filter_use）
+
+### 待完善
+- ⬜ 友盟 AppKey 配置（需替换 main.dart 中的占位符）
+- ⬜ 登录/注册埋点（需接入登录功能）
+- ⬜ 分享功能埋点（需接入分享 SDK）
+- ⬜ SOS 紧急求救埋点（需实现 SOS 功能）
+
 ## [1.0.0] - 2026-02-28
 
 ### 新增

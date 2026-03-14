@@ -1,0 +1,429 @@
+﻿2026-03-09T12:44:52.9319950Z Current runner version: '2.332.0'
+2026-03-09T12:44:52.9344663Z ##[group]Runner Image Provisioner
+2026-03-09T12:44:52.9345442Z Hosted Compute Agent
+2026-03-09T12:44:52.9346119Z Version: 20260213.493
+2026-03-09T12:44:52.9346707Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+2026-03-09T12:44:52.9347415Z Build Date: 2026-02-13T00:28:41Z
+2026-03-09T12:44:52.9348307Z Worker ID: {64b3163f-d1b9-4cef-9596-a0a5925babef}
+2026-03-09T12:44:52.9349058Z Azure Region: westus
+2026-03-09T12:44:52.9349609Z ##[endgroup]
+2026-03-09T12:44:52.9351113Z ##[group]Operating System
+2026-03-09T12:44:52.9351741Z Ubuntu
+2026-03-09T12:44:52.9352182Z 24.04.3
+2026-03-09T12:44:52.9352740Z LTS
+2026-03-09T12:44:52.9353210Z ##[endgroup]
+2026-03-09T12:44:52.9353724Z ##[group]Runner Image
+2026-03-09T12:44:52.9354303Z Image: ubuntu-24.04
+2026-03-09T12:44:52.9354858Z Version: 20260302.42.1
+2026-03-09T12:44:52.9356014Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260302.42/images/ubuntu/Ubuntu2404-Readme.md
+2026-03-09T12:44:52.9357582Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260302.42
+2026-03-09T12:44:52.9358764Z ##[endgroup]
+2026-03-09T12:44:52.9359929Z ##[group]GITHUB_TOKEN Permissions
+2026-03-09T12:44:52.9361724Z Contents: read
+2026-03-09T12:44:52.9362366Z Metadata: read
+2026-03-09T12:44:52.9362911Z Packages: read
+2026-03-09T12:44:52.9363423Z ##[endgroup]
+2026-03-09T12:44:52.9365582Z Secret source: Actions
+2026-03-09T12:44:52.9366418Z Prepare workflow directory
+2026-03-09T12:44:52.9705436Z Prepare all required actions
+2026-03-09T12:44:52.9762870Z Getting action download info
+2026-03-09T12:44:53.4748390Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-03-09T12:44:53.6396020Z Download action repository 'actions/setup-java@v4' (SHA:c1e323688fd81a25caa38c78aa6df2d33d3e20d9)
+2026-03-09T12:44:54.2879096Z Download action repository 'subosito/flutter-action@v2' (SHA:fd55f4c5af5b953cc57a2be44cb082c8f6635e8e)
+2026-03-09T12:44:54.7231316Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-03-09T12:44:54.9820471Z Getting action download info
+2026-03-09T12:44:55.1491080Z Download action repository 'actions/cache@v4' (SHA:0057852bfaa89a56745cba8c7296529d2fc39830)
+2026-03-09T12:44:55.3226734Z Complete job name: build
+2026-03-09T12:44:55.4067918Z ##[group]Run actions/checkout@v4
+2026-03-09T12:44:55.4069454Z with:
+2026-03-09T12:44:55.4070208Z   repository: suyustudio/shanjing-app
+2026-03-09T12:44:55.4071459Z   token: ***
+2026-03-09T12:44:55.4072162Z   ssh-strict: true
+2026-03-09T12:44:55.4072903Z   ssh-user: git
+2026-03-09T12:44:55.4073666Z   persist-credentials: true
+2026-03-09T12:44:55.4074518Z   clean: true
+2026-03-09T12:44:55.4075293Z   sparse-checkout-cone-mode: true
+2026-03-09T12:44:55.4076226Z   fetch-depth: 1
+2026-03-09T12:44:55.4076975Z   fetch-tags: false
+2026-03-09T12:44:55.4077789Z   show-progress: true
+2026-03-09T12:44:55.4078816Z   lfs: false
+2026-03-09T12:44:55.4079510Z   submodules: false
+2026-03-09T12:44:55.4080329Z   set-safe-directory: true
+2026-03-09T12:44:55.4081430Z ##[endgroup]
+2026-03-09T12:44:55.5193612Z Syncing repository: suyustudio/shanjing-app
+2026-03-09T12:44:55.5196654Z ##[group]Getting Git version info
+2026-03-09T12:44:55.5198497Z Working directory is '/home/runner/work/shanjing-app/shanjing-app'
+2026-03-09T12:44:55.5200686Z [command]/usr/bin/git version
+2026-03-09T12:44:55.5278541Z git version 2.53.0
+2026-03-09T12:44:55.5306546Z ##[endgroup]
+2026-03-09T12:44:55.5322015Z Temporarily overriding HOME='/home/runner/work/_temp/11c6d3c0-a4ec-4ded-bcc0-9c2f0c12d0d4' before making global git config changes
+2026-03-09T12:44:55.5324622Z Adding repository directory to the temporary git global config as a safe directory
+2026-03-09T12:44:55.5335976Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/shanjing-app/shanjing-app
+2026-03-09T12:44:55.5379751Z Deleting the contents of '/home/runner/work/shanjing-app/shanjing-app'
+2026-03-09T12:44:55.5383400Z ##[group]Initializing the repository
+2026-03-09T12:44:55.5387806Z [command]/usr/bin/git init /home/runner/work/shanjing-app/shanjing-app
+2026-03-09T12:44:55.5543179Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-03-09T12:44:55.5545856Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-03-09T12:44:55.5549304Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-03-09T12:44:55.5552058Z hint: call:
+2026-03-09T12:44:55.5553386Z hint:
+2026-03-09T12:44:55.5554969Z hint: 	git config --global init.defaultBranch <name>
+2026-03-09T12:44:55.5557414Z hint:
+2026-03-09T12:44:55.5559354Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-03-09T12:44:55.5562438Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-03-09T12:44:55.5564835Z hint:
+2026-03-09T12:44:55.5565968Z hint: 	git branch -m <name>
+2026-03-09T12:44:55.5567269Z hint:
+2026-03-09T12:44:55.5569532Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-03-09T12:44:55.5571649Z Initialized empty Git repository in /home/runner/work/shanjing-app/shanjing-app/.git/
+2026-03-09T12:44:55.5574729Z [command]/usr/bin/git remote add origin https://github.com/suyustudio/shanjing-app
+2026-03-09T12:44:55.5603110Z ##[endgroup]
+2026-03-09T12:44:55.5605383Z ##[group]Disabling automatic garbage collection
+2026-03-09T12:44:55.5607467Z [command]/usr/bin/git config --local gc.auto 0
+2026-03-09T12:44:55.5639115Z ##[endgroup]
+2026-03-09T12:44:55.5641242Z ##[group]Setting up auth
+2026-03-09T12:44:55.5647145Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-03-09T12:44:55.5681399Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-03-09T12:44:55.6058835Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-03-09T12:44:55.6091001Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-03-09T12:44:55.6330140Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-03-09T12:44:55.6363760Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-03-09T12:44:55.6616710Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-03-09T12:44:55.6653549Z ##[endgroup]
+2026-03-09T12:44:55.6655792Z ##[group]Fetching the repository
+2026-03-09T12:44:55.6665318Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +48d451aafb5eea2e292a88931f38c734d689e518:refs/remotes/origin/main
+2026-03-09T12:44:58.1995439Z From https://github.com/suyustudio/shanjing-app
+2026-03-09T12:44:58.1996141Z  * [new ref]         48d451aafb5eea2e292a88931f38c734d689e518 -> origin/main
+2026-03-09T12:44:58.2032016Z ##[endgroup]
+2026-03-09T12:44:58.2032730Z ##[group]Determining the checkout info
+2026-03-09T12:44:58.2034368Z ##[endgroup]
+2026-03-09T12:44:58.2040549Z [command]/usr/bin/git sparse-checkout disable
+2026-03-09T12:44:58.2109407Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-03-09T12:44:58.2140080Z ##[group]Checking out the ref
+2026-03-09T12:44:58.2144198Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-03-09T12:44:58.5632993Z Switched to a new branch 'main'
+2026-03-09T12:44:58.5633728Z branch 'main' set up to track 'origin/main'.
+2026-03-09T12:44:58.5655163Z ##[endgroup]
+2026-03-09T12:44:58.5701888Z [command]/usr/bin/git log -1 --format=%H
+2026-03-09T12:44:58.5729310Z 48d451aafb5eea2e292a88931f38c734d689e518
+2026-03-09T12:44:58.6003816Z ##[group]Run actions/setup-java@v4
+2026-03-09T12:44:58.6004326Z with:
+2026-03-09T12:44:58.6004514Z   java-version: 17
+2026-03-09T12:44:58.6004701Z   distribution: temurin
+2026-03-09T12:44:58.6004903Z   java-package: jdk
+2026-03-09T12:44:58.6005098Z   check-latest: false
+2026-03-09T12:44:58.6005287Z   server-id: github
+2026-03-09T12:44:58.6005472Z   server-username: GITHUB_ACTOR
+2026-03-09T12:44:58.6005705Z   server-password: GITHUB_TOKEN
+2026-03-09T12:44:58.6005929Z   overwrite-settings: true
+2026-03-09T12:44:58.6006140Z   job-status: success
+2026-03-09T12:44:58.6006474Z   token: ***
+2026-03-09T12:44:58.6006657Z ##[endgroup]
+2026-03-09T12:44:58.8034679Z ##[group]Installed distributions
+2026-03-09T12:44:58.8095929Z Resolved Java 17.0.18+8 from tool-cache
+2026-03-09T12:44:58.8097014Z Setting Java 17.0.18+8 as the default
+2026-03-09T12:44:58.8110340Z Creating toolchains.xml for JDK version 17 from temurin
+2026-03-09T12:44:58.8188929Z Writing to /home/runner/.m2/toolchains.xml
+2026-03-09T12:44:58.8189496Z 
+2026-03-09T12:44:58.8189625Z Java configuration:
+2026-03-09T12:44:58.8191289Z   Distribution: temurin
+2026-03-09T12:44:58.8191631Z   Version: 17.0.18+8
+2026-03-09T12:44:58.8192496Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:44:58.8193039Z 
+2026-03-09T12:44:58.8193438Z ##[endgroup]
+2026-03-09T12:44:58.8212832Z Creating settings.xml with server-id: github
+2026-03-09T12:44:58.8216474Z Writing to /home/runner/.m2/settings.xml
+2026-03-09T12:44:58.8494148Z ##[group]Run subosito/flutter-action@v2
+2026-03-09T12:44:58.8494452Z with:
+2026-03-09T12:44:58.8494631Z   flutter-version: 3.19.0
+2026-03-09T12:44:58.8494844Z   channel: stable
+2026-03-09T12:44:58.8495027Z   architecture: X64
+2026-03-09T12:44:58.8495214Z   cache: false
+2026-03-09T12:44:58.8495398Z   pub-cache-path: default
+2026-03-09T12:44:58.8495613Z   dry-run: false
+2026-03-09T12:44:58.8495871Z   git-source: https://github.com/flutter/flutter.git
+2026-03-09T12:44:58.8496165Z env:
+2026-03-09T12:44:58.8496445Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:44:58.8496914Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:44:58.8497269Z ##[endgroup]
+2026-03-09T12:44:58.8594442Z ##[group]Run chmod +x "$GITHUB_ACTION_PATH/setup.sh"
+2026-03-09T12:44:58.8594860Z [36;1mchmod +x "$GITHUB_ACTION_PATH/setup.sh"[0m
+2026-03-09T12:44:58.8650089Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-03-09T12:44:58.8650508Z env:
+2026-03-09T12:44:58.8650816Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:44:58.8651286Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:44:58.8651640Z ##[endgroup]
+2026-03-09T12:44:58.8814888Z ##[group]Run $GITHUB_ACTION_PATH/setup.sh -p \
+2026-03-09T12:44:58.8815364Z [36;1m$GITHUB_ACTION_PATH/setup.sh -p \[0m
+2026-03-09T12:44:58.8815670Z [36;1m  -n '3.19.0' \[0m
+2026-03-09T12:44:58.8815884Z [36;1m  -f '' \[0m
+2026-03-09T12:44:58.8816068Z [36;1m  -a 'X64' \[0m
+2026-03-09T12:44:58.8816282Z [36;1m  -k '' \[0m
+2026-03-09T12:44:58.8816465Z [36;1m  -c '' \[0m
+2026-03-09T12:44:58.8816638Z [36;1m  -l '' \[0m
+2026-03-09T12:44:58.8816819Z [36;1m  -d 'default' \[0m
+2026-03-09T12:44:58.8817149Z [36;1m  -g 'https://github.com/flutter/flutter.git' \[0m
+2026-03-09T12:44:58.8817467Z [36;1m  stable[0m
+2026-03-09T12:44:58.8865700Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-03-09T12:44:58.8866056Z env:
+2026-03-09T12:44:58.8866344Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:44:58.8866800Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:44:58.8867157Z ##[endgroup]
+2026-03-09T12:44:59.0642831Z ##[group]Run $GITHUB_ACTION_PATH/setup.sh \
+2026-03-09T12:44:59.0643175Z [36;1m$GITHUB_ACTION_PATH/setup.sh \[0m
+2026-03-09T12:44:59.0643431Z [36;1m  -n '3.19.0' \[0m
+2026-03-09T12:44:59.0643651Z [36;1m  -a 'x64' \[0m
+2026-03-09T12:44:59.0643950Z [36;1m  -c '/opt/hostedtoolcache/flutter/stable-3.19.0-x64' \[0m
+2026-03-09T12:44:59.0644458Z [36;1m  -d '/home/runner/.pub-cache' \[0m
+2026-03-09T12:44:59.0644709Z [36;1m  stable[0m
+2026-03-09T12:44:59.0694138Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-03-09T12:44:59.0694482Z env:
+2026-03-09T12:44:59.0694776Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:44:59.0695271Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:44:59.0695642Z ##[endgroup]
+2026-03-09T12:44:59.2976614Z   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+2026-03-09T12:44:59.2977503Z                                  Dload  Upload   Total   Spent    Left  Speed
+2026-03-09T12:44:59.2977910Z 
+2026-03-09T12:44:59.3235896Z   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+2026-03-09T12:45:00.3234544Z   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+2026-03-09T12:45:01.3231222Z   8  632M    8 54.1M    0     0  52.7M      0  0:00:11  0:00:01  0:00:10 52.7M
+2026-03-09T12:45:02.3235691Z  44  632M   44  279M    0     0   138M      0  0:00:04  0:00:02  0:00:02  138M
+2026-03-09T12:45:02.8712518Z  80  632M   80  508M    0     0   167M      0  0:00:03  0:00:03 --:--:--  167M
+2026-03-09T12:45:02.8713455Z 100  632M  100  632M    0     0   177M      0  0:00:03  0:00:03 --:--:--  177M
+2026-03-09T12:45:30.1746217Z ##[group]Run echo "AMAP_KEY=e17f8ae117d84e2d2d394a2124866603" > .env
+2026-03-09T12:45:30.1746671Z [36;1mecho "AMAP_KEY=e17f8ae117d84e2d2d394a2124866603" > .env[0m
+2026-03-09T12:45:30.1796937Z shell: /usr/bin/bash -e {0}
+2026-03-09T12:45:30.1797169Z env:
+2026-03-09T12:45:30.1797457Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:45:30.1797932Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:45:30.1798605Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.19.0-x64
+2026-03-09T12:45:30.1798954Z   PUB_CACHE: /home/runner/.pub-cache
+2026-03-09T12:45:30.1799200Z ##[endgroup]
+2026-03-09T12:45:30.1893937Z ##[group]Run flutter pub get
+2026-03-09T12:45:30.1894201Z [36;1mflutter pub get[0m
+2026-03-09T12:45:30.1939052Z shell: /usr/bin/bash -e {0}
+2026-03-09T12:45:30.1939280Z env:
+2026-03-09T12:45:30.1939579Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:45:30.1940060Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:45:30.1940508Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.19.0-x64
+2026-03-09T12:45:30.1940849Z   PUB_CACHE: /home/runner/.pub-cache
+2026-03-09T12:45:30.1941091Z ##[endgroup]
+2026-03-09T12:45:30.5497135Z 
+2026-03-09T12:45:30.5509260Z   ╔════════════════════════════════════════════════════════════════════════════╗
+2026-03-09T12:45:30.5510263Z   ║                 Welcome to Flutter! - https://flutter.dev                  ║
+2026-03-09T12:45:30.5511033Z   ║                                                                            ║
+2026-03-09T12:45:30.5511957Z   ║ The Flutter tool uses Google Analytics to anonymously report feature usage ║
+2026-03-09T12:45:30.5512905Z   ║ statistics and basic crash reports. This data is used to help improve      ║
+2026-03-09T12:45:30.5513828Z   ║ Flutter tools over time.                                                   ║
+2026-03-09T12:45:30.5514564Z   ║                                                                            ║
+2026-03-09T12:45:30.5515370Z   ║ Flutter tool analytics are not sent on the very first run. To disable      ║
+2026-03-09T12:45:30.5516355Z   ║ reporting, type 'flutter config --no-analytics'. To display the current    ║
+2026-03-09T12:45:30.5517403Z   ║ setting, type 'flutter config'. If you opt out of analytics, an opt-out    ║
+2026-03-09T12:45:30.5518705Z   ║ event will be sent, and then no further information will be sent by the    ║
+2026-03-09T12:45:30.5519639Z   ║ Flutter tool.                                                              ║
+2026-03-09T12:45:30.5520781Z   ║                                                                            ║
+2026-03-09T12:45:30.5521637Z   ║ By downloading the Flutter SDK, you agree to the Google Terms of Service.  ║
+2026-03-09T12:45:30.5522686Z   ║ The Google Privacy Policy describes how data is handled in this service.   ║
+2026-03-09T12:45:30.5523572Z   ║                                                                            ║
+2026-03-09T12:45:30.5524415Z   ║ Moreover, Flutter includes the Dart SDK, which may send usage metrics and  ║
+2026-03-09T12:45:30.5525363Z   ║ crash reports to Google.                                                   ║
+2026-03-09T12:45:30.5526169Z   ║                                                                            ║
+2026-03-09T12:45:30.5526995Z   ║ Read about data we send with crash reports:                                ║
+2026-03-09T12:45:30.5528207Z   ║ https://flutter.dev/docs/reference/crash-reporting                         ║
+2026-03-09T12:45:30.5529130Z   ║                                                                            ║
+2026-03-09T12:45:30.5529970Z   ║ See Google's privacy policy:                                               ║
+2026-03-09T12:45:30.5530972Z   ║ https://policies.google.com/privacy                                        ║
+2026-03-09T12:45:30.5531851Z   ║                                                                            ║
+2026-03-09T12:45:30.5532702Z   ║ To disable animations in this tool, use                                    ║
+2026-03-09T12:45:30.5533693Z   ║ 'flutter config --no-cli-animations'.                                      ║
+2026-03-09T12:45:30.5534709Z   ╚════════════════════════════════════════════════════════════════════════════╝
+2026-03-09T12:45:30.5535166Z 
+2026-03-09T12:45:35.8275562Z Resolving dependencies...
+2026-03-09T12:45:39.0861403Z + amap_flutter_base 3.0.0
+2026-03-09T12:45:39.0861891Z + amap_flutter_location 3.0.0
+2026-03-09T12:45:39.0862314Z + amap_flutter_map 3.0.0
+2026-03-09T12:45:39.0862676Z + args 2.7.0
+2026-03-09T12:45:39.0863040Z + async 2.11.0 (2.13.0 available)
+2026-03-09T12:45:39.0863920Z + boolean_selector 2.1.1 (2.1.2 available)
+2026-03-09T12:45:39.0864423Z + cached_network_image 3.4.0 (3.4.1 available)
+2026-03-09T12:45:39.0864934Z + cached_network_image_platform_interface 4.1.1
+2026-03-09T12:45:39.0865459Z + cached_network_image_web 1.3.0 (1.3.1 available)
+2026-03-09T12:45:39.0865938Z + characters 1.3.0 (1.4.1 available)
+2026-03-09T12:45:39.0866345Z + clock 1.1.1 (1.1.2 available)
+2026-03-09T12:45:39.0866779Z + collection 1.18.0 (1.19.1 available)
+2026-03-09T12:45:39.0867192Z + connectivity_plus 5.0.2 (7.0.0 available)
+2026-03-09T12:45:39.0867551Z + connectivity_plus_platform_interface 1.2.4 (2.0.1 available)
+2026-03-09T12:45:39.0867871Z + crypto 3.0.3 (3.0.7 available)
+2026-03-09T12:45:39.0868323Z + dbus 0.7.12
+2026-03-09T12:45:39.0868507Z + fake_async 1.3.1 (1.3.3 available)
+2026-03-09T12:45:39.0868744Z + ffi 2.1.3 (2.2.0 available)
+2026-03-09T12:45:39.0868940Z + file 7.0.1
+2026-03-09T12:45:39.0869116Z + fixnum 1.1.1
+2026-03-09T12:45:39.0869296Z + flutter 0.0.0 from sdk flutter
+2026-03-09T12:45:39.0869520Z + flutter_cache_manager 3.4.1
+2026-03-09T12:45:39.0869741Z + flutter_dotenv 5.2.1 (6.0.0 available)
+2026-03-09T12:45:39.0869984Z + flutter_lints 3.0.2 (6.0.0 available)
+2026-03-09T12:45:39.0870281Z + flutter_plugin_android_lifecycle 2.0.19 (2.0.33 available)
+2026-03-09T12:45:39.0870580Z + flutter_test 0.0.0 from sdk flutter
+2026-03-09T12:45:39.0870851Z + flutter_tts 4.0.2 (4.2.5 available)
+2026-03-09T12:45:39.0871311Z + flutter_web_plugins 0.0.0 from sdk flutter
+2026-03-09T12:45:39.0871863Z + http 1.2.2 (1.6.0 available)
+2026-03-09T12:45:39.0872256Z + http_parser 4.0.2 (4.1.2 available)
+2026-03-09T12:45:39.0872650Z + js 0.6.7 (0.7.2 available)
+2026-03-09T12:45:39.0873026Z + leak_tracker 10.0.0 (11.0.2 available)
+2026-03-09T12:45:39.0873513Z + leak_tracker_flutter_testing 2.0.1 (3.0.10 available)
+2026-03-09T12:45:39.0874033Z + leak_tracker_testing 2.0.1 (3.0.2 available)
+2026-03-09T12:45:39.0874825Z + lints 3.0.0 (6.1.0 available)
+2026-03-09T12:45:39.0875267Z + matcher 0.12.16+1 (0.12.19 available)
+2026-03-09T12:45:39.0875772Z + material_color_utilities 0.8.0 (0.13.0 available)
+2026-03-09T12:45:39.0876259Z + meta 1.11.0 (1.18.1 available)
+2026-03-09T12:45:39.0876626Z + nm 0.5.0
+2026-03-09T12:45:39.0876917Z + octo_image 2.1.0
+2026-03-09T12:45:39.0877267Z + path 1.9.0 (1.9.1 available)
+2026-03-09T12:45:39.0877666Z + path_provider 2.1.4 (2.1.5 available)
+2026-03-09T12:45:39.0878482Z + path_provider_android 2.2.4 (2.2.22 available)
+2026-03-09T12:45:39.0879059Z + path_provider_foundation 2.4.1 (2.6.0 available)
+2026-03-09T12:45:39.0879532Z + path_provider_linux 2.2.1
+2026-03-09T12:45:39.0879907Z + path_provider_platform_interface 2.1.2
+2026-03-09T12:45:39.0880342Z + path_provider_windows 2.3.0
+2026-03-09T12:45:39.0880779Z + permission_handler 11.3.1 (12.0.1 available)
+2026-03-09T12:45:39.0881341Z + permission_handler_android 12.0.13 (13.0.1 available)
+2026-03-09T12:45:39.0881845Z + permission_handler_apple 9.4.7
+2026-03-09T12:45:39.0882257Z + permission_handler_html 0.1.3+5
+2026-03-09T12:45:39.0882776Z + permission_handler_platform_interface 4.2.3 (4.3.0 available)
+2026-03-09T12:45:39.0883346Z + permission_handler_windows 0.2.1
+2026-03-09T12:45:39.0883834Z + petitparser 6.0.2 (7.0.2 available)
+2026-03-09T12:45:39.0884251Z + platform 3.1.6
+2026-03-09T12:45:39.0884599Z + plugin_platform_interface 2.1.8
+2026-03-09T12:45:39.0884985Z + rxdart 0.28.0
+2026-03-09T12:45:39.0885304Z + sky_engine 0.0.99 from sdk flutter
+2026-03-09T12:45:39.0885734Z + source_span 1.10.0 (1.10.2 available)
+2026-03-09T12:45:39.0886151Z + sqflite 2.3.3+1 (2.4.2 available)
+2026-03-09T12:45:39.0886573Z + sqflite_common 2.5.4 (2.5.6 available)
+2026-03-09T12:45:39.0887000Z + stack_trace 1.11.1 (1.12.1 available)
+2026-03-09T12:45:39.0887429Z + stream_channel 2.1.2 (2.1.4 available)
+2026-03-09T12:45:39.0887832Z + stream_transform 2.1.1
+2026-03-09T12:45:39.0888399Z + string_scanner 1.2.0 (1.4.1 available)
+2026-03-09T12:45:39.0888925Z + synchronized 3.1.0+1 (3.4.0 available)
+2026-03-09T12:45:39.0889832Z + term_glyph 1.2.1 (1.2.2 available)
+2026-03-09T12:45:39.0890310Z + test_api 0.6.1 (0.7.10 available)
+2026-03-09T12:45:39.0890710Z + typed_data 1.3.2 (1.4.0 available)
+2026-03-09T12:45:39.0891110Z + uuid 4.5.3
+2026-03-09T12:45:39.0891436Z + vector_math 2.1.4 (2.2.0 available)
+2026-03-09T12:45:39.0891878Z + vm_service 13.0.0 (15.0.2 available)
+2026-03-09T12:45:39.0892297Z + web 0.5.1 (1.1.1 available)
+2026-03-09T12:45:39.0892657Z + xdg_directories 1.1.0
+2026-03-09T12:45:39.0893005Z + xml 6.5.0 (6.6.1 available)
+2026-03-09T12:45:39.0893384Z Changed 75 dependencies!
+2026-03-09T12:45:39.0906469Z 48 packages have newer versions incompatible with dependency constraints.
+2026-03-09T12:45:39.0907201Z Try `flutter pub outdated` for more information.
+2026-03-09T12:45:39.4692159Z ##[group]Run flutter build apk --release
+2026-03-09T12:45:39.4692493Z [36;1mflutter build apk --release[0m
+2026-03-09T12:45:39.4741158Z shell: /usr/bin/bash -e {0}
+2026-03-09T12:45:39.4741425Z env:
+2026-03-09T12:45:39.4741726Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:45:39.4742252Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-09T12:45:39.4742744Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.19.0-x64
+2026-03-09T12:45:39.4743108Z   PUB_CACHE: /home/runner/.pub-cache
+2026-03-09T12:45:39.4743388Z ##[endgroup]
+2026-03-09T12:45:40.0020565Z 
+2026-03-09T12:46:44.4050529Z Running Gradle task 'assembleRelease'...                        
+2026-03-09T12:46:44.4065774Z You are applying Flutter's main Gradle plugin imperatively using the apply script method, which is deprecated and will be removed in a future release. Migrate to applying Gradle plugins with the declarative plugins block: https://flutter.dev/go/flutter-gradle-plugin-apply
+2026-03-09T12:46:44.4069612Z 
+2026-03-09T12:47:52.8896971Z Checking the license for package Android SDK Build-Tools 30.0.3 in /usr/local/lib/android/sdk/licenses
+2026-03-09T12:47:52.8899504Z License for package Android SDK Build-Tools 30.0.3 accepted.
+2026-03-09T12:47:52.8901173Z Preparing "Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)".
+2026-03-09T12:47:54.0891849Z "Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" ready.
+2026-03-09T12:47:54.0893188Z Installing Android SDK Build-Tools 30.0.3 in /usr/local/lib/android/sdk/build-tools/30.0.3
+2026-03-09T12:47:54.0896787Z "Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" complete.
+2026-03-09T12:47:54.4895231Z "Install Android SDK Build-Tools 30.0.3 (revision: 30.0.3)" finished.
+2026-03-09T12:47:54.4896551Z Checking the license for package Android SDK Platform 29 in /usr/local/lib/android/sdk/licenses
+2026-03-09T12:47:54.4899963Z License for package Android SDK Platform 29 accepted.
+2026-03-09T12:47:54.4900630Z Preparing "Install Android SDK Platform 29 (revision: 5)".
+2026-03-09T12:47:57.5915949Z "Install Android SDK Platform 29 (revision: 5)" ready.
+2026-03-09T12:47:57.5917351Z Installing Android SDK Platform 29 in /usr/local/lib/android/sdk/platforms/android-29
+2026-03-09T12:47:57.5922606Z "Install Android SDK Platform 29 (revision: 5)" complete.
+2026-03-09T12:47:57.5923264Z "Install Android SDK Platform 29 (revision: 5)" finished.
+2026-03-09T12:47:58.2897827Z Checking the license for package Android SDK Platform 33 in /usr/local/lib/android/sdk/licenses
+2026-03-09T12:47:58.2898950Z License for package Android SDK Platform 33 accepted.
+2026-03-09T12:47:58.2899562Z Preparing "Install Android SDK Platform 33 (revision: 3)".
+2026-03-09T12:48:00.8899778Z "Install Android SDK Platform 33 (revision: 3)" ready.
+2026-03-09T12:48:00.8903617Z Installing Android SDK Platform 33 in /usr/local/lib/android/sdk/platforms/android-33
+2026-03-09T12:48:00.8904689Z "Install Android SDK Platform 33 (revision: 3)" complete.
+2026-03-09T12:48:00.8909938Z "Install Android SDK Platform 33 (revision: 3)" finished.
+2026-03-09T12:48:32.7892652Z Note: Some input files use or override a deprecated API.
+2026-03-09T12:48:32.7903360Z Note: Recompile with -Xlint:deprecation for details.
+2026-03-09T12:48:32.7912315Z Note: Some input files use unchecked or unsafe operations.
+2026-03-09T12:48:32.7921407Z Note: Recompile with -Xlint:unchecked for details.
+2026-03-09T12:49:06.7902856Z Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 5308 bytes (99.7% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+2026-03-09T12:49:26.6888973Z 
+2026-03-09T12:49:26.6953383Z FAILURE: Build failed with an exception.
+2026-03-09T12:49:26.6960596Z 
+2026-03-09T12:49:26.6960756Z * What went wrong:
+2026-03-09T12:49:26.6961265Z Execution failed for task ':app:checkReleaseDuplicateClasses'.
+2026-03-09T12:49:26.6962662Z > A failure occurred while executing com.android.build.gradle.internal.tasks.CheckDuplicatesRunnable
+2026-03-09T12:49:26.6964355Z    > Duplicate class com.amap.api.fence.DistrictItem found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.6966415Z      Duplicate class com.amap.api.fence.DistrictItem$1 found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7005506Z      Duplicate class com.amap.api.fence.GeoFence found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7007521Z      Duplicate class com.amap.api.fence.GeoFence$1 found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7009778Z      Duplicate class com.amap.api.fence.GeoFenceClient found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7011843Z      Duplicate class com.amap.api.fence.GeoFenceListener found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7014126Z      Duplicate class com.amap.api.fence.PoiItem found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7016077Z      Duplicate class com.amap.api.fence.PoiItem$1 found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7018244Z      Duplicate class com.amap.api.location.AMapLocation found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7023384Z      Duplicate class com.amap.api.location.AMapLocation$1 found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7025494Z      Duplicate class com.amap.api.location.AMapLocationClient found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7027690Z      Duplicate class com.amap.api.location.AMapLocationClientOption found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7030288Z      Duplicate class com.amap.api.location.AMapLocationClientOption$1 found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7032498Z      Duplicate class com.amap.api.location.AMapLocationClientOption$2 found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7034827Z      Duplicate class com.amap.api.location.AMapLocationClientOption$AMapLocationMode found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7037358Z      Duplicate class com.amap.api.location.AMapLocationClientOption$AMapLocationProtocol found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7040131Z      Duplicate class com.amap.api.location.AMapLocationClientOption$AMapLocationPurpose found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7042657Z      Duplicate class com.amap.api.location.AMapLocationClientOption$GeoLanguage found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7045303Z      Duplicate class com.amap.api.location.AMapLocationListener found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7047738Z      Duplicate class com.amap.api.location.AMapLocationQualityReport found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7050008Z      Duplicate class com.amap.api.location.APSService found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7051944Z      Duplicate class com.amap.api.location.CoordUtil found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7054093Z      Duplicate class com.amap.api.location.CoordinateConverter found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7056390Z      Duplicate class com.amap.api.location.CoordinateConverter$1 found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7059275Z      Duplicate class com.amap.api.location.CoordinateConverter$CoordType found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7061466Z      Duplicate class com.amap.api.location.DPoint found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7063505Z      Duplicate class com.amap.api.location.DPoint$1 found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7065510Z      Duplicate class com.amap.api.location.UmidtokenInfo found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7067570Z      Duplicate class com.amap.api.location.UmidtokenInfo$1 found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7069867Z      Duplicate class com.amap.api.location.UmidtokenInfo$a found in modules jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600) and jetified-location-6.5.1 (com.amap.api:location:6.5.1)
+2026-03-09T12:49:26.7072355Z      Duplicate class com.amap.apis.utils.core.api.AMapUtilCoreApi found in the following modules: jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600), jetified-location-6.5.1 (com.amap.api:location:6.5.1) and jetified-search-9.7.1 (com.amap.api:search:9.7.1)
+2026-03-09T12:49:26.7075274Z      Duplicate class com.amap.apis.utils.core.api.NetProxy found in the following modules: jetified-3dmap-10.0.600 (com.amap.api:3dmap:10.0.600), jetified-location-6.5.1 (com.amap.api:location:6.5.1) and jetified-search-9.7.1 (com.amap.api:search:9.7.1)
+2026-03-09T12:49:26.7076678Z 
+2026-03-09T12:49:26.7077382Z      Go to the documentation to learn how to <a href="d.android.com/r/tools/classpath-sync-errors">Fix dependency resolution errors</a>.
+2026-03-09T12:49:26.7078506Z 
+2026-03-09T12:49:26.7078628Z * Try:
+2026-03-09T12:49:26.7079034Z > Run with --stacktrace option to get the stack trace.
+2026-03-09T12:49:26.7079675Z > Run with --info or --debug option to get more log output.
+2026-03-09T12:49:26.7080248Z > Run with --scan to get full insights.
+2026-03-09T12:49:26.7080557Z 
+2026-03-09T12:49:26.7080762Z * Get more help at https://help.gradle.org
+2026-03-09T12:49:26.7081098Z 
+2026-03-09T12:49:26.7081235Z BUILD FAILED in 3m 45s
+2026-03-09T12:49:27.1794310Z Running Gradle task 'assembleRelease'...                          227.1s
+2026-03-09T12:49:27.1838927Z Gradle task assembleRelease failed with exit code 1
+2026-03-09T12:49:27.1914982Z ##[error]Process completed with exit code 1.
+2026-03-09T12:49:27.2064155Z Post job cleanup.
+2026-03-09T12:49:27.2117624Z Post job cleanup.
+2026-03-09T12:49:27.3934882Z Post job cleanup.
+2026-03-09T12:49:27.4887873Z [command]/usr/bin/git version
+2026-03-09T12:49:27.4933604Z git version 2.53.0
+2026-03-09T12:49:27.5001984Z Temporarily overriding HOME='/home/runner/work/_temp/b551c0e2-290e-4ed3-b353-b6a147f6a009' before making global git config changes
+2026-03-09T12:49:27.5003199Z Adding repository directory to the temporary git global config as a safe directory
+2026-03-09T12:49:27.5021897Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/shanjing-app/shanjing-app
+2026-03-09T12:49:27.5064908Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-03-09T12:49:27.5103922Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-03-09T12:49:27.5388778Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-03-09T12:49:27.5415185Z http.https://github.com/.extraheader
+2026-03-09T12:49:27.5429423Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-03-09T12:49:27.5474352Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-03-09T12:49:27.5714305Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-03-09T12:49:27.5747186Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-03-09T12:49:27.6096430Z Cleaning up orphan processes
+2026-03-09T12:49:27.6431593Z Terminate orphan process: pid (2679) (java)
+2026-03-09T12:49:27.6475729Z Terminate orphan process: pid (3041) (java)

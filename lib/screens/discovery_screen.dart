@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart' hide SearchBar;
+import '../analytics/analytics.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/filter_tags.dart';
 import '../widgets/route_card.dart';
 import '../widgets/app_app_bar.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_error.dart';
+import '../widgets/app_empty.dart';
 import '../constants/design_system.dart';
 import 'trail_detail_screen.dart';
 
@@ -36,7 +38,8 @@ class DiscoveryScreen extends StatefulWidget {
   State<DiscoveryScreen> createState() => _DiscoveryScreenState();
 }
 
-class _DiscoveryScreenState extends State<DiscoveryScreen> with TickerProviderStateMixin {
+class _DiscoveryScreenState extends State<DiscoveryScreen>
+    with TickerProviderStateMixin, AnalyticsMixin {
   String _selectedTag = '全部';
   String _searchQuery = '';
   List<Map<String, dynamic>> _trails = [];
@@ -44,7 +47,14 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> with TickerProviderSt
   String? _errorMessage;
   Timer? _timeoutTimer;
   Timer? _debounceTimer;
-  
+
+  // 埋点相关
+  @override
+  String get pageId => PageEvents.pageDiscovery;
+
+  @override
+  String get pageName => PageEvents.nameDiscovery;
+
   // 列表动画控制器
   late AnimationController _listAnimController;
   late List<Animation<double>> _fadeAnimations;
@@ -160,6 +170,16 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> with TickerProviderSt
       setState(() {
         _searchQuery = query;
       });
+      // 上报搜索事件
+      if (query.isNotEmpty) {
+        AnalyticsService().trackEvent(
+          UserEvents.search,
+          params: {
+            UserEvents.paramSearchKeyword: query,
+            UserEvents.paramSearchResultCount: _filteredTrails.length,
+          },
+        );
+      }
       // 重新触发动画
       _listAnimController.reset();
       _initListAnimations();
@@ -172,6 +192,14 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> with TickerProviderSt
     setState(() {
       _selectedTag = tag;
     });
+    // 上报筛选事件
+    AnalyticsService().trackEvent(
+      UserEvents.filterUse,
+      params: {
+        UserEvents.paramFilterType: 'difficulty',
+        UserEvents.paramFilterValue: tag,
+      },
+    );
     // 重新触发动画
     _listAnimController.reset();
     _initListAnimations();
@@ -238,7 +266,23 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> with TickerProviderSt
                         onRetry: _loadTrails,
                       )
                     : filteredTrails.isEmpty
-                        ? const AppEmpty(message: '暂无符合条件的路线')
+                        ? AppEmpty.search(
+                            keyword: _searchQuery.isNotEmpty ? _searchQuery : null,
+                            onClearFilter: () {
+                              setState(() {
+                                _selectedTag = '全部';
+                                _searchQuery = '';
+                              });
+                              _loadTrails();
+                            },
+                            onBrowseRecommended: () {
+                              setState(() {
+                                _selectedTag = '全部';
+                                _searchQuery = '';
+                              });
+                              _loadTrails();
+                            },
+                          )
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             itemCount: filteredTrails.length,
@@ -264,6 +308,18 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> with TickerProviderSt
                                     distance: '$distance km',
                                     duration: '${(duration / 60).toStringAsFixed(1)} 小时',
                                     onTap: () {
+                                      // 上报路线浏览事件
+                                      AnalyticsService().trackEvent(
+                                        TrailEvents.trailView,
+                                        params: {
+                                          TrailEvents.paramRouteId: trail['id'] ?? '',
+                                          TrailEvents.paramRouteName: trail['name'] ?? '',
+                                          TrailEvents.paramDifficulty: trail['difficulty'] ?? '',
+                                          TrailEvents.paramDuration: trail['duration'] ?? 0,
+                                          TrailEvents.paramDistance: trail['distance'] ?? 0,
+                                          TrailEvents.paramSource: 'discovery_list',
+                                        },
+                                      );
                                       Navigator.push(
                                         context,
                                         FadePageRoute(

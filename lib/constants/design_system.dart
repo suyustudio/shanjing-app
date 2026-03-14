@@ -168,12 +168,174 @@ class DesignSystem {
         : info;
   }
 
-  // ==================== 字体大小 ====================
+  // ==================== 字体大小 (旧版，保留兼容) ====================
   static const double fontHeading = 18;
   static const double fontBody = 14;
   static const double fontSmall = 12;
   static const double fontLarge = 20;
   static const double fontXLarge = 24;
+
+  // ==================== 字体层级 (M2 Design System) ====================
+  /// Display - 大标题，用于品牌展示
+  static const double displayLarge = 57;
+  static const double displayMedium = 45;
+  static const double displaySmall = 36;
+
+  /// Headline - 页面主标题
+  static const double headlineLarge = 32;
+  static const double headlineMedium = 28;
+  static const double headlineSmall = 24;
+
+  /// Title - 区块标题
+  static const double titleLarge = 22;
+  static const double titleMedium = 16;
+  static const double titleSmall = 14;
+
+  /// Body - 正文
+  static const double bodyLarge = 16;
+  static const double bodyMedium = 14;
+  static const double bodySmall = 12;
+
+  /// Label - 标签、按钮文字
+  static const double labelLarge = 14;
+  static const double labelMedium = 12;
+  static const double labelSmall = 11;
+
+  /// 获取完整文字样式
+  static TextStyle getDisplayLarge(BuildContext context, {Color? color}) {
+    return TextStyle(
+      fontSize: displayLarge,
+      fontWeight: FontWeight.w400,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: -0.25,
+    );
+  }
+
+  static TextStyle getDisplayMedium(BuildContext context, {Color? color}) {
+    return TextStyle(
+      fontSize: displayMedium,
+      fontWeight: FontWeight.w400,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: 0,
+    );
+  }
+
+  static TextStyle getDisplaySmall(BuildContext context, {Color? color}) {
+    return TextStyle(
+      fontSize: displaySmall,
+      fontWeight: FontWeight.w400,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: 0,
+    );
+  }
+
+  static TextStyle getHeadlineLarge(BuildContext context, {Color? color}) {
+    return TextStyle(
+      fontSize: headlineLarge,
+      fontWeight: FontWeight.w400,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: 0,
+    );
+  }
+
+  static TextStyle getHeadlineMedium(BuildContext context, {Color? color}) {
+    return TextStyle(
+      fontSize: headlineMedium,
+      fontWeight: FontWeight.w400,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: 0,
+    );
+  }
+
+  static TextStyle getHeadlineSmall(BuildContext context, {Color? color}) {
+    return TextStyle(
+      fontSize: headlineSmall,
+      fontWeight: FontWeight.w400,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: 0,
+    );
+  }
+
+  static TextStyle getTitleLarge(BuildContext context, {Color? color, FontWeight? weight}) {
+    return TextStyle(
+      fontSize: titleLarge,
+      fontWeight: weight ?? FontWeight.w500,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: 0,
+    );
+  }
+
+  static TextStyle getTitleMedium(BuildContext context, {Color? color, FontWeight? weight}) {
+    return TextStyle(
+      fontSize: titleMedium,
+      fontWeight: weight ?? FontWeight.w500,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: 0.15,
+    );
+  }
+
+  static TextStyle getTitleSmall(BuildContext context, {Color? color, FontWeight? weight}) {
+    return TextStyle(
+      fontSize: titleSmall,
+      fontWeight: weight ?? FontWeight.w500,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: 0.1,
+    );
+  }
+
+  static TextStyle getBodyLarge(BuildContext context, {Color? color}) {
+    return TextStyle(
+      fontSize: bodyLarge,
+      fontWeight: FontWeight.w400,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: 0.5,
+    );
+  }
+
+  static TextStyle getBodyMedium(BuildContext context, {Color? color}) {
+    return TextStyle(
+      fontSize: bodyMedium,
+      fontWeight: FontWeight.w400,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: 0.25,
+    );
+  }
+
+  static TextStyle getBodySmall(BuildContext context, {Color? color}) {
+    return TextStyle(
+      fontSize: bodySmall,
+      fontWeight: FontWeight.w400,
+      color: color ?? getTextSecondary(context),
+      letterSpacing: 0.4,
+    );
+  }
+
+  static TextStyle getLabelLarge(BuildContext context, {Color? color, FontWeight? weight}) {
+    return TextStyle(
+      fontSize: labelLarge,
+      fontWeight: weight ?? FontWeight.w500,
+      color: color ?? getTextPrimary(context),
+      letterSpacing: 0.1,
+    );
+  }
+
+  static TextStyle getLabelMedium(BuildContext context, {Color? color, FontWeight? weight}) {
+    return TextStyle(
+      fontSize: labelMedium,
+      fontWeight: weight ?? FontWeight.w500,
+      color: color ?? getTextSecondary(context),
+      letterSpacing: 0.5,
+    );
+  }
+
+  static TextStyle getLabelSmall(BuildContext context, {Color? color, FontWeight? weight}) {
+    return TextStyle(
+      fontSize: labelSmall,
+      fontWeight: weight ?? FontWeight.w500,
+      color: color ?? getTextTertiary(context),
+      letterSpacing: 0.5,
+    );
+  }
 
   // ==================== 间距 ====================
   static const double spacingSmall = 8;

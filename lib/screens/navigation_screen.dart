@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
+import '../analytics/analytics.dart';
 import '../widgets/app_app_bar.dart';
 import '../constants/design_system.dart';
 import '../utils/permission_manager.dart';
@@ -87,10 +88,27 @@ class NavigationScreen extends StatefulWidget {
   State<NavigationScreen> createState() => _NavigationScreenState();
 }
 
-class _NavigationScreenState extends State<NavigationScreen> {
+class _NavigationScreenState extends State<NavigationScreen>
+    with AnalyticsMixin, WidgetsBindingObserver {
   // 高德地图定位
   late AMapFlutterLocation _locationPlugin;
   StreamSubscription<Map<String, Object>>? _locationSubscription;
+
+  // 埋点相关
+  @override
+  String get pageId => PageEvents.pageNavigation;
+
+  @override
+  String get pageName => PageEvents.nameNavigation;
+
+  @override
+  Map<String, dynamic>? get pageParams => {
+        'route_name': widget.routeName,
+      };
+
+  // 导航计时（用于计算导航完成时长）
+  DateTime? _navigationStartTime;
+  bool _navigationCompleted = false;
 
   // 语音播报
   final FlutterTts _flutterTts = FlutterTts();
@@ -130,9 +148,57 @@ class _NavigationScreenState extends State<NavigationScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _navigationStartTime = DateTime.now();
     _initRoutePoints();
     _requestLocationPermission();
     _initTts();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // 如果导航未完成，上报导航退出事件
+    if (!_navigationCompleted && _navigationStartTime != null) {
+      final duration = DateTime.now().difference(_navigationStartTime!).inSeconds;
+      AnalyticsService().trackEvent(
+        NavigationEvents.navigationPause,
+        params: {
+          NavigationEvents.paramRouteName: widget.routeName,
+          NavigationEvents.paramDuration: duration,
+          'reason': 'page_closed',
+        },
+      );
+    }
+    _locationSubscription?.cancel();
+    _locationPlugin.stopLocation();
+    _flutterTts.stop();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // 监听应用前后台切换
+    if (state == AppLifecycleState.paused) {
+      // 应用进入后台
+      AnalyticsService().trackEvent(
+        UserEvents.appBackground,
+        params: {
+          'source_page': pageId,
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
+        },
+      );
+    } else if (state == AppLifecycleState.resumed) {
+      // 应用回到前台
+      AnalyticsService().trackEvent(
+        UserEvents.appForeground,
+        params: {
+          'source_page': pageId,
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
+        },
+      );
+    }
   }
 
   /// 初始化路线点
@@ -384,6 +450,27 @@ class _NavigationScreenState extends State<NavigationScreen> {
     // 检查是否到达终点
     if (nearestIndex >= _routePoints.length - 1) {
       setState(() => _status = NavigationStatus.arrived);
+      _navigationCompleted = true;
+      
+      // 上报导航完成事件
+      if (_navigationStartTime != null) {
+        final duration = DateTime.now().difference(_navigationStartTime!).inSeconds;
+        AnalyticsService().trackEvent(
+          TrailEvents.trailNavigateComplete,
+          params: {
+            TrailEvents.paramRouteName: widget.routeName,
+            TrailEvents.paramCompletionTime: duration,
+          },
+        );
+        AnalyticsService().trackEvent(
+          NavigationEvents.navigationComplete,
+          params: {
+            NavigationEvents.paramRouteName: widget.routeName,
+            NavigationEvents.paramDuration: duration,
+          },
+        );
+      }
+      
       _speak('您已到达目的地，导航结束');
     }
   }
@@ -410,12 +497,29 @@ class _NavigationScreenState extends State<NavigationScreen> {
       if (_offRouteCount >= _offRouteConfirmCount) {
         setState(() => _status = NavigationStatus.offRoute);
         _speak('您已偏离路线，请返回');
+        
+        // 上报偏航事件
+        AnalyticsService().trackEvent(
+          NavigationEvents.navigationOffTrack,
+          params: {
+            NavigationEvents.paramRouteName: widget.routeName,
+            NavigationEvents.paramOffTrackDistance: minDistance,
+          },
+        );
       }
     } else {
       _offRouteCount = 0;
       if (_status == NavigationStatus.offRoute) {
         setState(() => _status = NavigationStatus.navigating);
         _speak('已回到正确路线');
+        
+        // 上报恢复导航事件
+        AnalyticsService().trackEvent(
+          NavigationEvents.navigationResume,
+          params: {
+            NavigationEvents.paramRouteName: widget.routeName,
+          },
+        );
       }
     }
   }
