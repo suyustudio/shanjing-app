@@ -8,6 +8,8 @@ import {
   WechatLoginDto,
   RefreshTokenDto,
   LogoutDto,
+  PhonePasswordRegisterDto,
+  PhonePasswordLoginDto,
 } from './dto';
 import { AuthResponse, TokenResponse } from './interfaces/auth.interface';
 
@@ -16,7 +18,29 @@ import { AuthResponse, TokenResponse } from './interfaces/auth.interface';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register/phone')
+  // ========== M3批次1简化版：密码登录 ==========
+
+  @Post('register')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '手机号密码注册（简化版）' })
+  @ApiResponse({ status: 200, description: '注册成功' })
+  @ApiResponse({ status: 409, description: '手机号已存在' })
+  async register(
+    @Body() dto: PhonePasswordRegisterDto,
+  ): Promise<AuthResponse> {
+    return this.authService.registerWithPassword(dto);
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '手机号密码登录（简化版）' })
+  @ApiResponse({ status: 200, description: '登录成功' })
+  @ApiResponse({ status: 401, description: '手机号或密码错误' })
+  async login(@Body() dto: PhonePasswordLoginDto): Promise<AuthResponse> {
+    return this.authService.loginWithPassword(dto);
+  }
+
+  // ========== 原有端点（保留兼容） ==========
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '手机号注册' })
   @ApiResponse({ status: 200, description: '注册成功' })

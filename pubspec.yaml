@@ -22,6 +22,7 @@ dependencies:
   path_provider: ^2.1.1
   connectivity_plus: ^5.0.0
   http: ^1.1.0
+  shared_preferences: ^2.2.0
   # 埋点 SDK - 友盟+
   umeng_analytics_plugin: ^1.0.0
 

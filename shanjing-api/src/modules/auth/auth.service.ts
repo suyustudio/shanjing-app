@@ -13,6 +13,8 @@ import {
   PhoneLoginDto,
   WechatLoginDto,
   LogoutDto,
+  PhonePasswordRegisterDto,
+  PhonePasswordLoginDto,
 } from './dto';
 import {
   AuthResponse,
@@ -353,7 +355,103 @@ export class AuthService {
    * 清理用户敏感信息
    */
   private sanitizeUser(user: any) {
-    const { wxOpenid, wxUnionid, ...safeUser } = user;
+    const { wxOpenid, wxUnionid, passwordHash, ...safeUser } = user;
     return safeUser;
+  }
+
+  // ========== 密码登录方法（M3批次1简化版）==========
+
+  /**
+   * 使用密码注册（简化版，无验证码）
+   */
+  async registerWithPassword(dto: PhonePasswordRegisterDto): Promise<AuthResponse> {
+    const { phone, password, nickname } = dto;
+
+    // 检查手机号是否已存在
+    const existingUser = await this.prisma.user.findUnique({
+      where: { phone },
+    });
+
+    if (existingUser) {
+      throw new ConflictException({
+        success: false,
+        error: {
+          code: 'PHONE_ALREADY_EXISTS',
+          message: '该手机号已被注册',
+        },
+      });
+    }
+
+    // 创建用户（存储密码哈希）
+    const user = await this.prisma.user.create({
+      data: {
+        phone,
+        passwordHash: this.hashPassword(password),
+        nickname: nickname || `用户${phone.slice(-4)}`,
+        settings: {},
+      },
+    });
+
+    // 生成Token
+    const tokens = await this.generateTokens(user.id);
+
+    return {
+      success: true,
+      data: {
+        user: this.sanitizeUser(user),
+        tokens,
+      },
+    };
+  }
+
+  /**
+   * 使用密码登录（简化版）
+   */
+  async loginWithPassword(dto: PhonePasswordLoginDto): Promise<AuthResponse> {
+    const { phone, password } = dto;
+
+    // 查找用户
+    const user = await this.prisma.user.findUnique({
+      where: { phone },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: '手机号未注册',
+        },
+      });
+    }
+
+    // 验证密码（简化版：明文对比，生产环境应使用 bcrypt）
+    if (user.passwordHash !== this.hashPassword(password)) {
+      throw new UnauthorizedException({
+        success: false,
+        error: {
+          code: 'INVALID_PASSWORD',
+          message: '密码错误',
+        },
+      });
+    }
+
+    // 生成Token
+    const tokens = await this.generateTokens(user.id);
+
+    return {
+      success: true,
+      data: {
+        user: this.sanitizeUser(user),
+        tokens,
+      },
+    };
+  }
+
+  /**
+   * 简单密码哈希（简化版，生产环境应使用 bcrypt）
+   */
+  private hashPassword(password: string): string {
+    return crypto.createHash('sha256').update(password).digest('hex');
   }
 }

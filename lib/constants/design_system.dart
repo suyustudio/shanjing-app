@@ -349,6 +349,70 @@ class DesignSystem {
   static const double radiusXLarge = 16;
   static const double radiusCircular = 999;
 
+  // ==================== 输入框样式 ====================
+  
+  /// 输入框圆角
+  static const double inputRadius = 12;
+  
+  /// 输入框高度
+  static const double inputHeight = 52;
+  
+  /// 输入框内边距
+  static const double inputHorizontalPadding = 16;
+  static const double inputIconSpacing = 12;
+  
+  /// 获取输入框装饰（支持错误状态）
+  static BoxDecoration inputBoxDecoration({
+    required BuildContext context,
+    bool hasError = false,
+    bool isFocused = false,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    Color borderColor;
+    if (hasError) {
+      borderColor = getError(context);
+    } else if (isFocused) {
+      borderColor = getPrimary(context);
+    } else {
+      borderColor = Colors.transparent;
+    }
+    
+    return BoxDecoration(
+      color: isDark ? backgroundTertiaryDark : backgroundSecondary,
+      borderRadius: BorderRadius.circular(inputRadius),
+      border: Border.all(
+        color: borderColor,
+        width: hasError || isFocused ? 1.5 : 0,
+      ),
+    );
+  }
+  
+  /// 主按钮样式
+  static ButtonStyle primaryButtonStyle(BuildContext context, {bool isLoading = false, bool isDisabled = false}) {
+    final disabled = isLoading || isDisabled;
+    return ElevatedButton.styleFrom(
+      backgroundColor: getPrimary(context),
+      foregroundColor: textInverse,
+      disabledBackgroundColor: getPrimary(context).withOpacity(0.5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(radiusLarge),
+      ),
+      elevation: 0,
+    );
+  }
+  
+  /// 次按钮样式（边框按钮）
+  static ButtonStyle secondaryButtonStyle(BuildContext context) {
+    return OutlinedButton.styleFrom(
+      foregroundColor: getPrimary(context),
+      side: BorderSide(color: getBorder(context)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(radiusLarge),
+      ),
+    );
+  }
+
   // ==================== 阴影 ====================
   static List<BoxShadow> getShadow(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

@@ -65,3 +65,35 @@ export class LogoutDto {
   @IsOptional()
   allDevices?: boolean;
 }
+
+// ========== 密码登录 DTO（M3批次1简化版）==========
+
+export class PhonePasswordRegisterDto {
+  @ApiProperty({ description: '手机号', example: '13800138000' })
+  @IsString()
+  @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式错误' })
+  phone: string;
+
+  @ApiProperty({ description: '密码', example: '123456' })
+  @IsString()
+  @Length(6, 20, { message: '密码长度必须在6-20个字符之间' })
+  password: string;
+
+  @ApiPropertyOptional({ description: '用户昵称', example: '山径用户' })
+  @IsOptional()
+  @IsString()
+  @Length(2, 20, { message: '昵称长度必须在2-20个字符之间' })
+  nickname?: string;
+}
+
+export class PhonePasswordLoginDto {
+  @ApiProperty({ description: '手机号', example: '13800138000' })
+  @IsString()
+  @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式错误' })
+  phone: string;
+
+  @ApiProperty({ description: '密码', example: '123456' })
+  @IsString()
+  @Length(6, 20, { message: '密码长度必须在6-20个字符之间' })
+  password: string;
+}

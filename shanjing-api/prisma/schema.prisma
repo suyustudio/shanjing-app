@@ -7,11 +7,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ==================== 枚举定义 ====================
+
 enum TrailDifficulty {
   EASY
   MODERATE
   HARD
 }
+
+// ==================== 用户表 ====================
+
+model User {
+  id            String    @id @default(uuid())
+  phone         String?   @unique
+  passwordHash  String?   @map("password_hash")
+  wxOpenid      String?   @unique @map("wx_openid")
+  wxUnionid     String?   @unique @map("wx_unionid")
+  nickname      String?
+  avatarUrl     String?   @map("avatar_url")
+  settings      Json      @default("{}")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  favorites     Favorite[]
+  
+  @@index([phone])
+  @@index([wxOpenid])
+  @@map("users")
+}
+
+// ==================== 路线表 ====================
 
 model Trail {
   id                String          @id @default(uuid())
@@ -64,6 +89,7 @@ model Favorite {
   trailId   String
   createdAt DateTime @default(now())
   
+  user      User     @relation(fields: [userId], references: [id])
   trail     Trail    @relation(fields: [trailId], references: [id])
 }
 
@@ -75,4 +101,13 @@ model Admin {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ==================== Token 黑名单 ====================
+
+model TokenBlacklist {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
