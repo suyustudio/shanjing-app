@@ -12,10 +12,10 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_dotenv: ^5.1.0
-  # 高德地图核心依赖：显式声明基础库，确保版本一致
-  amap_flutter_base: ^3.0.0  # 基础库，提供通用类型定义
-  amap_flutter_map: ^3.0.0
-  amap_flutter_location: ^3.0.0
+  # 高德地图核心依赖：使用固定版本避免冲突
+  amap_flutter_base: 3.0.0
+  amap_flutter_map: 3.0.0
+  amap_flutter_location: 3.0.0
   permission_handler: ^11.0.0
   cached_network_image: ^3.3.0
   flutter_tts: ^4.0.2
