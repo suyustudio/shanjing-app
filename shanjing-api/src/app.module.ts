@@ -5,6 +5,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { FilesModule } from './modules/files/files.module';
 import { MapModule } from './modules/map/map.module';
+import { TrailsModule } from './modules/trails/trails.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 import { PrismaModule } from './database/prisma.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -20,6 +22,8 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     UsersModule,
     FilesModule,
     MapModule,
+    TrailsModule,
+    FavoritesModule,
   ],
   providers: [
     {
