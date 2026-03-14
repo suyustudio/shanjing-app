@@ -87,10 +87,25 @@ class RouteCard extends StatelessWidget {
                 errorWidget: (context, url, error) => Container(
                   width: 80,
                   height: 60,
-                  color: DesignSystem.getBackgroundTertiary(context),
-                  child: Icon(
-                    Icons.image, 
-                    color: DesignSystem.getTextTertiary(context),
+                  color: DesignSystem.getPrimary(context).withOpacity(0.1),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.landscape,
+                        color: DesignSystem.getPrimary(context),
+                        size: 24,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '山径',
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: DesignSystem.getPrimary(context),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

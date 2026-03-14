@@ -316,160 +316,164 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildMapView() {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height - kToolbarHeight - MediaQuery.of(context).padding.top - 48,
-      child: Stack(
-        children: [
-          AMapWidget(
-            apiKey: AMapApiKey(
-              iosKey: dotenv.env['AMAP_KEY'] ?? '',
-              androidKey: dotenv.env['AMAP_KEY'] ?? '',
-            ),
-            // 隐私合规声明 - 必须设置，否则地图不会显示
-            privacyStatement: const AMapPrivacyStatement(
-              hasContains: true,
-              hasShow: true,
-              hasAgree: true,
-            ),
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(30.25, 120.15),
-              zoom: 14,
-            ),
-            onMapCreated: _onMapCreated,
-            onTap: (_) => _closeCard(),
-            // 启用手势 - amap_flutter_map 3.0 参数
-            scrollGesturesEnabled: true,
-            zoomGesturesEnabled: true,
-            // myLocationEnabled 参数在 amap_flutter_map 3.0+ 中已移除
-            // 使用定位插件单独控制
-            markers: _routes.asMap().entries.map((entry) {
-              final index = entry.key;
-              final route = entry.value;
-              return Marker(
-                position: route.position,
-                icon: BitmapDescriptor.defaultMarkerWithHue(
-                  route.difficulty == 'easy' ? BitmapDescriptor.hueGreen :
-                  route.difficulty == 'moderate' ? BitmapDescriptor.hueOrange :
-                  BitmapDescriptor.hueRed,
-                ),
-                infoWindow: InfoWindow(
-                  title: route.name,
-                  snippet: '${route.distance} · ${route.duration}',
-                ),
-                onTap: (String id) => _onMarkerTap(route),
-              );
-            }).toSet(),
-            polylines: {
-              Polyline(
-                points: _trailCoords.map((c) => LatLng(c[1], c[0])).toList(),
-                color: Colors.blue,
-                width: 6,
-              ),
-            },
+    return Stack(
+      children: [
+        AMapWidget(
+          apiKey: AMapApiKey(
+            iosKey: dotenv.env['AMAP_KEY'] ?? '',
+            androidKey: dotenv.env['AMAP_KEY'] ?? '',
           ),
+          // 隐私合规声明 - 必须设置，否则地图不会显示
+          privacyStatement: const AMapPrivacyStatement(
+            hasContains: true,
+            hasShow: true,
+            hasAgree: true,
+          ),
+          initialCameraPosition: const CameraPosition(
+            target: LatLng(30.25, 120.15),
+            zoom: 14,
+          ),
+          onMapCreated: _onMapCreated,
+          onTap: (_) => _closeCard(),
+          // 启用手势 - amap_flutter_map 3.0 参数
+          scrollGesturesEnabled: true,
+          zoomGesturesEnabled: true,
+          rotateGesturesEnabled: true,
+          tiltGesturesEnabled: true,
+          // myLocationEnabled 参数在 amap_flutter_map 3.0+ 中已移除
+          // 使用定位插件单独控制
+          markers: _routes.asMap().entries.map((entry) {
+            final index = entry.key;
+            final route = entry.value;
+            return Marker(
+              position: route.position,
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                route.difficulty == 'easy' ? BitmapDescriptor.hueGreen :
+                route.difficulty == 'moderate' ? BitmapDescriptor.hueOrange :
+                BitmapDescriptor.hueRed,
+              ),
+              infoWindow: InfoWindow(
+                title: route.name,
+                snippet: '${route.distance} · ${route.duration}',
+              ),
+              onTap: (String id) => _onMarkerTap(route),
+            );
+          }).toSet(),
+          polylines: {
+            Polyline(
+              points: _trailCoords.map((c) => LatLng(c[1], c[0])).toList(),
+              color: Colors.blue,
+              width: 6,
+            ),
+          },
+        ),
+        // 搜索栏和筛选标签
+        Positioned(
+          top: 8,
+          left: 16,
+          right: 16,
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                SearchBar(
+                  hintText: '搜索地点',
+                  onSubmitted: _onSearch,
+                ),
+                const SizedBox(height: 8),
+                FilterTags(
+                  selectedTag: _selectedTag,
+                  onSelect: (tag) {
+                    debugPrint('筛选标签: $tag');
+                    setState(() {
+                      _selectedTag = tag;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        // 选中路线卡片
+        if (_selectedRoute != null)
           Positioned(
-            top: 8,
+            bottom: 24,
             left: 16,
             right: 16,
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () {},
-              child: Column(
-                children: [
-                  SearchBar(
-                    hintText: '搜索地点',
-                    onSubmitted: _onSearch,
-                  ),
-                  const SizedBox(height: 8),
-                  FilterTags(
-                    selectedTag: _selectedTag,
-                    onSelect: (tag) {
-                      debugPrint('筛选标签: $tag');
-                      setState(() {
-                        _selectedTag = tag;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_selectedRoute != null)
-            Positioned(
-              bottom: 24,
-              left: 16,
-              right: 16,
-              child: GestureDetector(
-                onTap: () {},
-                child: Card(
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                _selectedRoute!.name,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: DesignSystem.getTextPrimary(context),
-                                ),
+            child: SafeArea(
+              top: false,
+              child: Card(
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _selectedRoute!.name,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: DesignSystem.getTextPrimary(context),
                               ),
                             ),
-                            IconButton(
-                              icon: Icon(Icons.close, size: 20, color: DesignSystem.getTextSecondary(context)),
-                              onPressed: _closeCard,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(Icons.straighten, size: 16, color: DesignSystem.getTextSecondary(context)),
-                            const SizedBox(width: 4),
-                            Text(
-                              _selectedRoute!.distance,
-                              style: TextStyle(color: DesignSystem.getTextSecondary(context)),
-                            ),
-                            const SizedBox(width: 16),
-                            Icon(Icons.schedule, size: 16, color: DesignSystem.getTextSecondary(context)),
-                            const SizedBox(width: 4),
-                            Text(
-                              _selectedRoute!.duration,
-                              style: TextStyle(color: DesignSystem.getTextSecondary(context)),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _viewDetails,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: DesignSystem.getPrimary(context),
-                              foregroundColor: DesignSystem.getTextInverse(context),
-                            ),
-                            child: const Text('查看详情'),
                           ),
+                          IconButton(
+                            icon: Icon(Icons.close, size: 20, color: DesignSystem.getTextSecondary(context)),
+                            onPressed: _closeCard,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.straighten, size: 16, color: DesignSystem.getTextSecondary(context)),
+                          const SizedBox(width: 4),
+                          Text(
+                            _selectedRoute!.distance,
+                            style: TextStyle(color: DesignSystem.getTextSecondary(context)),
+                          ),
+                          const SizedBox(width: 16),
+                          Icon(Icons.schedule, size: 16, color: DesignSystem.getTextSecondary(context)),
+                          const SizedBox(width: 4),
+                          Text(
+                            _selectedRoute!.duration,
+                            style: TextStyle(color: DesignSystem.getTextSecondary(context)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _viewDetails,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: DesignSystem.getPrimary(context),
+                            foregroundColor: DesignSystem.getTextInverse(context),
+                          ),
+                          child: const Text('查看详情'),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-          // 右下角控制按钮
-          Positioned(
-            right: 16,
-            bottom: _selectedRoute != null ? 180 : 24,
+          ),
+        // 右下角控制按钮
+        Positioned(
+          right: 16,
+          bottom: _selectedRoute != null ? 180 : 24,
+          child: SafeArea(
+            top: false,
+            left: false,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -499,8 +503,8 @@ class _MapScreenState extends State<MapScreen> {
               ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -619,112 +623,120 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          SliverAppBar(
-            title: const Text('杭州西湖'),
-            foregroundColor: Colors.white,
-            expandedHeight: 0,
-            floating: true,
-            snap: true,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      DesignSystem.primary.withOpacity(0.9),
-                      DesignSystem.primary.withOpacity(0.7),
-                    ],
-                  ),
-                ),
+      body: Column(
+        children: [
+          // AppBar 区域
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  DesignSystem.primary.withOpacity(0.9),
+                  DesignSystem.primary.withOpacity(0.7),
+                ],
               ),
             ),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(48),
-              child: Container(
-                color: DesignSystem.primary.withOpacity(0.7),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => setState(() => _currentTab = 0),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                color: _currentTab == 0 ? Colors.white : Colors.transparent,
-                                width: 2,
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 标题栏
+                  Container(
+                    height: 56,
+                    alignment: Alignment.center,
+                    child: const Text(
+                      '杭州西湖',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  // Tab 切换
+                  Container(
+                    color: DesignSystem.primary.withOpacity(0.7),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setState(() => _currentTab = 0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: _currentTab == 0 ? Colors.white : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.map,
+                                    color: _currentTab == 0 ? Colors.white : Colors.white70,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '地图',
+                                    style: TextStyle(
+                                      color: _currentTab == 0 ? Colors.white : Colors.white70,
+                                      fontWeight: _currentTab == 0 ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.map,
-                                color: _currentTab == 0 ? Colors.white : Colors.white70,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '地图',
-                                style: TextStyle(
-                                  color: _currentTab == 0 ? Colors.white : Colors.white70,
-                                  fontWeight: _currentTab == 0 ? FontWeight.bold : FontWeight.normal,
+                        ),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setState(() => _currentTab = 1),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: _currentTab == 1 ? Colors.white : Colors.transparent,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => setState(() => _currentTab = 1),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                color: _currentTab == 1 ? Colors.white : Colors.transparent,
-                                width: 2,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.list,
+                                    color: _currentTab == 1 ? Colors.white : Colors.white70,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '列表',
+                                    style: TextStyle(
+                                      color: _currentTab == 1 ? Colors.white : Colors.white70,
+                                      fontWeight: _currentTab == 1 ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.list,
-                                color: _currentTab == 1 ? Colors.white : Colors.white70,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '列表',
-                                style: TextStyle(
-                                  color: _currentTab == 1 ? Colors.white : Colors.white70,
-                                  fontWeight: _currentTab == 1 ? FontWeight.bold : FontWeight.normal,
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-          SliverFillRemaining(
+          // 内容区域
+          Expanded(
             child: _currentTab == 0 ? _buildMapView() : _buildListView(),
           ),
         ],

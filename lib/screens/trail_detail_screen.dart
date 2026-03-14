@@ -319,7 +319,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         ),
         // 收藏按钮 - 右上角
         Positioned(
-          top: 24,
+          top: MediaQuery.of(context).padding.top + 8,
           right: 24,
           child: Container(
             decoration: BoxDecoration(
@@ -338,7 +338,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         ),
         // 返回按钮 - 左上角
         Positioned(
-          top: 24,
+          top: MediaQuery.of(context).padding.top + 8,
           left: 24,
           child: Container(
             decoration: BoxDecoration(
