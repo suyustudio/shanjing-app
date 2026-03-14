@@ -10,26 +10,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.0'
           channel: 'stable'
-      
+
+      - name: Setup local.properties
+        run: |
+          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+          echo "flutter.versionCode=2" >> android/local.properties
+          echo "flutter.versionName=1.0.0" >> android/local.properties
+        env:
+          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
+
       - name: Setup .env with AMap Key
         run: echo "AMAP_KEY=e17f8ae117d84e2d2d394a2124866603" > .env
-      
+
       - name: Get Flutter dependencies
         run: flutter pub get
-      
+
       - name: Build APK
         run: flutter build apk --release
-      
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
