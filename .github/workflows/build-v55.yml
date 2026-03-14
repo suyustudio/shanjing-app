@@ -34,7 +34,10 @@ jobs:
           FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
       
       - name: Get Flutter dependencies
-        run: flutter pub get
+        run: |
+          flutter doctor -v
+          flutter pub get --verbose 2>&1 | head -200
+          flutter pub get
       
       - name: Build APK
         run: flutter build apk --release
