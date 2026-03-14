@@ -21,17 +21,11 @@ dependencies:
   flutter_tts: ^4.0.2
   path_provider: ^2.1.1
   connectivity_plus: ^5.0.0
-  # http: ^1.1.0  # 暂时注释，排查依赖冲突
-  # shared_preferences: ^2.2.0  # 暂时注释
-  # 埋点 SDK - 友盟+ (暂时注释，排查构建问题)
-  # umeng_analytics_plugin: ^1.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-  integration_test:
-    sdk: flutter
 
 flutter:
   uses-material-design: true
