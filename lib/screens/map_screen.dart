@@ -238,10 +238,16 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
     final double? accuracy = location['accuracy'] as double?;
 
     if (latitude != null && longitude != null) {
+      final newLocation = LatLng(latitude, longitude);
       setState(() {
-        _currentLocation = LatLng(latitude, longitude);
+        _currentLocation = newLocation;
       });
       debugPrint('定位更新: lat=$latitude, lng=$longitude, accuracy=${accuracy ?? "unknown"}m');
+      
+      // 移动地图到用户位置
+      _mapController?.moveCamera(
+        CameraUpdate.newLatLng(newLocation),
+      );
     }
   }
 
@@ -639,6 +645,12 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
 
   void _onMapCreated(AMapController controller) {
     _mapController = controller;
+    // 如果有当前位置，移动地图到用户位置
+    if (_currentLocation != null) {
+      _mapController?.moveCamera(
+        CameraUpdate.newLatLng(_currentLocation!),
+      );
+    }
   }
 
   void _goToMyLocation() {
