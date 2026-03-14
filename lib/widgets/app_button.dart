@@ -99,7 +99,7 @@ class AppButton extends StatelessWidget {
       }
       return switch (variant) {
         AppButtonVariant.primary => primaryColor,
-        AppButtonVariant.secondary => isDark ? DesignSystem.backgroundSecondaryDark : Colors.white,
+        AppButtonVariant.secondary => isDark ? DesignSystem.backgroundSecondaryDark : DesignSystem.background,
         AppButtonVariant.ghost => Colors.transparent,
       };
     });
@@ -163,11 +163,7 @@ class AppButton extends StatelessWidget {
   }
 
   double _borderRadius() {
-    return switch (size) {
-      AppButtonSize.small => 4,
-      AppButtonSize.medium => 8,
-      AppButtonSize.large => 8,
-    };
+    return DesignSystem.radius; // 统一使用设计系统圆角
   }
 
   TextStyle _textStyle() {

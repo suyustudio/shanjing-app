@@ -631,10 +631,15 @@ class _MapScreenState extends State<MapScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  DesignSystem.primary.withOpacity(0.9),
-                  DesignSystem.primary.withOpacity(0.7),
-                ],
+                colors: Theme.of(context).brightness == Brightness.dark
+                    ? [
+                        DesignSystem.backgroundSecondaryDark,
+                        DesignSystem.backgroundDark,
+                      ]
+                    : [
+                        DesignSystem.primary.withOpacity(0.9),
+                        DesignSystem.primary.withOpacity(0.7),
+                      ],
               ),
             ),
             child: SafeArea(

@@ -27,9 +27,9 @@ class AppCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     Widget card = Container(
-      padding: padding ?? const EdgeInsets.all(16),
+      padding: padding ?? const EdgeInsets.all(DesignSystem.spacingMedium),
       decoration: BoxDecoration(
-        color: color ?? (isDark ? DesignSystem.backgroundSecondaryDark : Colors.white),
+        color: color ?? (isDark ? DesignSystem.backgroundSecondaryDark : DesignSystem.background),
         borderRadius: BorderRadius.circular(borderRadius ?? 8),
         boxShadow: boxShadow ?? (isDark 
             ? [
