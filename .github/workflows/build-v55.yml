@@ -10,65 +10,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+      
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
+      
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.0'
           channel: 'stable'
-          cache: false
-
-      - name: Setup Flutter Environment
-        run: |
-          flutter config --no-analytics
-          flutter config --enable-android
-          echo "PUB_HOSTED_URL=https://pub.flutter-io.cn" >> $GITHUB_ENV
-          echo "FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn" >> $GITHUB_ENV
-
-      - name: Setup local.properties
-        run: |
-          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
-          echo "flutter.versionCode=2" >> android/local.properties
-          echo "flutter.versionName=1.0.0" >> android/local.properties
-          cat android/local.properties
-        env:
-          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
-
+      
       - name: Setup .env with AMap Key
         run: echo "AMAP_KEY=e17f8ae117d84e2d2d394a2124866603" > .env
-
-      - name: Clean and Get Dependencies
-        run: |
-          flutter clean
-          rm -f pubspec.lock
-          flutter pub get --verbose 2>&1 | tee pub_get.log || (cat pub_get.log && exit 1)
-
+      
+      - name: Get Flutter dependencies
+        run: flutter pub get
+      
       - name: Build APK
         run: flutter build apk --release
-
-      - name: Verify APK
-        run: |
-          echo "=== APK Size ==="
-          ls -lh build/app/outputs/flutter-apk/app-release.apk
-          du -h build/app/outputs/flutter-apk/app-release.apk
-          echo ""
-          echo "=== All SO Libraries ==="
-          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -E "\.so$" | wc -l
-          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -E "\.so$"
-          echo ""
-          echo "=== AMap/Autonavi SO Libraries ==="
-          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep -iE "amap|autonavi" || echo "No AMap files found"
-          echo ""
-          echo "=== lib/arm64-v8a/ contents ==="
-          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep "lib/arm64-v8a/" | head -30
-          echo ""
-          echo "=== Total SO lib size ==="
-          unzip -l build/app/outputs/flutter-apk/app-release.apk | grep "\.so$" | awk '{sum+=$1} END {print sum/1024/1024 " MB"}'
-
+      
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:

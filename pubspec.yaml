@@ -12,27 +12,20 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_dotenv: ^5.1.0
-  # 高德地图核心依赖：使用固定版本避免冲突
-  amap_flutter_base: 3.0.0
-  amap_flutter_map: 3.0.0
-  amap_flutter_location: 3.0.0
+  # 高德地图核心依赖：显式声明基础库，确保版本一致
+  amap_flutter_base: ^3.0.0  # 基础库，提供通用类型定义
+  amap_flutter_map: ^3.0.0
+  amap_flutter_location: ^3.0.0
   permission_handler: ^11.0.0
   cached_network_image: ^3.3.0
   flutter_tts: ^4.0.2
   path_provider: ^2.1.1
   connectivity_plus: ^5.0.0
-  # API 和存储依赖（代码中使用）
-  http: ^1.1.0
-  shared_preferences: ^2.2.0
-  # 埋点 SDK
-  umeng_analytics_plugin: ^1.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-  integration_test:
-    sdk: flutter
 
 flutter:
   uses-material-design: true
