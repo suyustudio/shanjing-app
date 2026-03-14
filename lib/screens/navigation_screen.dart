@@ -9,8 +9,10 @@ import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
 import '../analytics/analytics.dart';
 import '../widgets/app_app_bar.dart';
+import '../widgets/sos_button.dart';
 import '../constants/design_system.dart';
 import '../utils/permission_manager.dart';
+import '../services/sos_service.dart';
 
 /// 导航状态枚举
 enum NavigationStatus {
@@ -635,6 +637,31 @@ class _NavigationScreenState extends State<NavigationScreen>
     }
   }
 
+  /// 触发 SOS 求助
+  Future<void> _triggerSos() async {
+    if (_currentPosition == null) {
+      SosStatusSnackBar.showError(context);
+      return;
+    }
+
+    final location = Location(
+      latitude: _currentPosition!.latitude,
+      longitude: _currentPosition!.longitude,
+      altitude: _currentPosition!.altitude,
+      accuracy: _currentPosition!.accuracy,
+    );
+
+    final success = await SosService().triggerSos(location);
+
+    if (mounted) {
+      if (success) {
+        SosStatusSnackBar.showSuccess(context);
+      } else {
+        SosStatusSnackBar.showError(context);
+      }
+    }
+  }
+
   @override
   void dispose() {
     _flutterTts.stop();
@@ -701,6 +728,16 @@ class _NavigationScreenState extends State<NavigationScreen>
             left: 16,
             right: 16,
             child: _buildBottomCard(context),
+          ),
+
+          // SOS 紧急按钮
+          Positioned(
+            bottom: 100,
+            right: 16,
+            child: SOSButton(
+              onTriggered: _triggerSos,
+              size: 56,
+            ),
           ),
         ],
       ),

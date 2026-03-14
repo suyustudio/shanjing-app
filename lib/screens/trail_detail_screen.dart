@@ -5,6 +5,7 @@ import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
 import '../constants/design_system.dart';
 import '../services/favorite_service.dart';
+import '../widgets/share_poster.dart';
 import 'navigation_screen.dart';
 
 /// 路线详情页
@@ -341,17 +342,29 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     }
   }
 
-  /// 格式化时长
-  String _formatDuration(int minutes) {
-    final hours = minutes ~/ 60;
-    final mins = minutes % 60;
-    if (hours > 0 && mins > 0) {
-      return '约 ${hours}小时${mins}分';
-    } else if (hours > 0) {
-      return '约 ${hours}小时';
-    } else {
-      return '约 ${mins}分钟';
-    }
+  /// 显示分享弹窗
+  void _showShareDialog() {
+    final posterData = PosterData(
+      routeName: _trailData['name'] ?? '未知路线',
+      routeCoverUrl: _trailData['coverUrl'],
+      distance: (_trailData['distance'] ?? 0).toDouble(),
+      duration: (_trailData['duration'] ?? 0) / 60, // 转换为小时
+      elevation: _trailData['elevation'] ?? 0,
+      difficulty: _trailData['difficulty'] ?? '未知',
+      location: '杭州', // TODO: 从数据中读取
+      routeId: _trailData['id']?.toString() ?? '',
+    );
+    
+    // 上报分享事件
+    AnalyticsService().trackEvent(
+      TrailEvents.trailShare,
+      params: {
+        TrailEvents.paramRouteId: _trailData['id']?.toString() ?? '',
+        TrailEvents.paramRouteName: _trailData['name'] ?? '',
+      },
+    );
+    
+    showShareDialog(context, posterData);
   }
 
   @override
@@ -451,7 +464,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         // 收藏按钮 - 右上角
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
-          right: 24,
+          right: 80, // 为分享按钮留出空间
           child: Container(
             decoration: BoxDecoration(
               color: DesignSystem.getBackgroundElevated(context).withOpacity(0.9),
@@ -463,6 +476,25 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
               icon: Icon(
                 _isFavorite ? Icons.favorite : Icons.favorite_border,
                 color: _isFavorite ? Colors.red : DesignSystem.getTextSecondary(context),
+              ),
+            ),
+          ),
+        ),
+        // 分享按钮 - 右上角
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 8,
+          right: 24,
+          child: Container(
+            decoration: BoxDecoration(
+              color: DesignSystem.getBackgroundElevated(context).withOpacity(0.9),
+              shape: BoxShape.circle,
+              boxShadow: DesignSystem.getShadowLight(context),
+            ),
+            child: IconButton(
+              onPressed: _showShareDialog,
+              icon: Icon(
+                Icons.share,
+                color: DesignSystem.getTextSecondary(context),
               ),
             ),
           ),

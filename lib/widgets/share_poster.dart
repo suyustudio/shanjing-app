@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import '../../constants/design_system.dart';
+import '../../services/share_service.dart';
+import '../widgets/app_loading.dart';
 
 /// 分享海报模板类型
 enum PosterTemplate {
@@ -646,7 +648,7 @@ class _QRPainter extends CustomPainter {
 }
 
 /// 分享面板组件
-class ShareSheet extends StatelessWidget {
+class ShareSheet extends StatefulWidget {
   final PosterData posterData;
   final VoidCallback? onShareToWeChat;
   final VoidCallback? onShareToMoments;
@@ -659,6 +661,47 @@ class ShareSheet extends StatelessWidget {
     this.onShareToMoments,
     this.onSaveImage,
   });
+
+  @override
+  State<ShareSheet> createState() => _ShareSheetState();
+}
+
+class _ShareSheetState extends State<ShareSheet> {
+  bool _isLoading = false;
+  ShareResponse? _shareResult;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _generateShareLink();
+  }
+
+  Future<void> _generateShareLink() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final shareService = ShareService();
+      final result = await shareService.shareTrail(widget.posterData.routeId);
+      
+      if (mounted) {
+        setState(() {
+          _shareResult = result;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = '生成分享链接失败';
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -695,7 +738,7 @@ class ShareSheet extends StatelessWidget {
               itemBuilder: (context, index) {
                 return Center(
                   child: SharePoster(
-                    data: posterData,
+                    data: widget.posterData,
                     template: PosterTemplate.values[index],
                     width: 180,
                   ),
@@ -722,6 +765,30 @@ class ShareSheet extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          // 分享链接区域
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(width: 20, height: 20, child: AppLoadingSmall()),
+                  SizedBox(width: 12),
+                  Text('生成分享链接中...'),
+                ],
+              ),
+            )
+          else if (_errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                _errorMessage!,
+                style: TextStyle(color: DesignSystem.getError(context)),
+              ),
+            )
+          else if (_shareResult != null)
+            _buildShareLinkSection(context),
           const SizedBox(height: 32),
           // 分享选项
           Padding(
@@ -734,21 +801,21 @@ class ShareSheet extends StatelessWidget {
                   icon: Icons.chat_bubble,
                   label: '微信好友',
                   color: const Color(0xFF07C160),
-                  onTap: onShareToWeChat,
+                  onTap: widget.onShareToWeChat,
                 ),
                 _buildShareOption(
                   context,
                   icon: Icons.photo_library,
                   label: '朋友圈',
                   color: const Color(0xFF07C160),
-                  onTap: onShareToMoments,
+                  onTap: widget.onShareToMoments,
                 ),
                 _buildShareOption(
                   context,
                   icon: Icons.download,
                   label: '保存图片',
                   color: DesignSystem.getPrimary(context),
-                  onTap: onSaveImage,
+                  onTap: widget.onSaveImage,
                 ),
               ],
             ),
@@ -777,6 +844,78 @@ class ShareSheet extends StatelessWidget {
           ),
           const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+
+  Widget _buildShareLinkSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: DesignSystem.getBackgroundSecondary(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: DesignSystem.getDivider(context)),
+        ),
+        child: Row(
+          children: [
+            // Mock QR Code
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: DesignSystem.getDivider(context)),
+              ),
+              child: const Center(
+                child: _PlaceholderQRCode(size: 48),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Share Link
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '分享链接',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: DesignSystem.getTextTertiary(context),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _shareResult!.shareLink,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: DesignSystem.getTextPrimary(context),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            // Copy Button
+            IconButton(
+              onPressed: () {
+                // TODO: Copy to clipboard
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('链接已复制')),
+                );
+              },
+              icon: Icon(
+                Icons.copy,
+                color: DesignSystem.getPrimary(context),
+                size: 20,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -815,4 +954,37 @@ class ShareSheet extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 显示分享弹窗
+void showShareDialog(BuildContext context, PosterData data) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => ShareSheet(
+      posterData: data,
+      onShareToWeChat: () {
+        // TODO: 实现微信分享
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('微信分享功能开发中')),
+        );
+      },
+      onShareToMoments: () {
+        // TODO: 实现朋友圈分享
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('朋友圈分享功能开发中')),
+        );
+      },
+      onSaveImage: () {
+        // TODO: 实现保存图片
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('图片已保存到相册')),
+        );
+      },
+    ),
+  );
 }
