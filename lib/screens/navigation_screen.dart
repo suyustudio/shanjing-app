@@ -489,6 +489,48 @@ class _NavigationScreenState extends State<NavigationScreen> {
     }
   }
 
+  /// 重新规划路线
+  /// 基于当前位置重新计算到终点的路线
+  void _recalculateRoute() {
+    if (_currentPosition == null) {
+      _speak('定位信息不足，无法重新规划');
+      return;
+    }
+
+    // 更新路线起点为当前位置
+    // 保留终点，重新计算中间路径点
+    if (_routePoints.isNotEmpty) {
+      final destination = _routePoints.last;
+      
+      setState(() {
+        // 简化的重新规划：直接从当前位置到终点
+        // 实际项目中应该调用地图 API 进行路径规划
+        _routePoints = [
+          LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+          destination,
+        ];
+        
+        // 重置导航状态
+        _currentRouteIndex = 0;
+        _offRouteCount = 0;
+        _status = NavigationStatus.navigating;
+        
+        // 重新计算总距离
+        _calculateTotalDistance();
+        _remainingDistance = _totalDistance;
+      });
+
+      _speak('路线已重新规划');
+      
+      // 移动地图视角到新路线
+      _mapController?.moveCamera(
+        CameraUpdate.newLatLng(
+          LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _flutterTts.stop();
@@ -750,7 +792,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 IconButton(
                   onPressed: () {
                     _speak('正在重新规划路线');
-                    // TODO: 重新规划路线
+                    _recalculateRoute();
                   },
                   icon: Icon(
                     Icons.refresh,

@@ -1,5 +1,18 @@
+/**
+ * 离线地图管理器
+ * 
+ * 负责管理离线地图的下载、存储和状态监控
+ * 
+ * ⚠️ 注意：此功能需要配合原生插件实现
+ * - Android: 需要实现 com.shanjing/offline_map MethodChannel
+ * - iOS: 需要实现 com.shanjing/offline_map MethodChannel
+ * 
+ * 当前实现为框架层，原生代码实现后才能正常工作
+ */
+
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -42,7 +55,7 @@ class OfflineCity {
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<string, dynamic> toMap() {
     return {
       'cityCode': cityCode,
       'cityName': cityName,
@@ -82,7 +95,8 @@ enum OfflineMapDownloadStatus {
 }
 
 /// 离线地图管理器
-/// 负责管理离线地图的下载、存储和状态监控
+/// 
+/// ⚠️ 注意：此功能需要配合原生插件实现后才能正常工作
 class OfflineMapManager {
   static const MethodChannel _channel = MethodChannel('com.shanjing/offline_map');
   static const EventChannel _eventChannel = EventChannel('com.shanjing/offline_map_events');
@@ -92,10 +106,12 @@ class OfflineMapManager {
   OfflineMapManager._internal();
 
   StreamSubscription? _downloadSubscription;
-  final Map<String, Function(OfflineCity city, int status, int progress)> _downloadListeners = {};
+  final Map<string, Function(OfflineCity city, int status, int progress)> _downloadListeners = {};
   bool _isInitialized = false;
 
   /// 初始化离线地图管理器
+  /// 
+  /// ⚠️ 注意：需要原生插件实现后才能正常工作
   Future<bool> initialize() async {
     if (_isInitialized) return true;
 
@@ -103,7 +119,7 @@ class OfflineMapManager {
       // 请求存储权限
       final storageStatus = await Permission.storage.request();
       if (!storageStatus.isGranted) {
-        print('存储权限未授权');
+        debugPrint('离线地图: 存储权限未授权');
         return false;
       }
 
@@ -113,16 +129,21 @@ class OfflineMapManager {
           _handleDownloadEvent(event);
         },
         onError: (dynamic error) {
-          print('离线地图事件错误: $error');
+          debugPrint('离线地图: 事件错误 - $error');
         },
       );
 
-      // 初始化原生SDK
+      // 尝试初始化原生SDK
+      // ⚠️ 注意：如果原生代码未实现，这里会抛出 MissingPluginException
       final result = await _channel.invokeMethod<bool>('initialize');
       _isInitialized = result ?? false;
       return _isInitialized;
+    } on MissingPluginException catch (e) {
+      debugPrint('离线地图: 原生插件未实现 - $e');
+      debugPrint('离线地图: 请参考文档实现 Android/iOS 原生代码');
+      return false;
     } catch (e) {
-      print('初始化离线地图失败: $e');
+      debugPrint('离线地图: 初始化失败 - $e');
       return false;
     }
   }
@@ -132,8 +153,11 @@ class OfflineMapManager {
     try {
       final List<dynamic> result = await _channel.invokeMethod('getOfflineCityList');
       return result.map((e) => OfflineCity.fromMap(e)).toList();
+    } on MissingPluginException {
+      debugPrint('离线地图: 原生插件未实现 getOfflineCityList');
+      return [];
     } catch (e) {
-      print('获取城市列表失败: $e');
+      debugPrint('离线地图: 获取城市列表失败 - $e');
       return [];
     }
   }
@@ -143,8 +167,11 @@ class OfflineMapManager {
     try {
       final List<dynamic> result = await _channel.invokeMethod('getHotCityList');
       return result.map((e) => OfflineCity.fromMap(e)).toList();
+    } on MissingPluginException {
+      debugPrint('离线地图: 原生插件未实现 getHotCityList');
+      return [];
     } catch (e) {
-      print('获取热门城市列表失败: $e');
+      debugPrint('离线地图: 获取热门城市列表失败 - $e');
       return [];
     }
   }
@@ -157,8 +184,11 @@ class OfflineMapManager {
         'cityName': cityName,
       });
       return result ?? false;
+    } on MissingPluginException {
+      debugPrint('离线地图: 原生插件未实现 downloadOfflineMap');
+      return false;
     } catch (e) {
-      print('下载离线地图失败: $e');
+      debugPrint('离线地图: 下载失败 - $e');
       return false;
     }
   }
@@ -170,8 +200,11 @@ class OfflineMapManager {
         'cityCode': cityCode,
       });
       return result ?? false;
+    } on MissingPluginException {
+      debugPrint('离线地图: 原生插件未实现 pauseDownload');
+      return false;
     } catch (e) {
-      print('暂停下载失败: $e');
+      debugPrint('离线地图: 暂停下载失败 - $e');
       return false;
     }
   }
@@ -183,8 +216,11 @@ class OfflineMapManager {
         'cityCode': cityCode,
       });
       return result ?? false;
+    } on MissingPluginException {
+      debugPrint('离线地图: 原生插件未实现 resumeDownload');
+      return false;
     } catch (e) {
-      print('继续下载失败: $e');
+      debugPrint('离线地图: 继续下载失败 - $e');
       return false;
     }
   }
@@ -196,8 +232,11 @@ class OfflineMapManager {
         'cityCode': cityCode,
       });
       return result ?? false;
+    } on MissingPluginException {
+      debugPrint('离线地图: 原生插件未实现 deleteOfflineMap');
+      return false;
     } catch (e) {
-      print('删除离线地图失败: $e');
+      debugPrint('离线地图: 删除失败 - $e');
       return false;
     }
   }
@@ -207,8 +246,11 @@ class OfflineMapManager {
     try {
       final List<dynamic> result = await _channel.invokeMethod('getDownloadedOfflineMapList');
       return result.map((e) => OfflineCity.fromMap(e)).toList();
+    } on MissingPluginException {
+      debugPrint('离线地图: 原生插件未实现 getDownloadedOfflineMapList');
+      return [];
     } catch (e) {
-      print('获取已下载列表失败: $e');
+      debugPrint('离线地图: 获取已下载列表失败 - $e');
       return [];
     }
   }
@@ -220,8 +262,10 @@ class OfflineMapManager {
         'cityCode': cityCode,
       });
       return result ?? false;
+    } on MissingPluginException {
+      return false;
     } catch (e) {
-      print('检查下载状态失败: $e');
+      debugPrint('离线地图: 检查下载状态失败 - $e');
       return false;
     }
   }
@@ -233,8 +277,10 @@ class OfflineMapManager {
         'cityCode': cityCode,
       });
       return result ?? 0;
+    } on MissingPluginException {
+      return 0;
     } catch (e) {
-      print('获取下载进度失败: $e');
+      debugPrint('离线地图: 获取下载进度失败 - $e');
       return 0;
     }
   }
@@ -273,7 +319,7 @@ class OfflineMapManager {
   }
 
   /// 获取离线地图存储路径
-  Future<String?> getOfflineMapPath() async {
+  Future<string?> getOfflineMapPath() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final offlinePath = '${directory.path}/amap_offline';
@@ -283,7 +329,7 @@ class OfflineMapManager {
       }
       return offlinePath;
     } catch (e) {
-      print('获取离线地图路径失败: $e');
+      debugPrint('离线地图: 获取存储路径失败 - $e');
       return null;
     }
   }
@@ -305,7 +351,7 @@ class OfflineMapManager {
       }
       return totalSize;
     } catch (e) {
-      print('获取离线地图大小失败: $e');
+      debugPrint('离线地图: 获取总大小失败 - $e');
       return 0;
     }
   }
@@ -322,10 +368,14 @@ class OfflineMapManager {
       }
 
       // 同时清理原生SDK的离线地图
-      await _channel.invokeMethod('clearAllOfflineMaps');
+      try {
+        await _channel.invokeMethod('clearAllOfflineMaps');
+      } on MissingPluginException {
+        // 原生插件未实现，忽略
+      }
       return true;
     } catch (e) {
-      print('清理离线地图失败: $e');
+      debugPrint('离线地图: 清理失败 - $e');
       return false;
     }
   }
