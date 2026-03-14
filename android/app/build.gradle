@@ -71,8 +71,8 @@ repositories {
 }
 
 dependencies {
-    // 高德地图 SDK - 使用整合版（包含3D地图+定位+搜索）
-    implementation 'com.amap.api:3dmap-location-search:latest.integration'
+    // 高德地图 SDK - 使用固定版本
+    implementation 'com.amap.api:3dmap-location-search:9.4.0'
     // 高德离线地图 SDK
-    implementation 'com.amap.api:map3d:latest.integration'
+    implementation 'com.amap.api:map3d:9.4.0'
 }
