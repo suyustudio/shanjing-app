@@ -18,29 +18,14 @@ jobs:
       
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
+          flutter-version: '3.19.0'
           channel: 'stable'
       
       - name: Setup .env with AMap Key
         run: echo "AMAP_KEY=e17f8ae117d84e2d2d394a2124866603" > .env
       
-      - name: Create local.properties
-        run: |
-          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
-          echo "flutter.versionCode=2" >> android/local.properties
-          echo "flutter.versionName=1.0.0" >> android/local.properties
-          cat android/local.properties
-        env:
-          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
-      
       - name: Get Flutter dependencies
-        run: |
-          echo "=== Flutter Version ==="
-          flutter --version
-          echo "=== Flutter Doctor ==="
-          flutter doctor -v || true
-          echo "=== Pub Get Verbose ==="
-          flutter pub get --verbose 2>&1 || (echo "=== PUB GET FAILED ==="; cat /tmp/flutter_pub_get.log 2>/dev/null || true; exit 1)
+        run: flutter pub get
       
       - name: Build APK
         run: flutter build apk --release
