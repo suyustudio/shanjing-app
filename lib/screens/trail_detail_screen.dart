@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
@@ -19,6 +20,8 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     with SingleTickerProviderStateMixin {
   bool _isFavorite = false;
   bool _isLoading = false;
+  bool _isDownloading = false;
+  double _downloadProgress = 0.0;
   late TabController _tabController;
 
   /// 获取路线数据（优先使用传递的数据）
@@ -75,13 +78,122 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
 
   /// 下载路线
   void _downloadTrail() {
-    // TODO: 下载路线
+    if (_isDownloading) return;
+    
+    setState(() {
+      _isDownloading = true;
+      _downloadProgress = 0.0;
+    });
+    
+    // 显示带进度的 SnackBar
+    _showDownloadSnackBar();
+    
+    // 模拟下载进度（实际项目中替换为真实下载逻辑）
+    _simulateDownload();
+  }
+  
+  /// 显示下载进度 SnackBar
+  void _showDownloadSnackBar() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('开始下载路线...'),
-        backgroundColor: DesignSystem.getBackgroundSecondary(context),
+        content: StatefulBuilder(
+          builder: (context, setSnackBarState) {
+            return Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    value: _downloadProgress > 0 ? _downloadProgress : null,
+                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _downloadProgress >= 1.0 
+                            ? '下载完成'
+                            : _downloadProgress > 0 
+                                ? '正在下载 ${(_downloadProgress * 100).toInt()}%'
+                                : '准备下载...',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      if (_downloadProgress > 0 && _downloadProgress < 1.0)
+                        const SizedBox(height: 4),
+                      if (_downloadProgress > 0 && _downloadProgress < 1.0)
+                        LinearProgressIndicator(
+                          value: _downloadProgress,
+                          backgroundColor: Colors.white24,
+                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                          minHeight: 2,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        backgroundColor: DesignSystem.getPrimary(context),
+        duration: const Duration(seconds: 10),
+        action: _downloadProgress >= 1.0
+            ? SnackBarAction(
+                label: '查看',
+                textColor: Colors.white,
+                onPressed: () {
+                  // TODO: 跳转到离线地图管理页面
+                },
+              )
+            : null,
       ),
     );
+  }
+  
+  /// 模拟下载进度
+  void _simulateDownload() {
+    const totalSteps = 20;
+    var currentStep = 0;
+    
+    Timer.periodic(const Duration(milliseconds: 200), (timer) {
+      currentStep++;
+      setState(() {
+        _downloadProgress = currentStep / totalSteps;
+      });
+      
+      // 更新 SnackBar 显示
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      _showDownloadSnackBar();
+      
+      if (currentStep >= totalSteps) {
+        timer.cancel();
+        setState(() {
+          _isDownloading = false;
+        });
+        
+        // 下载完成，显示完成提示
+        Future.delayed(const Duration(milliseconds: 500), () {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  SizedBox(width: 12),
+                  Text('路线下载成功', style: TextStyle(color: Colors.white)),
+                ],
+              ),
+              backgroundColor: DesignSystem.getSuccess(context),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        });
+      }
+    });
   }
 
   /// 获取难度颜色
@@ -540,10 +652,16 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
               width: 120,
               height: 48,
               child: OutlinedButton(
-                onPressed: _downloadTrail,
+                onPressed: _isDownloading ? null : _downloadTrail,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: DesignSystem.getTextPrimary(context),
-                  side: BorderSide(color: DesignSystem.getDivider(context)),
+                  foregroundColor: _isDownloading 
+                      ? DesignSystem.getPrimary(context)
+                      : DesignSystem.getTextPrimary(context),
+                  side: BorderSide(
+                    color: _isDownloading 
+                        ? DesignSystem.getPrimary(context)
+                        : DesignSystem.getDivider(context),
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -552,17 +670,34 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.download_outlined,
-                      size: 20,
-                      color: DesignSystem.getTextSecondary(context),
-                    ),
+                    if (_isDownloading)
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          value: _downloadProgress > 0 ? _downloadProgress : null,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            DesignSystem.getPrimary(context),
+                          ),
+                        ),
+                      )
+                    else
+                      Icon(
+                        Icons.download_outlined,
+                        size: 20,
+                        color: DesignSystem.getTextSecondary(context),
+                      ),
                     const SizedBox(width: 4),
                     Text(
-                      '下载路线',
+                      _isDownloading 
+                          ? '${(_downloadProgress * 100).toInt()}%'
+                          : '下载路线',
                       style: TextStyle(
                         fontSize: 14,
-                        color: DesignSystem.getTextSecondary(context),
+                        color: _isDownloading
+                            ? DesignSystem.getPrimary(context)
+                            : DesignSystem.getTextSecondary(context),
                       ),
                     ),
                   ],
