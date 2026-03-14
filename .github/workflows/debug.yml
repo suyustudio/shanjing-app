@@ -1,0 +1,49 @@
+name: Debug Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+      
+      - name: Check Flutter
+        run: |
+          flutter doctor -v
+          echo "=== Flutter Version ==="
+          flutter --version
+      
+      - name: Check pubspec.yaml
+        run: |
+          echo "=== pubspec.yaml ==="
+          cat pubspec.yaml
+          echo ""
+          echo "=== Checking YAML syntax ==="
+          python3 -c "import yaml; yaml.safe_load(open('pubspec.yaml'))" && echo "YAML OK" || echo "YAML ERROR"
+      
+      - name: Test pub get
+        run: |
+          echo "=== Running flutter pub get ==="
+          flutter pub get 2>&1 || true
+          echo ""
+          echo "=== Exit code: $? ==="
+      
+      - name: Check Android config
+        run: |
+          echo "=== settings.gradle ==="
+          cat android/settings.gradle
+          echo ""
+          echo "=== app/build.gradle (first 50 lines) ==="
+          head -50 android/app/build.gradle
