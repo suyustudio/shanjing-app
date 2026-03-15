@@ -27,19 +27,15 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Pre-build checks
+      - name: Setup local.properties
         run: |
-          echo "=== Flutter Doctor ==="
-          flutter doctor -v
-          echo ""
-          echo "=== Android SDK ==="
-          ls -la $ANDROID_SDK_ROOT || echo "ANDROID_SDK_ROOT not set"
-          echo ""
-          echo "=== Android Build Tools ==="
-          ls -la $ANDROID_SDK_ROOT/build-tools/ 2>/dev/null || echo "No build-tools"
+          echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
+          echo "flutter.versionCode=2" >> android/local.properties
+          echo "flutter.versionName=1.0.0" >> android/local.properties
+          cat android/local.properties
 
       - name: Build Debug APK
-        run: flutter build apk --debug --verbose
+        run: flutter build apk --debug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
