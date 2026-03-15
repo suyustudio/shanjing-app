@@ -6,19 +6,24 @@
 ## 自动调试策略
 
 ### 当前问题
-Build #60 失败 - FLUTTER_ROOT变量引用问题
+Build #12 运行中 - 纯 Debug 构建
 
 ### 已尝试修复
 1. ✅ 禁用友盟SDK - 解决 pub get 失败
 2. ✅ 添加 gradle-wrapper.properties  
 3. ✅ 禁用高德地图SDK
 4. ✅ 禁用ProGuard和代码压缩
-5. 🔄 修复FLUTTER_ROOT变量引用
+5. ✅ 降级Flutter到3.16.0
+6. ✅ Debug 构建成功 (Build #63)
+7. ❌ Release 构建仍失败
 
-### 下一步（如果Build #61仍失败）
-1. 尝试 `--debug` 构建模式
-2. 降级Flutter到3.16.x
-3. 使用本地Gradle构建而非GitHub Actions
+### 当前状态
+- ✅ Debug APK: Build #63 成功
+- ❌ Release APK: 暂时禁用，需要进一步调试
+
+### 下一步
+1. 等待 Build #12 结果（纯 Debug 构建）
+2. 研究 Release 构建失败原因（可能与签名/压缩有关）
 
 ## 收到 Heartbeat 后必须执行（不能只回复 HEARTBEAT_OK）
 
@@ -50,19 +55,20 @@ Build #60 失败 - FLUTTER_ROOT变量引用问题
 
 ---
 
-## 当前状态（2026-03-15 15:55）
+## 当前状态（2026-03-15 17:45）
 
 ### Build 状态
 | Build | 工作流 | 状态 | 说明 |
 |-------|--------|------|------|
-| #60 | build-v55.yml | ❌ 失败 | FLUTTER_ROOT变量引用问题 |
-| #59 | build-v55.yml | ❌ 失败 | 禁用SDK后仍失败 |
-| #58 | build-v55.yml | ❌ 失败 | Gradle配置问题 |
-| #11 | debug.yml | ✅ 成功 | 仅检查不构建 |
-| #4 | debug.yml | ✅ 成功 | 历史成功 |
+| #12 | build-v55.yml | ⏳ 运行中 | 纯 Debug 构建 |
+| #63 | build-v55.yml | ✅ 成功 | **Debug APK 构建成功** |
+| #11 | build-debug.yml | ❌ 失败 | Debug+Release 构建失败 |
+| #64 | build-v55.yml | ❌ 失败 | Release 构建失败 |
+| #10 | build-debug.yml | ❌ 失败 | Verbose 日志测试 |
+| #9 | build-debug.yml | ❌ 失败 | Flutter 3.16.0 首次测试 |
 
-**当前尝试修复**: FLUTTER_ROOT变量使用 ${{ env.FLUTTER_ROOT }} 语法
-**已禁用**: 友盟SDK、高德地图SDK、ProGuard
+**当前策略**: 只构建 Debug APK（已知成功）
+**Release APK**: 暂时禁用，需要进一步调试
 
 ### Product Agent 任务完成（2026-03-14）
 
