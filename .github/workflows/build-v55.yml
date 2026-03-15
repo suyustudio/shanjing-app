@@ -34,13 +34,14 @@ jobs:
 
       - name: Setup local.properties
         run: |
-          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+          echo "flutter.sdk=${{ env.FLUTTER_ROOT }}" > android/local.properties
           echo "flutter.versionCode=2" >> android/local.properties
           echo "flutter.versionName=1.0.0" >> android/local.properties
-        env:
-          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
 
-      - name: Build APK
+      - name: Build Debug APK first
+        run: flutter build apk --debug || true
+
+      - name: Build Release APK
         run: flutter build apk --release
 
       - name: Upload APK
@@ -48,3 +49,4 @@ jobs:
         with:
           name: shanjing-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: warn
