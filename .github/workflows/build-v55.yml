@@ -32,13 +32,17 @@ jobs:
           echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
           echo "flutter.versionCode=2" >> android/local.properties
           echo "flutter.versionName=1.0.0" >> android/local.properties
-          cat android/local.properties
 
       - name: Build Debug APK
-        run: flutter build apk --debug 2>&1 | tee build.log || { cat build.log; exit 1; }
+        run: |
+          flutter build apk --debug
+          echo "=== 检查APK文件 ==="
+          ls -la build/app/outputs/flutter-apk/ || echo "目录不存在"
+          find build -name "*.apk" -type f 2>/dev/null || echo "未找到APK文件"
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: shanjing-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          path: build/app/outputs/flutter-apk/*.apk
