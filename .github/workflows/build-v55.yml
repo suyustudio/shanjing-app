@@ -27,68 +27,32 @@ jobs:
         channel: 'stable'
         cache: false
     
-    - name: Create local.properties
+    - name: Verify Android project exists
       run: |
-        echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
-    
-    - name: Check and create Android platform
-      run: |
-        if [ ! -d "android" ]; then
-          echo "Android directory not found, creating..."
-          flutter config --enable-android
-          flutter create --platforms=android --project-name=shanjing_app .
-          echo "Waiting for files..."
-          sleep 5
-        fi
-        echo "=== Android directory contents ==="
-        ls -la android/ || echo "Directory not found"
-        
-        # Ensure settings.gradle exists
-        if [ ! -f "android/settings.gradle" ]; then
-          echo "Creating settings.gradle..."
-          cat > android/settings.gradle << 'EOF'
-pluginManagement {
-    def flutterSdkPath = {
-        def properties = new Properties()
-        file("local.properties").withInputStream { properties.load(it) }
-        def flutterSdkPath = properties.getProperty("flutter.sdk")
-        assert flutterSdkPath != null, "flutter.sdk not set in local.properties"
-        return flutterSdkPath
-    }()
-    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
-}
-plugins {
-    id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "8.1.0" apply false
-    id "org.jetbrains.kotlin.android" version "1.9.0" apply false
-}
-EOF
-        fi
-    
-    - name: Update Kotlin version
-      run: |
-        echo "=== Updating Kotlin version in settings.gradle ==="
-        sed -i 's/id "org.jetbrains.kotlin.android" version "[^"]*"/id "org.jetbrains.kotlin.android" version "1.9.0"/' android/settings.gradle
-        cat android/settings.gradle | grep "org.jetbrains.kotlin.android"
+        echo "=== Android directory check ==="
+        ls -la android/ || echo "WARNING: Android directory not found"
+        ls -la android/app/ || echo "WARNING: android/app not found"
     
     - name: Update minSdkVersion
       run: |
-        echo "=== Updating minSdkVersion in app/build.gradle ==="
-        # 更新 minSdkVersion 为 21
+        echo "=== Updating minSdkVersion ==="
         sed -i 's/minSdkVersion .*/minSdkVersion 21/' android/app/build.gradle
         cat android/app/build.gradle | grep minSdkVersion
     
     - name: Get dependencies
       run: flutter pub get
     
-    - name: Build APK
+    - name: Build APK with verbose output
       run: |
-        flutter build apk --debug
-        echo "=== 检查APK文件 ==="
+        set -e
+        echo "=== Starting APK build ==="
+        flutter build apk --debug --verbose 2>&1 | tee build.log
+        echo "=== Build completed ==="
         ls -la build/app/outputs/flutter-apk/
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
+      if: success()
       with:
         name: shanjing-debug-apk
         path: build/app/outputs/flutter-apk/*.apk
