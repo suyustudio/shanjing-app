@@ -34,12 +34,17 @@ jobs:
 
       - name: Setup local.properties
         run: |
-          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+          echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
           echo "flutter.versionCode=2" >> android/local.properties
           echo "flutter.versionName=1.0.0" >> android/local.properties
+          echo "flutter.buildMode=debug" >> android/local.properties
+          cat android/local.properties
+
+      - name: Clean build
+        run: flutter clean
 
       - name: Build Debug APK
-        run: flutter build apk --debug
+        run: flutter build apk --debug --verbose
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
