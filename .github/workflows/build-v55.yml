@@ -32,33 +32,32 @@ jobs:
         echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
         echo "flutter.versionCode=2" >> android/local.properties
         echo "flutter.versionName=1.0.0" >> android/local.properties
-        cat android/local.properties
-    
-    - name: Flutter Doctor
-      run: flutter doctor -v
-    
-    - name: Verify Android project
-      run: |
-        echo "=== Android目录 ==="
-        ls -la android/
-        echo ""
-        echo "=== app/build.gradle 开头 ==="
-        head -30 android/app/build.gradle
     
     - name: Get dependencies
       run: flutter pub get
     
-    - name: Analyze code
-      run: flutter analyze || true
-    
-    - name: Build APK
+    - name: Build APK with detailed logging
       run: |
-        set -x  # 显示执行的命令
-        flutter build apk --debug || {
-          echo "=== 查看gradle错误 ==="
-          cat android/build.gradle 2>/dev/null || true
+        # 尝试构建，捕获所有输出
+        flutter build apk --debug --verbose 2>&1 | tee build_output.log
+        BUILD_STATUS=${PIPESTATUS[0]}
+        
+        if [ $BUILD_STATUS -ne 0 ]; then
+          echo ""
+          echo "========================================"
+          echo "❌ BUILD FAILED - Last 200 lines:"
+          echo "========================================"
+          tail -200 build_output.log
+          echo ""
+          echo "========================================"
+          echo "Gradle daemon logs:"
+          echo "========================================"
+          cat ~/.gradle/daemon/*/daemon-*.out.log 2>/dev/null | tail -100 || echo "No daemon logs"
           exit 1
-        }
+        fi
+        
+        echo "✅ BUILD SUCCESS"
+        ls -la build/app/outputs/flutter-apk/
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
