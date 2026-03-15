@@ -39,16 +39,16 @@ jobs:
           echo "flutter.versionName=1.0.0" >> android/local.properties
 
       - name: Build Debug APK
-        run: flutter build apk --debug --verbose 2>&1 | tee build.log
-        continue-on-error: true
+        run: flutter build apk --debug
 
-      - name: Show build log on failure
-        if: failure()
-        run: cat build.log | tail -100
+      - name: Build Release APK
+        run: flutter build apk --release
 
-      - name: Upload Debug APK
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
-          name: shanjing-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: shanjing-apks
+          path: |
+            build/app/outputs/flutter-apk/app-debug.apk
+            build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: warn
