@@ -36,35 +36,12 @@ jobs:
     - name: Get dependencies
       run: flutter pub get
     
-    - name: Build APK
-      run: |
-        flutter build apk --debug 2>&1 | tee build.log
-        BUILD_STATUS=${PIPESTATUS[0]}
-        
-        if [ $BUILD_STATUS -ne 0 ]; then
-          echo "BUILD_FAILED=true" >> $GITHUB_ENV
-          echo "BUILD_LOG<<EOF" >> $GITHUB_ENV
-          tail -150 build.log >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-          exit 1
-        fi
-        
-        echo "BUILD_SUCCESS=true" >> $GITHUB_ENV
-        ls -la build/app/outputs/flutter-apk/
+    - name: Build APK (with error capture)
+      run: flutter build apk --debug 2>&1 || (echo "EXIT_CODE=$?" && exit 1)
+      shell: bash
     
-    - name: Create summary on failure
-      if: failure()
-      run: |
-        echo "### ❌ Build Failed" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "$BUILD_LOG" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-    
-    - name: Create summary on success
-      if: success()
-      run: |
-        echo "### ✅ Build Success" >> $GITHUB_STEP_SUMMARY
-        ls -la build/app/outputs/flutter-apk/ >> $GITHUB_STEP_SUMMARY
+    - name: List APK files
+      run: ls -la build/app/outputs/flutter-apk/
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
