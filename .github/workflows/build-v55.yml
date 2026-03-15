@@ -44,7 +44,17 @@ jobs:
         run: flutter clean
 
       - name: Build Debug APK
-        run: flutter build apk --debug --verbose
+        run: |
+          flutter build apk --debug 2>&1 || {
+            echo "=== BUILD FAILED ==="
+            echo "Checking flutter doctor..."
+            flutter doctor -v
+            echo "Checking android directory..."
+            ls -la android/
+            echo "Checking gradle wrapper..."
+            ls -la android/gradle/wrapper/
+            exit 1
+          }
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
