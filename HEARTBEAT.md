@@ -1,7 +1,24 @@
 # HEARTBEAT.md - 定期检查清单
 
 ## 检查频率
-每 20 分钟检查一次
+每 10 分钟检查一次
+
+## 自动调试策略
+
+### 当前问题
+Build #60 失败 - FLUTTER_ROOT变量引用问题
+
+### 已尝试修复
+1. ✅ 禁用友盟SDK - 解决 pub get 失败
+2. ✅ 添加 gradle-wrapper.properties  
+3. ✅ 禁用高德地图SDK
+4. ✅ 禁用ProGuard和代码压缩
+5. 🔄 修复FLUTTER_ROOT变量引用
+
+### 下一步（如果Build #61仍失败）
+1. 尝试 `--debug` 构建模式
+2. 降级Flutter到3.16.x
+3. 使用本地Gradle构建而非GitHub Actions
 
 ## 收到 Heartbeat 后必须执行（不能只回复 HEARTBEAT_OK）
 
@@ -33,17 +50,19 @@
 
 ---
 
-## 当前状态（2026-03-15 12:35）
+## 当前状态（2026-03-15 15:55）
 
 ### Build 状态
 | Build | 工作流 | 状态 | 说明 |
 |-------|--------|------|------|
-| #4 | debug.yml | ✅ 成功 | 最新成功构建 (2026-03-14 18:41) |
-| #51 | build-fixed.yml | ❌ 失败 | 旧工作流，已弃用 |
-| #50 | build-fixed.yml | ❌ 失败 | 旧工作流，已弃用 |
-| #30 | build.yml | ✅ 成功 | 历史成功记录 |
+| #60 | build-v55.yml | ❌ 失败 | FLUTTER_ROOT变量引用问题 |
+| #59 | build-v55.yml | ❌ 失败 | 禁用SDK后仍失败 |
+| #58 | build-v55.yml | ❌ 失败 | Gradle配置问题 |
+| #11 | debug.yml | ✅ 成功 | 仅检查不构建 |
+| #4 | debug.yml | ✅ 成功 | 历史成功 |
 
-**当前使用工作流**: debug.yml (Build #4)
+**当前尝试修复**: FLUTTER_ROOT变量使用 ${{ env.FLUTTER_ROOT }} 语法
+**已禁用**: 友盟SDK、高德地图SDK、ProGuard
 
 ### Product Agent 任务完成（2026-03-14）
 
