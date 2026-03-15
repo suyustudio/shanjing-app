@@ -36,28 +36,35 @@ jobs:
     - name: Get dependencies
       run: flutter pub get
     
-    - name: Build APK with detailed logging
+    - name: Build APK
       run: |
-        # 尝试构建，捕获所有输出
-        flutter build apk --debug --verbose 2>&1 | tee build_output.log
+        flutter build apk --debug 2>&1 | tee build.log
         BUILD_STATUS=${PIPESTATUS[0]}
         
         if [ $BUILD_STATUS -ne 0 ]; then
-          echo ""
-          echo "========================================"
-          echo "❌ BUILD FAILED - Last 200 lines:"
-          echo "========================================"
-          tail -200 build_output.log
-          echo ""
-          echo "========================================"
-          echo "Gradle daemon logs:"
-          echo "========================================"
-          cat ~/.gradle/daemon/*/daemon-*.out.log 2>/dev/null | tail -100 || echo "No daemon logs"
+          echo "BUILD_FAILED=true" >> $GITHUB_ENV
+          echo "BUILD_LOG<<EOF" >> $GITHUB_ENV
+          tail -150 build.log >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
           exit 1
         fi
         
-        echo "✅ BUILD SUCCESS"
+        echo "BUILD_SUCCESS=true" >> $GITHUB_ENV
         ls -la build/app/outputs/flutter-apk/
+    
+    - name: Create summary on failure
+      if: failure()
+      run: |
+        echo "### ❌ Build Failed" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "$BUILD_LOG" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Create summary on success
+      if: success()
+      run: |
+        echo "### ✅ Build Success" >> $GITHUB_STEP_SUMMARY
+        ls -la build/app/outputs/flutter-apk/ >> $GITHUB_STEP_SUMMARY
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
