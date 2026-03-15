@@ -35,7 +35,15 @@ jobs:
 
       - name: Build Debug APK
         run: |
-          flutter build apk --debug
+          set -e
+          echo "=== 开始构建 ==="
+          flutter build apk --debug 2>&1 || {
+            echo ""
+            echo "=== 构建失败，查看错误 ==="
+            flutter build apk --debug --verbose 2>&1 | tail -100
+            exit 1
+          }
+          echo ""
           echo "=== 检查APK文件 ==="
           ls -la build/app/outputs/flutter-apk/ || echo "目录不存在"
           find build -name "*.apk" -type f 2>/dev/null || echo "未找到APK文件"
