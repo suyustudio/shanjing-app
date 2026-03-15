@@ -21,40 +21,14 @@ jobs:
           flutter-version: '3.19.0'
           channel: 'stable'
 
-      - name: Check Flutter
-        run: |
-          flutter doctor -v
-          flutter --version
-
       - name: Setup .env with AMap Key
         run: echo "AMAP_KEY=e17f8ae117d84e2d2d394a2124866603" > .env
 
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Setup local.properties
-        run: |
-          echo "flutter.sdk=${FLUTTER_ROOT}" > android/local.properties
-          echo "flutter.versionCode=2" >> android/local.properties
-          echo "flutter.versionName=1.0.0" >> android/local.properties
-          echo "flutter.buildMode=debug" >> android/local.properties
-          cat android/local.properties
-
-      - name: Clean build
-        run: flutter clean
-
       - name: Build Debug APK
-        run: |
-          flutter build apk --debug 2>&1 || {
-            echo "=== BUILD FAILED ==="
-            echo "Checking flutter doctor..."
-            flutter doctor -v
-            echo "Checking android directory..."
-            ls -la android/
-            echo "Checking gradle wrapper..."
-            ls -la android/gradle/wrapper/
-            exit 1
-          }
+        run: flutter build apk --debug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
