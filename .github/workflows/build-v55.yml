@@ -27,37 +27,31 @@ jobs:
         channel: 'stable'
         cache: false
     
+    - name: Flutter Doctor
+      run: flutter doctor -v
+    
     - name: Verify Android project
       run: |
-        echo "=== Android目录检查 ==="
+        echo "=== Android目录 ==="
         ls -la android/
         echo ""
-        echo "=== settings.gradle ==="
-        cat android/settings.gradle
-        echo ""
-        echo "=== local.properties ==="
-        cat android/local.properties 2>/dev/null || echo "文件不存在"
-    
-    - name: Update minSdkVersion
-      run: |
-        sed -i 's/minSdkVersion .*/minSdkVersion 21/' android/app/build.gradle
-        grep minSdkVersion android/app/build.gradle
+        echo "=== app/build.gradle 开头 ==="
+        head -30 android/app/build.gradle
     
     - name: Get dependencies
       run: flutter pub get
     
-    - name: Build APK with error capture
+    - name: Analyze code
+      run: flutter analyze || true
+    
+    - name: Build APK
       run: |
-        set -e
-        echo "=== 开始构建 ==="
-        flutter build apk --debug 2>&1 | tee build.log || {
-          echo ""
-          echo "=== 构建失败，显示最后100行日志 ==="
-          tail -100 build.log
+        set -x  # 显示执行的命令
+        flutter build apk --debug || {
+          echo "=== 查看gradle错误 ==="
+          cat android/build.gradle 2>/dev/null || true
           exit 1
         }
-        echo "=== 构建成功 ==="
-        ls -la build/app/outputs/flutter-apk/
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
@@ -65,12 +59,3 @@ jobs:
       with:
         name: shanjing-debug-apk
         path: build/app/outputs/flutter-apk/*.apk
-        if-no-files-found: error
-    
-    - name: Upload error log on failure
-      uses: actions/upload-artifact@v4
-      if: failure()
-      with:
-        name: build-error-log
-        path: build.log
-        if-no-files-found: ignore
