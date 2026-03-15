@@ -23,8 +23,8 @@ dependencies:
   connectivity_plus: ^5.0.0
   http: ^1.1.0
   shared_preferences: ^2.2.0
-  # 埋点 SDK
-  umeng_analytics_plugin: ^1.0.0
+  # 埋点 SDK - 暂时注释，可能导致构建失败
+  # umeng_analytics_plugin: ^1.0.0
 
 dev_dependencies:
   flutter_test:

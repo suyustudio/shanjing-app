@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:umeng_analytics_plugin/umeng_analytics_plugin.dart';
+// 暂时注释友盟 SDK，解决构建问题
+// import 'package:umeng_analytics_plugin/umeng_analytics_plugin.dart';
 
 /// 埋点服务统一接口
 /// 采用适配器模式封装友盟 SDK，便于未来切换其他埋点方案
+/// 
+/// TODO: 恢复友盟 SDK 集成（移除注释）
 class AnalyticsService {
   static final AnalyticsService _instance = AnalyticsService._internal();
   factory AnalyticsService() => _instance;
@@ -36,19 +39,23 @@ class AnalyticsService {
 
     _debugMode = debugMode;
 
-    try {
-      await UmengAnalyticsPlugin.init(
-        androidKey: androidKey,
-        iosKey: iosKey,
-        channel: channel,
-        logEnabled: debugMode, // 仅在调试模式输出日志
-      );
-
-      _initialized = true;
-      _log('AnalyticsService 初始化成功');
-    } catch (e) {
-      _log('AnalyticsService 初始化失败: $e', isError: true);
-    }
+    // TODO: 恢复友盟 SDK 初始化
+    // try {
+    //   await UmengAnalyticsPlugin.init(
+    //     androidKey: androidKey,
+    //     iosKey: iosKey,
+    //     channel: channel,
+    //     logEnabled: debugMode,
+    //   );
+    //   _initialized = true;
+    //   _log('AnalyticsService 初始化成功');
+    // } catch (e) {
+    //   _log('AnalyticsService 初始化失败: $e', isError: true);
+    // }
+    
+    // 临时：标记为已初始化但不实际调用 SDK
+    _initialized = true;
+    _log('AnalyticsService 初始化成功（友盟 SDK 已禁用）');
   }
 
   /// 设置用户身份（登录后调用）
@@ -60,30 +67,36 @@ class AnalyticsService {
 
     _currentUserId = userId;
     
-    try {
-      // 友盟不支持直接设置用户 ID，通过事件参数传递
-      if (properties != null) {
-        await UmengAnalyticsPlugin.profileSignInWithPUID(userId);
-      } else {
-        await UmengAnalyticsPlugin.profileSignInWithPUID(userId);
-      }
-      _log('设置用户 ID: $userId');
-    } catch (e) {
-      _log('设置用户 ID 失败: $e', isError: true);
-    }
+    // TODO: 恢复友盟 SDK 调用
+    // try {
+    //   if (properties != null) {
+    //     await UmengAnalyticsPlugin.profileSignInWithPUID(userId);
+    //   } else {
+    //     await UmengAnalyticsPlugin.profileSignInWithPUID(userId);
+    //   }
+    //   _log('设置用户 ID: $userId');
+    // } catch (e) {
+    //   _log('设置用户 ID 失败: $e', isError: true);
+    // }
+    
+    _log('设置用户 ID: $userId（友盟 SDK 已禁用）');
   }
 
   /// 清除用户身份（退出登录后调用）
   Future<void> clearUserId() async {
     if (!_initialized) return;
 
-    try {
-      await UmengAnalyticsPlugin.profileSignOff();
-      _currentUserId = null;
-      _log('清除用户 ID');
-    } catch (e) {
-      _log('清除用户 ID 失败: $e', isError: true);
-    }
+    // TODO: 恢复友盟 SDK 调用
+    // try {
+    //   await UmengAnalyticsPlugin.profileSignOff();
+    //   _currentUserId = null;
+    //   _log('清除用户 ID');
+    // } catch (e) {
+    //   _log('清除用户 ID 失败: $e', isError: true);
+    // }
+    
+    _currentUserId = null;
+    _log('清除用户 ID（友盟 SDK 已禁用）');
   }
 
   /// 页面浏览事件
@@ -156,16 +169,15 @@ class AnalyticsService {
 
   /// 上报事件到友盟
   void _trackEvent(String eventName, Map<String, dynamic> params) {
-    try {
-      // 将 Map 转换为 String 存储，友盟 Flutter 插件限制
-      final paramsString = params.entries
-          .map((e) => '${e.key}:${e.value}')
-          .join('|');
-      
-      UmengAnalyticsPlugin.event(eventName, label: paramsString);
-    } catch (e) {
-      _log('事件上报失败: $e', isError: true);
-    }
+    // TODO: 恢复友盟 SDK 调用
+    // try {
+    //   final paramsString = params.entries
+    //       .map((e) => '${e.key}:${e.value}')
+    //       .join('|');
+    //   UmengAnalyticsPlugin.event(eventName, label: paramsString);
+    // } catch (e) {
+    //   _log('事件上报失败: $e', isError: true);
+    // }
   }
 
   /// 日志输出
