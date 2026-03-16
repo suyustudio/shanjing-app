@@ -8,6 +8,10 @@ class MainActivity : FlutterActivity() {
     
     private var offlineMapPlugin: OfflineMapPlugin? = null
     
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
+    
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
