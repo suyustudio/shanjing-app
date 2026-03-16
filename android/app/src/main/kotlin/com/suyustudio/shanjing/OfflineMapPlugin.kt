@@ -190,4 +190,14 @@ class OfflineMapPlugin private constructor(
     override fun onCancel(arguments: Any?) {
         eventSink = null
     }
+
+    /**
+     * 销毁插件，清理资源
+     */
+    fun destroy() {
+        methodChannel.setMethodCallHandler(null)
+        eventChannel.setStreamHandler(null)
+        eventSink = null
+        instance = null
+    }
 }
