@@ -70,11 +70,11 @@ flutter {
 }
 
 repositories {
-    // 高德地图仓库
-    maven { url 'https://repository.amap.com/repository/maven-public/' }
+    // 高德地图仓库 - 暂时注释，GitHub Actions 无法访问
+    // maven { url 'https://repository.amap.com/repository/maven-public/' }
 }
 
 dependencies {
-    // 高德地图 SDK
-    implementation 'com.amap.api:3dmap-location-search:9.8.0'
+    // 高德地图 SDK - 暂时注释
+    // implementation 'com.amap.api:3dmap-location-search:9.8.0'
 }
