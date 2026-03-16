@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/offline_map_manager.dart';
+import '../analytics_service.dart';
 import '../constants/design_system.dart';
 import '../widgets/app_loading.dart';
 import '../widgets/app_error.dart';

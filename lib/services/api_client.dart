@@ -78,7 +78,7 @@ class ApiClient {
   }
 
   /// 获取请求头
-  Map<String, string> _getHeaders() {
+  Map<String, String> _getHeaders() {
     final headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',

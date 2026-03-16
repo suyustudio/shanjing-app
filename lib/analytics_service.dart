@@ -45,12 +45,23 @@ class AnalyticsService {
   
   /// 追踪页面浏览
   /// 
+  /// [pageId] 页面ID
   /// [pageName] 页面名称
   /// [params] 额外参数
-  void trackPageView(String pageName, {Map<String, dynamic>? params}) {
+  void trackPageView(String pageId, String pageName, {Map<String, dynamic>? params}) {
     trackEvent('page_view', params: {
-      'page': pageName,
+      'page_id': pageId,
+      'page_name': pageName,
       ...?params,
+    });
+  }
+  
+  /// 追踪页面离开
+  /// 
+  /// [pageId] 页面ID
+  void trackPageExit(String pageId) {
+    trackEvent('page_exit', params: {
+      'page_id': pageId,
     });
   }
   
@@ -80,6 +91,23 @@ class NavigationEvents {
   static const String paramRouteName = 'route_name';
   static const String paramDuration = 'duration';
   static const String paramDistance = 'distance';
+}
+
+/// 地图相关事件常量
+class MapEvents {
+  static const String mapView = 'map_view';
+  static const String mapDownloadStart = 'map_download_start';
+  static const String mapDownloadComplete = 'map_download_complete';
+  static const String mapDownloadCancel = 'map_download_cancel';
+  static const String mapCitySelect = 'map_city_select';
+  static const String offlineMapDownload = 'offline_map_download';
+  static const String offlineMapDelete = 'offline_map_delete';
+  
+  // 参数名
+  static const String paramCityName = 'city_name';
+  static const String paramCityCode = 'city_code';
+  static const String paramDownloadSize = 'download_size';
+  static const String paramDownloadResult = 'download_result';
 }
 
 /// 路线相关事件常量
