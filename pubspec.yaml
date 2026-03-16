@@ -34,5 +34,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - .env
+    # - .env  # 暂不包含，通过 CI secrets 注入
     - data/json/trails-all.json
