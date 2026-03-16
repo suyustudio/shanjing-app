@@ -31,7 +31,7 @@ class Favorite {
     required this.createdAt,
   });
 
-  factory Favorite.fromJson(Map<string, dynamic> json) {
+  factory Favorite.fromJson(Map<String, dynamic> json) {
     return Favorite(
       id: json['id'] ?? '',
       trailId: json['trailId'] ?? '',
@@ -62,7 +62,7 @@ class FavoriteResult {
     required this.message,
   });
 
-  factory FavoriteResult.fromJson(Map<string, dynamic> json) {
+  factory FavoriteResult.fromJson(Map<String, dynamic> json) {
     return FavoriteResult(
       success: json['success'] ?? false,
       isFavorited: json['isFavorited'] ?? false,
@@ -82,7 +82,7 @@ class FavoriteStatus {
     required this.favoriteCount,
   });
 
-  factory FavoriteStatus.fromJson(Map<string, dynamic> json) {
+  factory FavoriteStatus.fromJson(Map<String, dynamic> json) {
     return FavoriteStatus(
       isFavorited: json['isFavorited'] ?? false,
       favoriteCount: json['favoriteCount'] ?? 0,

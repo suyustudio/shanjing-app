@@ -5,6 +5,7 @@ import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
 import '../constants/design_system.dart';
 import '../services/favorite_service.dart';
+import '../services/api_client.dart';
 import '../widgets/share_poster.dart';
 import 'navigation_screen.dart';
 
@@ -923,7 +924,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
   }
 
   /// 海拔图表（简化柱状图）
-  Widget _buildElevationChart(List<Map<string, dynamic>> points) {
+  Widget _buildElevationChart(List<Map<String, dynamic>> points) {
     final maxElevation = points.map((p) => p['elevation'] as int).reduce((a, b) => a > b ? a : b);
     
     return Container(
@@ -1118,7 +1119,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
   }
 
   /// 评价项
-  Widget _buildReviewItem(Map<string, dynamic> review) {
+  Widget _buildReviewItem(Map<String, dynamic> review) {
     final images = review['images'] as List<dynamic>;
     
     return Container(
@@ -1273,7 +1274,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
   }
 
   /// 攻略项
-  Widget _buildGuideItem(Map<string, dynamic> guide) {
+  Widget _buildGuideItem(Map<String, dynamic> guide) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -1464,6 +1465,25 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         retryText: '返回',
       ),
     );
+  }
+
+  /// 格式化时长
+  String _formatDuration(dynamic duration) {
+    if (duration == null) return '--';
+    
+    final minutes = duration is int ? duration : int.tryParse(duration.toString()) ?? 0;
+    
+    if (minutes < 60) {
+      return '$minutes 分钟';
+    } else {
+      final hours = minutes ~/ 60;
+      final remainingMinutes = minutes % 60;
+      if (remainingMinutes == 0) {
+        return '$hours 小时';
+      } else {
+        return '$hours 小时 $remainingMinutes 分钟';
+      }
+    }
   }
 }
 

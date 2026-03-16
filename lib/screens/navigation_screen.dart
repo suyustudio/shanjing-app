@@ -661,18 +661,6 @@ class _NavigationScreenState extends State<NavigationScreen>
       }
     }
   }
-
-  @override
-  void dispose() {
-    _flutterTts.stop();
-    // 停止定位并释放资源
-    _locationSubscription?.cancel();
-    _locationPlugin.stopLocation();
-    _locationPlugin.destroy();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppAppBar(

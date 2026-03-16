@@ -34,7 +34,7 @@ class ApiResponse<T> {
   final T? data;
   final String? errorMessage;
   final String? errorCode;
-  final Map<string, dynamic>? meta;
+  final Map<String, dynamic>? meta;
 
   ApiResponse({
     required this.success,
@@ -45,7 +45,7 @@ class ApiResponse<T> {
   });
 
   factory ApiResponse.fromJson(
-    Map<string, dynamic> json,
+    Map<String, dynamic> json,
     T Function(dynamic)? parser,
   ) {
     return ApiResponse(
@@ -78,7 +78,7 @@ class ApiClient {
   }
 
   /// 获取请求头
-  Map<string, string> _getHeaders() {
+  Map<String, string> _getHeaders() {
     final headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -99,7 +99,7 @@ class ApiClient {
   /// GET 请求
   Future<ApiResponse<T>> get<T>(
     String endpoint, {
-    Map<string, dynamic>? queryParams,
+    Map<String, dynamic>? queryParams,
     T Function(dynamic)? parser,
   }) async {
     try {
@@ -128,7 +128,7 @@ class ApiClient {
   /// POST 请求
   Future<ApiResponse<T>> post<T>(
     String endpoint, {
-    Map<string, dynamic>? body,
+    Map<String, dynamic>? body,
     T Function(dynamic)? parser,
   }) async {
     try {
