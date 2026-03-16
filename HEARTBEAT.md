@@ -55,7 +55,54 @@ Build #12 运行中 - 纯 Debug 构建
 
 ---
 
-## 当前状态（2026-03-15 20:00）
+## 当前状态（2026-03-16 19:00）
+
+### 🎉 构建成功！
+
+| Build | 工作流 | 状态 | 说明 |
+|-------|--------|------|------|
+| **#50** | Debug Build | ✅ 成功 | Kotlin 1.9.22 修复 |
+| **#44** | Build APK with Debug | ✅ 成功 | APK 22.67 MB |
+| **#13** | Build APK - Minimal Test | ✅ 成功 | 备用构建 |
+
+### 修复总结
+1. ✅ 提升 minSdkVersion 至 24（兼容 flutter_tts）
+2. ✅ 添加 destroy() 方法到 OfflineMapPlugin
+3. ✅ 降级 Kotlin 版本至 1.9.22（兼容 AGP 7.3.0）
+4. ✅ 强制所有依赖使用 Kotlin 1.9.22（解决 flutter_tts 版本冲突）
+
+### APK 包体大小
+- **标准 Debug APK**: 22.67 MB ✅
+- **下载地址**: https://github.com/suyustudio/shanjing-app/actions/runs/23140599011
+
+### 历史调试进展
+**发现 Build #85 失败原因**: 
+```
+Plugin [id: 'dev.flutter.flutter-plugin-loader', version: '1.0.0'] was not found
+Settings file '/home/runner/work/shanjing-app/shanjing-app/android/settings.gradle' line: 11
+```
+
+**根本原因**: Flutter 3.22.0 的新版 `settings.gradle` 格式使用了 `flutter-plugin-loader` 插件，在 GitHub Actions 环境中无法正确解析。
+
+**修复方案**: 将 `settings.gradle` 改回传统格式，使用 `app_plugin_loader.gradle` 方式加载 Flutter 插件。
+
+**状态**: 
+- ✅ Build #39 (Debug Build): 成功！settings.gradle 修复有效
+- ❌ Build #86 (APK构建): 失败 - 代码编译错误
+- ✅ 已推送代码修复 commit: 95692c46
+- ✅ Build #34 进行中（修复代码编译错误）
+- ❌ Build #34 失败 - 仍有代码编译错误
+- ✅ 修复更多 Flutter 代码编译错误 - commit: 460a95a8
+- ✅ Build #41 成功！代码编译完全通过
+- ❌ Build #35/88 失败 - Kotlin编译错误（高德SDK依赖被注释）
+- ✅ 启用高德地图 SDK 依赖 - commit: 0276efb8
+- ❌ Build #5/89 失败 - ./gradlew 不存在
+- ✅ 修复工作流使用 flutter build apk - commit: 9a88061f
+- ❌ Build #91 失败 - .env 资源文件缺失
+- ✅ 移除 .env 资源引用 - commit: 9b78e54e
+- ❌ Build #91 失败 - 高德 Maven 仓库无法访问
+- ✅ 模拟离线地图插件实现 - commit: 18c8fc14
+- ⏳ 推送中（网络延迟）
 
 ### Build 状态（cron检查 #68c9f02d-7d56-4a3b-9421-4fec683b0afd）
 | Build | 工作流 | 状态 | 结论 | 说明 |
