@@ -8,9 +8,23 @@ pluginManagement {
 }
 
 plugins {
-    id "dev.flutter.flutter-plugin-loader" version "1.0.0"
     id "com.android.application" version "7.3.0" apply false
     id "org.jetbrains.kotlin.android" version "1.9.10" apply false
 }
 
 include ":app"
+
+// Flutter plugin loader - 兼容 Flutter 3.22.0
+def localPropertiesFile = new File(rootProject.projectDir, "local.properties")
+def properties = new Properties()
+
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        properties.load(reader)
+    }
+}
+
+def flutterSdkPath = properties.getProperty("flutter.sdk")
+if (flutterSdkPath != null) {
+    apply from: "$flutterSdkPath/packages/flutter_tools/gradle/app_plugin_loader.gradle"
+}
