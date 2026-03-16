@@ -40,6 +40,15 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    
+    // 强制所有依赖使用相同的 Kotlin 版本
+    configurations.all {
+        resolutionStrategy {
+            force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.22'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22'
+        }
+    }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
