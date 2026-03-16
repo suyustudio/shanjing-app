@@ -26,8 +26,8 @@ jobs:
     
     - name: Build APK
       run: |
-        cd android
-        ./gradlew assembleDebug
+        flutter pub get
+        flutter build apk --debug
     
     - name: Find APK
       run: find . -name "*.apk" -type f
