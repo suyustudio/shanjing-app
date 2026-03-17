@@ -127,8 +127,10 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
   @override
   void initState() {
     super.initState();
-    _requestPermission();
-    _initOfflineManager();
+    // 临时禁用所有可能阻塞的初始化
+    // _requestPermission();
+    // _initOfflineManager();
+    debugPrint('MapScreen: 极简模式，禁用初始化');
   }
   
   /// 初始化离线地图管理器

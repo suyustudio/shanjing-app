@@ -12,39 +12,27 @@ import 'constants/design_system.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 加载环境变量
-  await dotenv.load(fileName: ".env");
+  // 加载环境变量 - 添加错误处理
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint('警告: 无法加载.env文件: $e');
+  }
 
   // 性能优化：设置首选方向
-  SystemChrome.setPreferredOrientations([
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
   // 初始化离线地图管理器 - 临时禁用，原生代码未实现
   // await OfflineMapManager().initialize();
-  // TODO: 修复原生 MethodChannel 实现后恢复
 
   // 初始化网络管理器 - 临时禁用
   // await NetworkManager().initialize();
 
-  // 初始化埋点 SDK（DEBUG 模式关闭、发布模式开启）
-  const bool isDebugMode = bool.fromEnvironment('dart.vm.product') == false;
-  await AnalyticsService().initialize(
-    androidKey: 'YOUR_UMENG_ANDROID_KEY', // 替换为实际友盟 Android AppKey
-    iosKey: 'YOUR_UMENG_IOS_KEY',         // 替换为实际友盟 iOS AppKey
-    channel: 'official',
-    debugMode: isDebugMode,
-  );
-
-  // 上报应用启动事件
-  AnalyticsService().trackEvent(
-    UserEvents.appLaunch,
-    params: {
-      UserEvents.paramLaunchSource: 'direct',
-      UserEvents.paramLaunchTime: DateTime.now().millisecondsSinceEpoch,
-    },
-  );
+  // 初始化埋点 SDK - 临时禁用
+  // await AnalyticsService().initialize(...);
 
   runApp(const MyApp());
 }
@@ -54,30 +42,36 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 使用 AnnotatedRegion 动态适配系统 UI 样式
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: MediaQuery.platformBrightnessOf(context) == Brightness.dark 
-            ? Brightness.light 
-            : Brightness.dark,
-        statusBarBrightness: MediaQuery.platformBrightnessOf(context) == Brightness.dark 
-            ? Brightness.dark 
-            : Brightness.light,
-        systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarIconBrightness: MediaQuery.platformBrightnessOf(context) == Brightness.dark 
-            ? Brightness.light 
-            : Brightness.dark,
-      ),
-      child: MaterialApp(
-        title: '杭州旅游指南',
-        // 亮色主题
-        theme: DesignSystem.lightTheme,
-        // 暗黑主题
-        darkTheme: DesignSystem.darkTheme,
-        // 跟随系统主题设置
-        themeMode: ThemeMode.system,
-        home: const MainScreen(),
+    // 使用 Builder 获取正确的 context
+    return MaterialApp(
+      title: '杭州旅游指南',
+      // 亮色主题
+      theme: DesignSystem.lightTheme,
+      // 暗黑主题
+      darkTheme: DesignSystem.darkTheme,
+      // 跟随系统主题设置
+      themeMode: ThemeMode.system,
+      home: Builder(
+        builder: (context) {
+          // 在这里设置系统UI样式
+          final brightness = MediaQuery.platformBrightnessOf(context);
+          SystemChrome.setSystemUIOverlayStyle(
+            SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: brightness == Brightness.dark 
+                  ? Brightness.light 
+                  : Brightness.dark,
+              statusBarBrightness: brightness == Brightness.dark 
+                  ? Brightness.dark 
+                  : Brightness.light,
+              systemNavigationBarColor: Colors.transparent,
+              systemNavigationBarIconBrightness: brightness == Brightness.dark 
+                  ? Brightness.light 
+                  : Brightness.dark,
+            ),
+          );
+          return const MainScreen();
+        },
       ),
     );
   }
