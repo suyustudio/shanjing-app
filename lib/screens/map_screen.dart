@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
-import 'package:amap_flutter_location/amap_flutter_location.dart';
+// 临时禁用高德定位SDK，解决ClassNotFoundError
+// import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../analytics/analytics.dart';
 import '../widgets/filter_tags.dart';
@@ -58,10 +59,10 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
   List<OfflineCity> _downloadedCities = [];
   StreamSubscription<bool>? _offlineModeSubscription;
 
-  // 高德定位
-  late AMapFlutterLocation _locationPlugin;
-  StreamSubscription<Map<String, Object>>? _locationSubscription;
-  LatLng? _currentLocation; // 当前真实GPS位置
+  // 高德定位 - 临时禁用
+  // late AMapFlutterLocation _locationPlugin;
+  // StreamSubscription<Map<String, Object>>? _locationSubscription;
+  // LatLng? _currentLocation; // 当前真实GPS位置
 
   final List<RouteInfo> _routes = const [
     RouteInfo(
@@ -132,23 +133,23 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
     // _initOfflineManager();
     debugPrint('MapScreen: 极简模式，禁用初始化');
   }
-  
+
   /// 初始化离线地图管理器
   Future<void> _initOfflineManager() async {
     // 临时禁用离线地图初始化，原生代码未实现
     // await _offlineManager.initialize();
     // _loadDownloadedCities();
-    
+
     // TODO: 修复原生 MethodChannel 后恢复
     debugPrint('离线地图: 已禁用，等待原生实现');
     return;
-    
+
     // 监听离线模式变化
     _offlineModeSubscription = _offlineManager.offlineModeStream.listen((isOffline) {
       setState(() {
         _isOfflineMode = isOffline;
       });
-      
+
       if (isOffline) {
         debugPrint('地图: 进入离线模式');
       } else {
@@ -156,7 +157,7 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
       }
     });
   }
-  
+
   /// 加载已下载的离线地图
   Future<void> _loadDownloadedCities() async {
     final cities = await _offlineManager.getDownloadedOfflineMapList();
@@ -168,10 +169,10 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
   @override
   void dispose() {
     _scrollController.dispose();
-    // 停止定位并释放资源
-    _locationSubscription?.cancel();
-    _locationPlugin.stopLocation();
-    _locationPlugin.destroy();
+    // 停止定位并释放资源 - 临时禁用
+    // _locationSubscription?.cancel();
+    // _locationPlugin.stopLocation();
+    // _locationPlugin.destroy();
     // 取消离线模式监听
     _offlineModeSubscription?.cancel();
     // 释放离线地图管理器
@@ -182,7 +183,7 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
   Future<void> _requestPermission() async {
     // 请求地图所需权限（定位、存储）
     final results = await PermissionManager.requestMapPermissions();
-    
+
     final locationStatus = results['location'];
     final storageStatus = results['storage'];
 
@@ -217,45 +218,33 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
       debugPrint('存储权限被拒绝，离线地图功能可能受限');
     }
   }
-  
-  /// 初始化高德定位
+
+  /// 初始化高德定位 - 临时禁用
   void _initLocation() {
-    _locationPlugin = AMapFlutterLocation();
-    
-    // 使用默认定位参数
-    // 高德地图 SDK 3.0+ 使用不同的 API
-    // 暂时使用基本定位功能
-
-    // 监听定位结果
-    _locationSubscription = _locationPlugin.onLocationChanged().listen(
-      _onLocationUpdate,
-      onError: (error) {
-        debugPrint('定位错误: $error');
-      },
-    );
-
-    // 开始定位
-    _locationPlugin.startLocation();
+    // _locationPlugin = AMapFlutterLocation();
+    // _locationSubscription = _locationPlugin.onLocationChanged().listen(
+    //   _onLocationUpdate,
+    //   onError: (error) {
+    //     debugPrint('定位错误: $error');
+    //   },
+    // );
+    // _locationPlugin.startLocation();
+    debugPrint('定位: 已禁用，等待SDK修复');
   }
-  
-  /// 处理定位更新
-  void _onLocationUpdate(Map<String, Object> location) {
-    final double? latitude = location['latitude'] as double?;
-    final double? longitude = location['longitude'] as double?;
-    final double? accuracy = location['accuracy'] as double?;
 
-    if (latitude != null && longitude != null) {
-      final newLocation = LatLng(latitude, longitude);
-      setState(() {
-        _currentLocation = newLocation;
-      });
-      debugPrint('定位更新: lat=$latitude, lng=$longitude, accuracy=${accuracy ?? "unknown"}m');
-      
-      // 移动地图到用户位置
-      _mapController?.moveCamera(
-        CameraUpdate.newLatLng(newLocation),
-      );
-    }
+  /// 处理定位更新 - 临时禁用
+  void _onLocationUpdate(Map<String, Object> location) {
+    // final double? latitude = location['latitude'] as double?;
+    // final double? longitude = location['longitude'] as double?;
+    // if (latitude != null && longitude != null) {
+    //   final newLocation = LatLng(latitude, longitude);
+    //   setState(() {
+    //     _currentLocation = newLocation;
+    //   });
+    //   _mapController?.moveCamera(
+    //     CameraUpdate.newLatLng(newLocation),
+    //   );
+    // }
   }
 
   void _onSearch(String text) {
@@ -652,25 +641,17 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
 
   void _onMapCreated(AMapController controller) {
     _mapController = controller;
-    // 如果有当前位置，移动地图到用户位置
-    if (_currentLocation != null) {
-      _mapController?.moveCamera(
-        CameraUpdate.newLatLng(_currentLocation!),
-      );
-    }
+    // 定位已禁用，使用默认位置
+    _mapController?.moveCamera(
+      CameraUpdate.newLatLng(const LatLng(30.25, 120.15)),
+    );
   }
 
   void _goToMyLocation() {
-    if (_currentLocation != null) {
-      _mapController?.moveCamera(
-        CameraUpdate.newLatLng(_currentLocation!),
-      );
-    } else {
-      // 如果还没有获取到定位，使用默认位置
-      _mapController?.moveCamera(
-        CameraUpdate.newLatLng(const LatLng(30.25, 120.15)),
-      );
-    }
+    // 定位已禁用，使用默认位置
+    _mapController?.moveCamera(
+      CameraUpdate.newLatLng(const LatLng(30.25, 120.15)),
+    );
   }
 
   void _zoomIn() {
