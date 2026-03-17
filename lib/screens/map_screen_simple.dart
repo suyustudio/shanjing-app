@@ -4,14 +4,14 @@ import 'package:amap_flutter_base/amap_flutter_base.dart';
 import '../constants/design_system.dart';
 
 // 简化的地图页面 - 只显示地图，无定位、无离线功能
-class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+class MapScreenSimple extends StatefulWidget {
+  const MapScreenSimple({super.key});
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  State<MapScreenSimple> createState() => _MapScreenSimpleState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapScreenSimpleState extends State<MapScreenSimple> {
   AMapController? _mapController;
   
   // 硬编码 API Key
