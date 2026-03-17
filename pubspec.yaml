@@ -18,7 +18,7 @@ dependencies:
   amap_flutter_location: ^3.0.0
   permission_handler: ^11.0.0
   cached_network_image: ^3.3.0
-  flutter_tts: ^4.0.2
+  flutter_tts: ^3.8.5  # 降级到兼容 Kotlin 1.9 的版本
   path_provider: ^2.1.1
   connectivity_plus: ^5.0.0
   http: ^1.1.0
