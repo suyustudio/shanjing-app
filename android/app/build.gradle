@@ -82,8 +82,6 @@ repositories {
 }
 
 dependencies {
-    // 高德地图 SDK (核心地图功能)
+    // 高德地图 SDK (包含定位功能，不要单独添加location)
     implementation 'com.amap.api:3dmap:9.7.0'
-    // 高德定位 SDK
-    implementation 'com.amap.api:location:6.4.0'
 }
