@@ -777,8 +777,8 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
             final point = entry.value;
             final isLast = index == trackPoints.length - 1;
             return _buildTrackPointItem(
-              name: point['name'] as String,
-              elevation: point['elevation'] as int,
+              name: point['name'] as String? ?? '途经点',
+              elevation: point['elevation'] as int? ?? 0,
               isFirst: index == 0,
               isLast: isLast,
               index: index + 1,
@@ -925,7 +925,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
 
   /// 海拔图表（简化柱状图）
   Widget _buildElevationChart(List<Map<String, dynamic>> points) {
-    final maxElevation = points.map((p) => p['elevation'] as int).reduce((a, b) => a > b ? a : b);
+    final maxElevation = points.map((p) => p['elevation'] as int? ?? 0).reduce((a, b) => a > b ? a : b);
     
     return Container(
       height: 120,
@@ -938,8 +938,8 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: points.map((point) {
-          final elevation = point['elevation'] as int;
-          final heightRatio = elevation / maxElevation;
+          final elevation = point['elevation'] as int? ?? 0;
+          final heightRatio = maxElevation > 0 ? elevation / maxElevation : 0;
           
           return Column(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -1156,7 +1156,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      review['userName'] as String,
+                      review['userName'] as String? ?? '匿名用户',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -1167,7 +1167,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
                     Row(
                       children: [
                         ...List.generate(5, (i) {
-                          final rating = review['rating'] as double;
+                          final rating = review['rating'] as double? ?? 5.0;
                           return Icon(
                             i < rating.floor()
                                 ? Icons.star
@@ -1180,7 +1180,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
                         }),
                         const SizedBox(width: 8),
                         Text(
-                          review['date'] as String,
+                          review['date'] as String? ?? '',
                           style: TextStyle(
                             fontSize: 12,
                             color: DesignSystem.getTextTertiary(context),
@@ -1196,7 +1196,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           const SizedBox(height: 12),
           // 评价内容
           Text(
-            review['content'] as String,
+            review['content'] as String? ?? '',
             style: TextStyle(
               fontSize: 14,
               color: DesignSystem.getTextSecondary(context),
@@ -1295,7 +1295,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
               ),
               const SizedBox(width: 12),
               Text(
-                guide['title'] as String,
+                guide['title'] as String? ?? '',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -1306,7 +1306,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           ),
           const SizedBox(height: 12),
           Text(
-            guide['content'] as String,
+            guide['content'] as String? ?? '',
             style: TextStyle(
               fontSize: 14,
               color: DesignSystem.getTextSecondary(context),
