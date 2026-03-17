@@ -456,10 +456,12 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             color: DesignSystem.getBackgroundTertiary(context),
-            image: DecorationImage(
-              image: NetworkImage(_trailData['coverUrl']),
-              fit: BoxFit.cover,
-            ),
+            image: _trailData['coverUrl'] != null
+              ? DecorationImage(
+                  image: NetworkImage(_trailData['coverUrl'] as String),
+                  fit: BoxFit.cover,
+                )
+              : null,
           ),
         ),
         // 收藏按钮 - 右上角

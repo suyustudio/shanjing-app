@@ -16,7 +16,7 @@ class Trail {
   final String difficulty;
   final String city;
   final String district;
-  final List<string> coverImages;
+  final List<String> coverImages;
   final int favoriteCount;
   final bool isFavorited;
 
@@ -42,7 +42,7 @@ class Trail {
       difficulty: json['difficulty'] ?? 'EASY',
       city: json['city'] ?? '',
       district: json['district'] ?? '',
-      coverImages: List<string>.from(json['coverImages'] ?? []),
+      coverImages: List<String>.from(json['coverImages'] ?? []),
       favoriteCount: json['favoriteCount'] ?? 0,
       isFavorited: json['isFavorited'] ?? false,
     );
@@ -53,7 +53,7 @@ class Trail {
 class TrailDetail extends Trail {
   final String? description;
   final int elevationGainM;
-  final List<string> tags;
+  final List<String> tags;
   final String? gpxUrl;
   final double startPointLat;
   final double startPointLng;
@@ -92,12 +92,12 @@ class TrailDetail extends Trail {
       difficulty: json['difficulty'] ?? 'EASY',
       city: json['city'] ?? '',
       district: json['district'] ?? '',
-      coverImages: List<string>.from(json['coverImages'] ?? []),
+      coverImages: List<String>.from(json['coverImages'] ?? []),
       favoriteCount: json['favoriteCount'] ?? 0,
       isFavorited: json['isFavorited'] ?? false,
       description: json['description'],
       elevationGainM: json['elevationGainM'] ?? 0,
-      tags: List<string>.from(json['tags'] ?? []),
+      tags: List<String>.from(json['tags'] ?? []),
       gpxUrl: json['gpxUrl'],
       startPointLat: (json['startPointLat'] ?? 0).toDouble(),
       startPointLng: (json['startPointLng'] ?? 0).toDouble(),

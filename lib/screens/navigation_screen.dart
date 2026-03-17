@@ -830,7 +830,9 @@ class _NavigationScreenState extends State<NavigationScreen>
                 _buildInfoItem(
                   context: context,
                   icon: Icons.trending_up,
-                  value: '${((_totalDistance - _remainingDistance) / _totalDistance * 100).toStringAsFixed(0)}%',
+                  value: _totalDistance > 0
+                    ? '${((_totalDistance - _remainingDistance) / _totalDistance * 100).toStringAsFixed(0)}%'
+                    : '0%',
                   label: '完成进度',
                 ),
               ],
