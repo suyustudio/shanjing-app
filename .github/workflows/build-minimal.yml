@@ -24,6 +24,11 @@ jobs:
         flutter-version: '3.19.0'
         channel: 'stable'
     
+    - name: Create .env file
+      run: |
+        echo "AMAP_KEY=${{ secrets.AMAP_KEY }}" > .env
+        echo "Created .env file"
+    
     - name: Build APK
       run: |
         flutter pub get

@@ -33,6 +33,11 @@ jobs:
         echo "flutter.versionCode=2" >> android/local.properties
         echo "flutter.versionName=1.0.0" >> android/local.properties
     
+    - name: Create .env file
+      run: |
+        echo "AMAP_KEY=${{ secrets.AMAP_KEY }}" > .env
+        echo "Created .env file with AMAP_KEY"
+    
     - name: Clean and get dependencies
       run: |
         flutter clean
