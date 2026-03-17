@@ -1,0 +1,109 @@
+name: Full Test with Emulator
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest  # macOS 支持硬件加速
+    timeout-minutes: 30
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+      
+      - name: Create .env
+        run: echo "AMAP_KEY=${{ secrets.AMAP_KEY }}" > .env
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Build APK
+        run: flutter build apk --debug --target lib/main.dart
+      
+      - name: AVD Cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-33
+      
+      - name: Create AVD and generate snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot."
+      
+      - name: Run tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            # 等待设备启动
+            adb wait-for-device
+            sleep 30
+            
+            # 安装 APK
+            adb install build/app/outputs/flutter-apk/app-debug.apk
+            
+            # 启动应用并记录日志
+            adb shell am start -n com.suyustudio.shanjing/.MainActivity
+            
+            # 等待应用启动
+            sleep 10
+            
+            # 截图
+            adb shell screencap -p /data/local/tmp/screen1.png
+            adb pull /data/local/tmp/screen1.png screen_startup.png
+            
+            # 等待几秒
+            sleep 5
+            
+            # 再次截图
+            adb shell screencap -p /data/local/tmp/screen2.png
+            adb pull /data/local/tmp/screen2.png screen_running.png
+            
+            # 收集日志
+            adb logcat -d -s flutter > flutter_log.txt
+            
+            # 检查是否有崩溃
+            if grep -q "FATAL EXCEPTION" flutter_log.txt; then
+              echo "❌ 发现崩溃！"
+              cat flutter_log.txt | grep -A 10 "FATAL EXCEPTION"
+              exit 1
+            fi
+            
+            echo "✅ 测试通过，无崩溃"
+      
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            screen_*.png
+            flutter_log.txt
