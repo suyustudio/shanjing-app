@@ -12,10 +12,11 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_dotenv: ^5.1.0
-  # 高德地图核心依赖：显式声明基础库，确保版本一致
-  amap_flutter_base: ^3.0.0  # 基础库，提供通用类型定义
+  # 高德地图：仅用于显示，定位用geolocator
+  amap_flutter_base: ^3.0.0
   amap_flutter_map: ^3.0.0
-  amap_flutter_location: ^3.0.0
+  # 定位：使用geolocator替代高德定位SDK（GitHub Actions兼容）
+  geolocator: ^10.1.0
   permission_handler: ^11.0.0
   cached_network_image: ^3.3.0
   flutter_tts: ^4.0.2
@@ -23,8 +24,6 @@ dependencies:
   connectivity_plus: ^5.0.0
   http: ^1.1.0
   shared_preferences: ^2.2.0
-  # 埋点 SDK - 暂时注释，可能导致构建失败
-  # umeng_analytics_plugin: ^1.0.0
 
 dev_dependencies:
   flutter_test:

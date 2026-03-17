@@ -19,9 +19,6 @@
             android:name="flutterEmbedding"
             android:value="2" />
         
-        <!-- 高德定位服务 -->
-        <service android:name="com.amap.api.location.APSService" />
-        
         <activity
             android:name=".MainActivity"
             android:exported="true"

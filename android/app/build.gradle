@@ -79,11 +79,11 @@ flutter {
 }
 
 repositories {
-    // 高德地图仓库
-    maven { url 'https://repository.amap.com/repository/maven-public/' }
+    // 标准仓库，不需要高德特殊仓库
+    google()
+    mavenCentral()
 }
 
 dependencies {
-    // 高德地图 SDK (地图+定位+搜索)
-    implementation 'com.amap.api:3dmap-location-search:9.8.0'
+    // 不使用高德原生SDK，定位用geolocator
 }
