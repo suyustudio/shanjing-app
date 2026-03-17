@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>山径APP Icon 设计方案</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      background: linear-gradient(135deg, #0F1419 0%, #1A1F24 100%);
+      color: #fff;
+      padding: 40px;
+      min-height: 100vh;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .header h1 {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #2D968A 0%, #4DB6AC 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header p {
+      font-size: 16px;
+      color: #8B949E;
+      font-style: italic;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      padding: 32px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-4px);
+    }
+    .card.recommended {
+      border-color: #2D968A;
+      background: rgba(45, 150, 138, 0.1);
+    }
+    .icon-preview {
+      width: 160px;
+      height: 160px;
+      margin: 0 auto 24px;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .icon-preview svg {
+      width: 100%;
+      height: 100%;
+    }
+    .card h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #F0F6FC;
+    }
+    .card .tag {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #2D968A;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+    .card p {
+      font-size: 14px;
+      color: #8B949E;
+      line-height: 1.6;
+    }
+    .features {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .features li {
+      font-size: 13px;
+      color: #C9D1D9;
+      margin: 8px 0;
+      list-style: none;
+      padding-left: 20px;
+      position: relative;
+    }
+    .features li::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: #2D968A;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: #6E7681;
+      font-size: 14px;
+    }
+    @media (max-width: 768px) {
+      .grid { grid-template-columns: 1fr; }
+      body { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>山径 APP Icon 设计方案</h1>
+    <p>"为什么要爬山？因为山就在那里。"</p>
+  </div>
+
+  <div class="grid">
+    <!-- 方案1: 书法线条风 -->
+    <div class="card">
+      <div class="icon-preview">
+        <svg viewBox="0 0 1024 1024" fill="none">
+          <rect width="1024" height="1024" fill="#2D968A"/>
+          <g transform="translate(512, 480)">
+            <path d="M-120 120 Q-110 40 -100 -40 Q-90 -100 -80 -140" stroke="white" stroke-width="48" stroke-linecap="round" fill="none" opacity="0.95"/>
+            <path d="M0 160 Q5 60 10 -60 Q15 -140 20 -200" stroke="white" stroke-width="56" stroke-linecap="round" fill="none"/>
+            <path d="M120 120 Q110 40 100 -40 Q90 -100 80 -140" stroke="white" stroke-width="48" stroke-linecap="round" fill="none" opacity="0.95"/>
+            <path d="M-160 120 Q0 180 160 120" stroke="white" stroke-width="40" stroke-linecap="round" fill="none"/>
+          </g>
+        </svg>
+      </div>
+      <h3>方案1：书法线条风</h3>
+      <span class="tag">文艺气质</span>
+      <p>取书法"山"字的笔触韵味，线条有粗细变化，有笔锋起落，文艺气质浓厚。</p>
+      <ul class="features">
+        <li>传统山字结构</li>
+        <li>书法笔触美感</li>
+        <li>适合文艺路线</li>
+      </ul>
+    </div>
+
+    <!-- 方案2: 几何极简风 -->
+    <div class="card">
+      <div class="icon-preview">
+        <svg viewBox="0 0 1024 1024" fill="none">
+          <rect width="1024" height="1024" fill="#2D968A"/>
+          <g transform="translate(512, 520)">
+            <path d="M-200 120 L-120 -80 L-40 120" stroke="white" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M-80 120 L0 -160 L80 120" stroke="white" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M40 120 L120 -60 L200 120" stroke="white" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <line x1="-240" y1="120" x2="240" y2="120" stroke="white" stroke-width="32" stroke-linecap="round" opacity="0.6"/>
+          </g>
+        </svg>
+      </div>
+      <h3>方案2：几何极简风</h3>
+      <span class="tag">现代简约</span>
+      <p>用最简洁的几何线条构成山峰，三个三角形组成山字结构，现代感强。</p>
+      <ul class="features">
+        <li>几何线条构成</li>
+        <li>国际化审美</li>
+        <li>户外产品调性</li>
+      </ul>
+    </div>
+
+    <!-- 方案3: 负空间设计 -->
+    <div class="card">
+      <div class="icon-preview">
+        <svg viewBox="0 0 1024 1024" fill="none">
+          <defs>
+            <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#2D968A"/>
+              <stop offset="100%" style="stop-color:#1D756B"/>
+            </linearGradient>
+          </defs>
+          <rect width="1024" height="1024" fill="url(#bg3)"/>
+          <g transform="translate(512, 512)">
+            <circle cx="0" cy="0" r="300" stroke="white" stroke-width="24" fill="none" opacity="0.3"/>
+            <rect x="-140" y="-60" width="40" height="200" rx="20" fill="white"/>
+            <rect x="-20" y="-140" width="40" height="280" rx="20" fill="white"/>
+            <rect x="100" y="-60" width="40" height="200" rx="20" fill="white"/>
+            <path d="M-180 140 Q0 200 180 140" stroke="white" stroke-width="40" stroke-linecap="round" fill="none"/>
+          </g>
+        </svg>
+      </div>
+      <h3>方案3：负空间设计</h3>
+      <span class="tag">艺术设计</span>
+      <p>山字与外圆轮廓融合，既是文字又是图形，虚实结合，现代设计语言。</p>
+      <ul class="features">
+        <li>负空间创意</li>
+        <li>图形文字结合</li>
+        <li>适合年轻用户</li>
+      </ul>
+    </div>
+
+    <!-- 方案4: 山水意境风 (推荐) -->
+    <div class="card recommended">
+      <div class="icon-preview">
+        <svg viewBox="0 0 1024 1024" fill="none">
+          <rect width="1024" height="1024" fill="#2D968A"/>
+          <g transform="translate(512, 480)">
+            <path d="M-100 80 Q-95 20 -90 -40 Q-85 -80 -80 -110" stroke="white" stroke-width="36" stroke-linecap="round" fill="none"/>
+            <path d="M0 100 Q2 30 4 -50 Q6 -120 8 -170" stroke="white" stroke-width="44" stroke-linecap="round" fill="none"/>
+            <path d="M100 80 Q95 20 90 -40 Q85 -80 80 -110" stroke="white" stroke-width="36" stroke-linecap="round" fill="none"/>
+            <path d="M-140 80 Q0 130 140 80" stroke="white" stroke-width="32" stroke-linecap="round" fill="none"/>
+            <path d="M-180 160 Q-120 180 -60 160 Q0 140 60 160 Q120 180 180 160" stroke="white" stroke-width="16" stroke-linecap="round" fill="none" opacity="0.5"/>
+            <path d="M-160 200 Q-100 220 -40 200 Q20 180 80 200 Q140 220 160 200" stroke="white" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.3"/>
+          </g>
+        </svg>
+      </div>
+      <h3>方案4：山水意境风 ⭐</h3>
+      <span class="tag">推荐方案</span>
+      <p>山字与山形轮廓结合，底部水波纹装饰，有"山水"意境，最符合诗意表达。</p>
+      <ul class="features">
+        <li>山水意境融合</li>
+        <li>诗意文化内涵</li>
+        <li>最符合品牌理念</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>山径APP Icon 设计提案 | 基于"山就在那里"理念创作</p>
+  </div>
+</body>
+</html>

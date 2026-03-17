@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="1024" height="1024" fill="#2D968A"/>
+  
+  <!-- 方案2: 几何极简风 - 山峰轮廓 -->
+  <g transform="translate(512, 520)">
+    <!-- 左侧山峰 -->
+    <path d="M-200 120 L-120 -80 L-40 120" 
+          stroke="white" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    
+    <!-- 中间主峰 - 最高 -->
+    <path d="M-80 120 L0 -160 L80 120" 
+          stroke="white" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    
+    <!-- 右侧山峰 -->
+    <path d="M40 120 L120 -60 L200 120" 
+          stroke="white" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    
+    <!-- 底部水平线 - 地平线 -->
+    <line x1="-240" y1="120" x2="240" y2="120" 
+          stroke="white" stroke-width="32" stroke-linecap="round" opacity="0.6"/>
+  </g>
+</svg>

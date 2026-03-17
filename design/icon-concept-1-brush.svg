@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="1024" height="1024" fill="#2D968A"/>
+  
+  <!-- 方案1: 书法线条风 - 山字变体 -->
+  <g transform="translate(512, 480)">
+    <!-- 山字竖笔 - 左侧 -->
+    <path d="M-120 120 Q-110 40 -100 -40 Q-90 -100 -80 -140" 
+          stroke="white" stroke-width="48" stroke-linecap="round" fill="none"
+          opacity="0.95"/>
+    
+    <!-- 山字竖笔 - 中间主笔，最长 -->
+    <path d="M0 160 Q5 60 10 -60 Q15 -140 20 -200" 
+          stroke="white" stroke-width="56" stroke-linecap="round" fill="none"/>
+    
+    <!-- 山字竖笔 - 右侧 -->
+    <path d="M120 120 Q110 40 100 -40 Q90 -100 80 -140" 
+          stroke="white" stroke-width="48" stroke-linecap="round" fill="none"
+          opacity="0.95"/>
+    
+    <!-- 山字横笔 - 底部，弧线 -->
+    <path d="M-160 120 Q0 180 160 120" 
+          stroke="white" stroke-width="40" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>
