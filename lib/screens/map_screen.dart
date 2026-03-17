@@ -133,8 +133,13 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
   
   /// 初始化离线地图管理器
   Future<void> _initOfflineManager() async {
-    await _offlineManager.initialize();
-    _loadDownloadedCities();
+    // 临时禁用离线地图初始化，原生代码未实现
+    // await _offlineManager.initialize();
+    // _loadDownloadedCities();
+    
+    // TODO: 修复原生 MethodChannel 后恢复
+    debugPrint('离线地图: 已禁用，等待原生实现');
+    return;
     
     // 监听离线模式变化
     _offlineModeSubscription = _offlineManager.offlineModeStream.listen((isOffline) {
