@@ -1,0 +1,39 @@
+name: Build Stable Version
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Build stable APK
+      run: |
+        flutter build apk \
+          --target lib/main_stable.dart \
+          --debug \
+          --no-tree-shake-icons
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: stable-version-apk
+        path: build/app/outputs/flutter-apk/*.apk
