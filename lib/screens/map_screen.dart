@@ -251,7 +251,6 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
       );
     }
   }
-  }
 
   void _onSearch(String text) {
     print('搜索: $text');
