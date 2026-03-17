@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
-// 使用geolocator替代高德定位SDK（GitHub Actions兼容）
-import 'package:geolocator/geolocator.dart';
+import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../analytics/analytics.dart';
 import '../widgets/filter_tags.dart';
@@ -59,8 +58,9 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
   List<OfflineCity> _downloadedCities = [];
   StreamSubscription<bool>? _offlineModeSubscription;
 
-  // 高德定位 - 使用geolocator替代
-  StreamSubscription<Position>? _locationSubscription;
+  // 高德定位
+  late AMapFlutterLocation _locationPlugin;
+  StreamSubscription<Map<String, Object>>? _locationSubscription;
   LatLng? _currentLocation; // 当前真实GPS位置
 
   final List<RouteInfo> _routes = const [
@@ -168,6 +168,8 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
     _scrollController.dispose();
     // 停止定位并释放资源
     _locationSubscription?.cancel();
+    _locationPlugin.stopLocation();
+    _locationPlugin.destroy();
     // 取消离线模式监听
     _offlineModeSubscription?.cancel();
     // 释放离线地图管理器
@@ -214,35 +216,41 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
     }
   }
 
-  /// 初始化定位 - 使用geolocator
+  /// 初始化高德定位
   void _initLocation() {
-    // 使用geolocator监听位置变化
-    _locationSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.best,
-        distanceFilter: 10, // 每10米更新一次
-      ),
-    ).listen(
+    _locationPlugin = AMapFlutterLocation();
+    
+    // 监听定位结果
+    _locationSubscription = _locationPlugin.onLocationChanged().listen(
       _onLocationUpdate,
       onError: (error) {
         debugPrint('定位错误: $error');
       },
     );
-    debugPrint('定位: geolocator已启动');
-  }
 
-  /// 处理定位更新 - 使用geolocator
-  void _onLocationUpdate(Position position) {
-    final newLocation = LatLng(position.latitude, position.longitude);
-    setState(() {
-      _currentLocation = newLocation;
-    });
-    debugPrint('定位更新: lat=${position.latitude}, lng=${position.longitude}, accuracy=${position.accuracy}m');
-    
-    // 移动地图到用户位置
-    _mapController?.moveCamera(
-      CameraUpdate.newLatLng(newLocation),
-    );
+    // 开始定位
+    _locationPlugin.startLocation();
+  }
+  
+  /// 处理定位更新
+  void _onLocationUpdate(Map<String, Object> location) {
+    final double? latitude = location['latitude'] as double?;
+    final double? longitude = location['longitude'] as double?;
+    final double? accuracy = location['accuracy'] as double?;
+
+    if (latitude != null && longitude != null) {
+      final newLocation = LatLng(latitude, longitude);
+      setState(() {
+        _currentLocation = newLocation;
+      });
+      debugPrint('定位更新: lat=$latitude, lng=$longitude, accuracy=${accuracy ?? "unknown"}m');
+      
+      // 移动地图到用户位置
+      _mapController?.moveCamera(
+        CameraUpdate.newLatLng(newLocation),
+      );
+    }
+  }
   }
 
   void _onSearch(String text) {

@@ -12,11 +12,10 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_dotenv: ^5.1.0
-  # 高德地图：仅用于显示，定位用geolocator
+  # 高德地图SDK
   amap_flutter_base: ^3.0.0
   amap_flutter_map: ^3.0.0
-  # 定位：使用geolocator替代高德定位SDK（GitHub Actions兼容）
-  geolocator: ^10.1.0
+  amap_flutter_location: ^3.0.0
   permission_handler: ^11.0.0
   cached_network_image: ^3.3.0
   flutter_tts: ^4.0.2
