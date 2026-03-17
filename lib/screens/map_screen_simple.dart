@@ -110,7 +110,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
 
   @override
   void dispose() {
-    _mapController?.dispose();
+    // AMapController 不需要手动 dispose
     super.dispose();
   }
 }
