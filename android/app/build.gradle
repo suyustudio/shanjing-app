@@ -51,6 +51,11 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        
+        // 高德地图 SDK 需要配置 ABI 过滤器
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"
+        }
     }
 
     buildTypes {
@@ -70,12 +75,15 @@ flutter {
 }
 
 repositories {
-    // 使用Maven Central代替高德私有仓库
     google()
     mavenCentral()
+    // 高德地图 SDK 仓库
+    maven { url 'https://maven.aliyun.com/repository/public' }
 }
 
 dependencies {
-    // 高德定位SDK - 使用Maven Central上的版本
-    implementation 'com.amap.api:location:5.2.0'
+    // 高德地图 SDK (核心地图功能)
+    implementation 'com.amap.api:3dmap:9.7.0'
+    // 高德定位 SDK
+    implementation 'com.amap.api:location:6.4.0'
 }
