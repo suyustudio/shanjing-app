@@ -120,7 +120,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
       
       if (mounted) {
         setState(() {
-          _trails = trailsList.map((e) => Map<String, dynamic>.from(e)).toList();
+          _trails = trailsList.map((e) => Map<String, dynamic>.from(e as Map)).toList();
           _isLoading = false;
         });
         // 初始化并启动列表动画

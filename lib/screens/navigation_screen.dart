@@ -173,7 +173,12 @@ class _NavigationScreenState extends State<NavigationScreen>
       );
     }
     _locationSubscription?.cancel();
-    _locationPlugin.stopLocation();
+    // 安全释放定位资源
+    try {
+      _locationPlugin.stopLocation();
+    } catch (e) {
+      debugPrint('释放定位资源时出错: $e');
+    }
     _flutterTts.stop();
     super.dispose();
   }
