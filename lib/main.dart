@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'screens/map_screen_webview.dart';
+import 'screens/map_screen_simple.dart';
 import 'screens/discovery_screen.dart';
 import 'screens/profile_screen.dart';
 import 'constants/design_system.dart';
@@ -44,7 +44,7 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
-    MapScreenWebview(),
+    MapScreenSimple(),
     DiscoveryScreen(),
     ProfileScreen(),
   ];
