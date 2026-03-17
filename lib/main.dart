@@ -21,11 +21,12 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // 初始化离线地图管理器
-  await OfflineMapManager().initialize();
+  // 初始化离线地图管理器 - 临时禁用，原生代码未实现
+  // await OfflineMapManager().initialize();
+  // TODO: 修复原生 MethodChannel 实现后恢复
 
-  // 初始化网络管理器
-  await NetworkManager().initialize();
+  // 初始化网络管理器 - 临时禁用
+  // await NetworkManager().initialize();
 
   // 初始化埋点 SDK（DEBUG 模式关闭、发布模式开启）
   const bool isDebugMode = bool.fromEnvironment('dart.vm.product') == false;
