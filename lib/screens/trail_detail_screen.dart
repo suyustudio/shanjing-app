@@ -939,7 +939,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: points.map((point) {
           final elevation = point['elevation'] as int? ?? 0;
-          final heightRatio = maxElevation > 0 ? elevation / maxElevation : 0;
+          final heightRatio = maxElevation > 0 ? (elevation / maxElevation).toDouble() : 0.0;
           
           return Column(
             mainAxisAlignment: MainAxisAlignment.end,
