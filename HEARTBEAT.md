@@ -3,49 +3,27 @@
 ## 检查频率
 每 10 分钟检查一次
 
-## 自动调试策略
-
-### 当前问题
-Build #12 运行中 - 纯 Debug 构建
-
-### 已尝试修复
-1. ✅ 禁用友盟SDK - 解决 pub get 失败
-2. ✅ 添加 gradle-wrapper.properties  
-3. ✅ 禁用高德地图SDK
-4. ✅ 禁用ProGuard和代码压缩
-5. ✅ 降级Flutter到3.16.0
-6. ✅ Debug 构建成功 (Build #63)
-7. ❌ Release 构建仍失败
-
-### 当前状态
-- ✅ Debug APK: Build #63 成功
-- ❌ Release APK: 暂时禁用，需要进一步调试
-
-### 下一步
-1. 等待 Build #12 结果（纯 Debug 构建）
-2. 研究 Release 构建失败原因（可能与签名/压缩有关）
-
 ## 收到 Heartbeat 后必须执行（不能只回复 HEARTBEAT_OK）
 
 ### 1. 立即检查 GitHub Actions 状态
-- [ ] 执行：`curl -s "https://api.github.com/repos/suyustudio/shanjing-app/actions/runs?per_page=3"`
-- [ ] 记录构建编号、状态、结论
-- [ ] 如有失败，分析原因
+- [x] 执行：`curl -s "https://api.github.com/repos/suyustudio/shanjing-app/actions/runs?per_page=3"`
+- [x] 记录构建编号、状态、结论
+- [x] 如有失败，分析原因
 
 ### 2. 检查 Push 状态
-- [ ] 执行：`git status | grep "ahead"`
-- [ ] 如有未 push 的 commit，立即重试
-- [ ] 记录 push 结果
+- [x] 执行：`git status | grep "ahead"`
+- [x] 如有未 push 的 commit，立即重试
+- [x] 记录 push 结果
 
 ### 3. 检查 Memory 记录
-- [ ] 检查今日 memory 文件是否存在
-- [ ] 如有未记录的工作内容，立即写入
-- [ ] **不能只在聊天说"记住了"，必须落盘**
+- [x] 检查今日 memory 文件是否存在
+- [x] 如有未记录的工作内容，立即写入
+- [x] **不能只在聊天说"记住了"，必须落盘**
 
 ### 4. 主动汇报
-- [ ] 构建失败 → 告知用户
-- [ ] 需要操作 → 明确说明
-- [ ] push 失败 → 请求协助
+- [x] 构建失败 → 告知用户
+- [x] 需要操作 → 明确说明
+- [x] push 失败 → 请求协助
 
 ## 记忆锚点
 - **HEARTBEAT_OK ≠ 工作完成**
@@ -55,76 +33,164 @@ Build #12 运行中 - 纯 Debug 构建
 
 ---
 
-## 当前状态（2026-03-16 19:00）
+## 当前状态（2026-03-17 结束）
 
-### 🎉 构建成功！
+### 🚨 严重阻塞：推送失败，本地修复无法同步
+
+**今日核心问题：**
+1. M1 阶段的 `abiFilters` 配置丢失，高德 SDK 崩溃问题复发
+2. `lib/main.dart` 引用已删除的 `map_screen_webview.dart`
+3. **git push 多次被 SIGKILL 中断，无法同步到 GitHub**
+
+**本地已修复（未推送）：**
+- ✅ `build.gradle` 添加 `abiFilters` 和高德 SDK 依赖
+- ✅ `lib/main.dart` 改为引用 `MapScreenSimple`
+- ✅ 整理工作流（删除9个混乱配置，保留1个简洁工作流）
+
+**GitHub Actions 状态：**
+| Build | 工作流 | 状态 | 原因 |
+|-------|--------|------|------|
+| ❌ #124 | Release APK | 失败 | main.dart 引用已删除文件 |
+| ❌ #72 | APK with Debug | 失败 | 同上 |
+| ❌ #40 | Minimal Test | 失败 | 同上 |
+
+**阻塞原因：** 远程代码仍为旧版本，需要手动在 GitHub 网站修复
+
+**下一步：**
+- [ ] 手动在 GitHub 网站编辑 `lib/main.dart`
+- [ ] 触发新构建验证
+- [ ] 解决推送失败问题
+
+**历史记录见下方**
+
+**GitHub Actions：**
+- 🔄 Build #49: Build APK with Debug - in_progress
+- 🔄 Build #55: Debug Build - in_progress  
+- 🔄 Build #102: Build and Release APK (Fixed) - in_progress
+- 🔄 Build #18: Build APK - Minimal Test - in_progress
+
+**预计完成：** 5-10分钟内
+
+**本地环境配置：**
+- AVD已配置 (pixel_33)
+- 缺少系统镜像（正在寻找解决方案）
+- 已创建Firebase Test Lab测试脚本作为备选
+
+**等待新构建完成测试**
+
+**之前的修复不完整：**
+- ✅ main.dart中注释了OfflineMapManager.initialize()
+- ❌ 但MapScreen.initState()中又调用了_offlineManager.initialize()
+- ❌ 导致进入首页时仍然触发MethodChannel调用，应用白屏
+
+**新修复：**
+- 注释了MapScreen._initOfflineManager()中的initialize()调用
+- 提交已推送（进行中）
+
+**问题总结：**
+- 离线地图功能的MethodChannel在Android原生代码中未实现
+- 任何调用_offlineManager.initialize()的地方都会导致应用卡死
+- 需要全面检查所有调用点
+
+**GitHub Actions：**
+- 🔄 Build #49: Build APK with Debug - in_progress
+- 🔄 Build #55: Debug Build - in_progress  
+- 🔄 Build #102: Build and Release APK (Fixed) - in_progress
+- 🔄 Build #18: Build APK - Minimal Test - in_progress
+
+**预计完成：** 5-10分钟内
+
+**本地环境配置：**
+- AVD已配置 (pixel_33)
+- 缺少系统镜像（正在寻找解决方案）
+- 已创建Firebase Test Lab测试脚本作为备选
+
+**等待新构建完成测试**
+
+**之前的修复不完整：**
+- ✅ main.dart中注释了OfflineMapManager.initialize()
+- ❌ 但MapScreen.initState()中又调用了_offlineManager.initialize()
+- ❌ 导致进入首页时仍然触发MethodChannel调用，应用白屏
+
+**新修复：**
+- 注释了MapScreen._initOfflineManager()中的initialize()调用
+- 提交已推送（进行中）
+
+**问题总结：**
+- 离线地图功能的MethodChannel在Android原生代码中未实现
+- 任何调用_offlineManager.initialize()的地方都会导致应用卡死
+- 需要全面检查所有调用点
+
+**Icon集成：**
+- 方案4（山水意境风）已打入Android项目
+- 5种分辨率图标已生成并放入mipmap目录
+- AndroidManifest.xml已更新使用自定义图标
+
+**白屏问题：**
+- 根因：OfflineMapManager调用未实现的MethodChannel
+- 修复：临时禁用离线地图和网络管理器初始化
+- 提交：`72048a38`
+
+**推送状态：**
+- Icon提交：`74a44557`（push中）
+- 白屏修复：`72048a38`（等待push）
+
+**检查频率：**
+- 已调整回每20分钟检查一次
+
+**问题根因：**
+- `main.dart` 中的 `OfflineMapManager.initialize()` 调用 `MethodChannel.invokeMethod('initialize')`
+- 但 `MainActivity.kt` 没有注册 `com.shanjing/offline_map` channel 的处理器
+- 导致 Dart 端的调用永远等待，应用卡在白屏
+
+**修复方案：**
+- 临时注释掉 `OfflineMapManager.initialize()` 和 `NetworkManager.initialize()`
+- 应用可以正常启动，离线地图功能暂时不可用
+- 后续需要在 MainActivity.kt 中实现完整的 MethodChannel 处理器
+
+**已提交：** `72048a38` - fix: 临时禁用离线地图和网络管理器初始化
 
 | Build | 工作流 | 状态 | 说明 |
 |-------|--------|------|------|
-| **#50** | Debug Build | ✅ 成功 | Kotlin 1.9.22 修复 |
-| **#44** | Build APK with Debug | ✅ 成功 | APK 22.67 MB |
-| **#13** | Build APK - Minimal Test | ✅ 成功 | 备用构建 |
+| **#51** | Debug Build | ✅ 成功 | 快速检查通过 |
+| **#45** | Build APK with Debug | ✅ 成功 | APK 22.67 MB |
+| **#14** | Build APK - Minimal Test | ✅ 成功 | 备用构建 |
 
-### 修复总结
-1. ✅ 提升 minSdkVersion 至 24（兼容 flutter_tts）
-2. ✅ 添加 destroy() 方法到 OfflineMapPlugin
-3. ✅ 降级 Kotlin 版本至 1.9.22（兼容 AGP 7.3.0）
-4. ✅ 强制所有依赖使用 Kotlin 1.9.22（解决 flutter_tts 版本冲突）
+### 今日关键提交
+**`fix: 修复真机启动白屏问题`**
+- MainActivity 添加 onCreate 方法调用 super.onCreate
+- 启动背景改为透明，避免白屏
 
-### APK 包体大小
-- **标准 Debug APK**: 22.67 MB ✅
-- **下载地址**: https://github.com/suyustudio/shanjing-app/actions/runs/23140599011
+### 状态总结
+- ✅ 最新构建（#51）成功
+- ✅ 最近5个构建全部成功
+- ✅ 白屏问题已修复并提交
+- ⏳ 等待 Firebase Test Lab 验证修复效果
 
-### 历史调试进展
-**发现 Build #85 失败原因**: 
-```
-Plugin [id: 'dev.flutter.flutter-plugin-loader', version: '1.0.0'] was not found
-Settings file '/home/runner/work/shanjing-app/shanjing-app/android/settings.gradle' line: 11
-```
+### 下一步
+1. 在 Firebase Test Lab 重新测试修复后的 APK
+2. 检查 Test Lab 视频是否正常显示（非黑屏）
+3. 如仍有问题，获取完整 logcat 继续排查
 
-**根本原因**: Flutter 3.22.0 的新版 `settings.gradle` 格式使用了 `flutter-plugin-loader` 插件，在 GitHub Actions 环境中无法正确解析。
+---
 
-**修复方案**: 将 `settings.gradle` 改回传统格式，使用 `app_plugin_loader.gradle` 方式加载 Flutter 插件。
+## 历史记录
 
-**状态**: 
-- ✅ Build #39 (Debug Build): 成功！settings.gradle 修复有效
-- ❌ Build #86 (APK构建): 失败 - 代码编译错误
-- ✅ 已推送代码修复 commit: 95692c46
-- ✅ Build #34 进行中（修复代码编译错误）
-- ❌ Build #34 失败 - 仍有代码编译错误
-- ✅ 修复更多 Flutter 代码编译错误 - commit: 460a95a8
-- ✅ Build #41 成功！代码编译完全通过
-- ❌ Build #35/88 失败 - Kotlin编译错误（高德SDK依赖被注释）
-- ✅ 启用高德地图 SDK 依赖 - commit: 0276efb8
-- ❌ Build #5/89 失败 - ./gradlew 不存在
-- ✅ 修复工作流使用 flutter build apk - commit: 9a88061f
-- ❌ Build #91 失败 - .env 资源文件缺失
-- ✅ 移除 .env 资源引用 - commit: 9b78e54e
-- ❌ Build #91 失败 - 高德 Maven 仓库无法访问
-- ✅ 模拟离线地图插件实现 - commit: 18c8fc14
-- ⏳ 推送中（网络延迟）
-
-### Build 状态（cron检查 #68c9f02d-7d56-4a3b-9421-4fec683b0afd）
+### Build 状态（2026-03-16 22:20 检查）
 | Build | 工作流 | 状态 | 结论 | 说明 |
 |-------|--------|------|------|------|
-| #23 | debug.yml | ✅ 成功 | success | Debug构建成功（仅检查） |
-| #70 | build-v55.yml | ❌ 失败 | failure | APK构建失败 |
-| #17 | Build APK with Debug | ❌ 失败 | failure | 简化版构建失败 |
+| #51 | debug.yml | ✅ 成功 | success | 最新构建 |
+| #45 | build-debug.yml | ✅ 成功 | success | APK 构建完成（22.67MB） |
+| #14 | build-minimal.yml | ✅ 成功 | success | 最小化测试 |
 
-**关键发现**: 
-- ✅ Debug工作流（debug.yml）成功 - 仅执行检查，不构建APK
-- ❌ build-v55.yml工作流持续失败 - 实际APK构建失败
-- 失败点都是"Build Debug APK"步骤
-- 问题定位：构建命令本身有问题，需要查看详细日志
+**关键进展**: 
+- ✅ 所有工作流全部成功
+- ✅ 白屏问题修复已提交（MainActivity onCreate 修复）
+- ⏳ 等待 Test Lab 验证修复效果
 
 **Push 状态**: 
-- ✅ 所有修改已push
-- 最新commit: 添加pre-build诊断检查
-
-**需要关注的问题**:
-1. APK构建步骤持续失败
-2. 需要查看Build #70详细错误日志
-3. Debug Build工作流和实际构建的差异
+- ✅ 所有修改已 push
+- 最新 commit: 修复真机启动白屏问题
 
 ### 今日工作总结（2026-03-15）
 
@@ -187,5 +253,4 @@ Settings file '/home/runner/work/shanjing-app/shanjing-app/android/settings.grad
 - 安排实地导航测试
 - 完成安全功能后端联调
 - M2迭代开发
-
 ---
