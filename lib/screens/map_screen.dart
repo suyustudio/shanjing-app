@@ -129,6 +129,7 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
     super.initState();
     _requestPermission();
     _initOfflineManager();
+    _initLocation(); // 初始化高德定位
   }
 
   /// 初始化离线地图管理器
@@ -168,8 +169,13 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
     _scrollController.dispose();
     // 停止定位并释放资源
     _locationSubscription?.cancel();
-    _locationPlugin.stopLocation();
-    _locationPlugin.destroy();
+    // 只有在定位初始化后才调用停止和销毁
+    try {
+      _locationPlugin.stopLocation();
+      _locationPlugin.destroy();
+    } catch (e) {
+      debugPrint('释放定位资源时出错: $e');
+    }
     // 取消离线模式监听
     _offlineModeSubscription?.cancel();
     // 释放离线地图管理器
