@@ -259,6 +259,79 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     );
   }
 
+  /// 显示SOS紧急求助对话框
+  void _showSOSDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red),
+            SizedBox(width: 8),
+            Text('紧急求助'),
+          ],
+        ),
+        content: const Text(
+          '您即将触发紧急求助功能，将向紧急联系人发送您的位置信息。\n\n确定要发送吗？',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _triggerSOS();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('发送求助'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 触发SOS求助
+  void _triggerSOS() {
+    // 获取当前位置
+    final position = _currentPosition;
+    
+    // 显示倒计时
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _SOSCountdownDialog(
+        onCancel: () => Navigator.pop(context),
+        onConfirm: () {
+          Navigator.pop(context);
+          _sendSOSMessage(position);
+        },
+      ),
+    );
+  }
+
+  /// 发送SOS消息
+  void _sendSOSMessage(LatLng? position) {
+    // TODO: 调用后端SOS API
+    // 目前仅显示提示
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          position != null
+            ? 'SOS已发送！位置：${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}'
+            : 'SOS已发送！（位置未知，请确保GPS已开启）',
+        ),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+
   /// 构建底部路线卡片列表
   Widget _buildBottomRouteList() {
     return Positioned(
@@ -443,7 +516,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
                     Text(
                       _isLocating 
                         ? '正在定位...' 
-                        : (_currentPosition != null ? '已定位' : '地图 v6 - 含详情跳转'),
+                        : (_currentPosition != null ? '已定位' : '地图 v7 - 含SOS'),
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ],
@@ -503,6 +576,21 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
             },
             child: const Icon(Icons.remove),
           ),
+          const SizedBox(height: 16),
+          // SOS紧急求助按钮
+          FloatingActionButton(
+            heroTag: 'sos',
+            onPressed: _showSOSDialog,
+            backgroundColor: Colors.red,
+            child: const Text(
+              'SOS',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -513,5 +601,84 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     _stopLocation();
     _locationPlugin?.destroy();
     super.dispose();
+  }
+}
+
+/// SOS倒计时对话框
+class _SOSCountdownDialog extends StatefulWidget {
+  final VoidCallback onCancel;
+  final VoidCallback onConfirm;
+
+  const _SOSCountdownDialog({
+    required this.onCancel,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_SOSCountdownDialog> createState() => _SOSCountdownDialogState();
+}
+
+class _SOSCountdownDialogState extends State<_SOSCountdownDialog> {
+  int _countdown = 3;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCountdown();
+  }
+
+  void _startCountdown() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown > 1) {
+        setState(() => _countdown--);
+      } else {
+        timer.cancel();
+        widget.onConfirm();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Row(
+        children: [
+          Icon(Icons.warning_amber, color: Colors.red),
+          SizedBox(width: 8),
+          Text('即将发送求助'),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('将在倒计时结束后自动发送求助信息'),
+          const SizedBox(height: 24),
+          Text(
+            '$_countdown',
+            style: const TextStyle(
+              fontSize: 48,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            _timer?.cancel();
+            widget.onCancel();
+          },
+          child: const Text('取消发送'),
+        ),
+      ],
+    );
   }
 }
