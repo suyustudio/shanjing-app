@@ -871,21 +871,6 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
             },
             child: const Icon(Icons.remove),
           ),
-          const SizedBox(height: 16),
-          // SOS紧急求助按钮
-          FloatingActionButton(
-            heroTag: 'sos',
-            onPressed: _showSOSDialog,
-            backgroundColor: Colors.red,
-            child: const Text(
-              'SOS',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
         ],
       ),
     );

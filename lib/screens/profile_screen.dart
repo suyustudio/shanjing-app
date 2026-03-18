@@ -4,6 +4,7 @@ import '../constants/design_system.dart';
 import '../widgets/app_app_bar.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
+import 'safety_center_screen.dart';
 
 /// 我的页面
 class ProfileScreen extends StatefulWidget {
@@ -49,6 +50,14 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
     ).then((_) => _checkLoginStatus()); // 返回后刷新登录状态
+  }
+
+  /// 跳转到安全中心
+  void _goToSafetyCenter() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SafetyCenterScreen()),
+    );
   }
 
   /// 退出登录
@@ -240,6 +249,32 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
             color: DesignSystem.getTextTertiary(context),
           ),
           onTap: () {},
+        ),
+        // SOS安全中心
+        ListTile(
+          leading: Icon(
+            Icons.emergency,
+            color: Colors.red.shade400,
+          ),
+          title: Text(
+            '安全中心',
+            style: TextStyle(
+              color: DesignSystem.getTextPrimary(context),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          subtitle: Text(
+            '紧急求助 & 位置分享',
+            style: TextStyle(
+              fontSize: 12,
+              color: DesignSystem.getTextTertiary(context),
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: DesignSystem.getTextTertiary(context),
+          ),
+          onTap: _goToSafetyCenter,
         ),
         ListTile(
           leading: Icon(
