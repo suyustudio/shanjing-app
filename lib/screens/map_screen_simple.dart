@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
@@ -28,8 +31,12 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   BitmapDescriptor? _endMarkerIcon;
   BitmapDescriptor? _loopMarkerIcon;
   
-  // 测试路线数据（杭州西湖周边）- 更多点让曲线更平滑，增加停车场
-  final List<Map<String, dynamic>> _testRoutes = const [
+  // 路线数据（从assets加载）
+  List<Map<String, dynamic>> _routes = [];
+  bool _isLoadingRoutes = false;
+  
+  // 默认测试路线数据（杭州西湖周边）- 作为fallback
+  final List<Map<String, dynamic>> _defaultRoutes = const [
     {
       'id': '1',
       'name': '断桥残雪',
@@ -318,6 +325,122 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     super.initState();
     _initLocation();
     _loadMarkerIcons();
+    _loadRoutes();
+  }
+  
+  /// 从assets加载路线数据
+  Future<void> _loadRoutes() async {
+    setState(() {
+      _isLoadingRoutes = true;
+    });
+    
+    try {
+      final String jsonString = await rootBundle.loadString('data/json/trails-all.json');
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
+      final List<dynamic> trails = jsonData['trails'] ?? [];
+      
+      // 转换数据格式
+      final List<Map<String, dynamic>> loadedRoutes = trails.map((trail) {
+        final coordinates = trail['coordinates'] as List<dynamic>? ?? [];
+        
+        // 将 coordinates 转换为 path (List<LatLng>)
+        final List<LatLng> path = coordinates.map((coord) {
+          if (coord is List && coord.length >= 2) {
+            // 数据格式是 [longitude, latitude]
+            return LatLng(coord[1].toDouble(), coord[0].toDouble());
+          }
+          return null;
+        }).whereType<LatLng>().toList();
+        
+        // 计算路线中心点（取第一个坐标作为位置）
+        final LatLng position = path.isNotEmpty 
+            ? path.first 
+            : const LatLng(30.25, 120.15);
+        
+        return {
+          'id': trail['id']?.toString() ?? '',
+          'name': trail['name']?.toString() ?? '未知道线',
+          'position': position,
+          'difficulty': _mapDifficulty(trail['difficulty']?.toString()),
+          'path': path,
+          'distance': trail['distance'] ?? 0,
+          'duration': trail['duration'] ?? 0,
+          'previewImage': trail['coverImage']?.toString() ?? 
+                          'https://picsum.photos/seed/${trail['id']}/400/200',
+          'rawData': trail, // 保存原始数据用于详情页
+        };
+      }).toList();
+      
+      setState(() {
+        _routes = loadedRoutes;
+        _isLoadingRoutes = false;
+      });
+      
+      debugPrint('✅ 加载了 ${loadedRoutes.length} 条路线');
+    } catch (e) {
+      debugPrint('❌ 加载路线失败: $e');
+      setState(() {
+        // 使用默认数据作为fallback
+        _routes = _defaultRoutes;
+        _isLoadingRoutes = false;
+      });
+    }
+  }
+  
+  /// 将难度英文映射为中文
+  String _mapDifficulty(String? difficulty) {
+    switch (difficulty) {
+      case 'easy':
+        return '简单';
+      case 'medium':
+      case 'moderate':
+        return '中等';
+      case 'hard':
+      case 'difficult':
+        return '困难';
+      default:
+        return '简单';
+    }
+  }
+  
+  /// 计算两点之间的距离（米）
+  double _calculateDistance(LatLng p1, LatLng p2) {
+    const double earthRadius = 6371000; // 地球半径（米）
+    final double dLat = (p2.latitude - p1.latitude) * pi / 180;
+    final double dLon = (p2.longitude - p1.longitude) * pi / 180;
+    final double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(p1.latitude * pi / 180) *
+            cos(p2.latitude * pi / 180) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return earthRadius * c;
+  }
+  
+  /// 获取推荐的路线（根据当前位置排序）
+  List<Map<String, dynamic>> _getRecommendedRoutes() {
+    if (_currentPosition == null || _routes.isEmpty) {
+      return _routes;
+    }
+    
+    // 计算每条路线距离当前位置的距离
+    final List<Map<String, dynamic>> routesWithDistance = _routes.map((route) {
+      final position = route['position'] as LatLng;
+      final distance = _calculateDistance(_currentPosition!, position);
+      return {
+        ...route,
+        '_distance': distance,
+      };
+    }).toList();
+    
+    // 按距离排序（最近的在前）
+    routesWithDistance.sort((a, b) {
+      final distA = a['_distance'] as double;
+      final distB = b['_distance'] as double;
+      return distA.compareTo(distB);
+    });
+    
+    return routesWithDistance;
   }
 
   /// 加载自定义标记图标
@@ -426,7 +549,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   Set<Marker> get _routeMarkers {
     final markers = <Marker>{};
     
-    for (final route in _testRoutes) {
+    for (final route in _routes) {
       final path = route['path'] as List<dynamic>?;
       
       if (path != null && path.isNotEmpty) {
@@ -463,7 +586,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   // 停车场标记
   Set<Marker> get _parkingMarkers {
     final markers = <Marker>{};
-    for (final route in _testRoutes) {
+    for (final route in _routes) {
       final parkingLots = route['parkingLots'] as List<dynamic>?;
       if (parkingLots != null) {
         for (final parking in parkingLots) {
@@ -485,7 +608,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
 
   // 路线轨迹线
   Set<Polyline> get _routePolylines {
-    return _testRoutes.map((route) {
+    return _routes.map((route) {
       final Color lineColor;
       switch (route['difficulty']) {
         case '简单':
@@ -533,25 +656,41 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
 
   /// 点击路线卡片 - 跳转到详情页
   void _onRouteCardTap(Map<String, dynamic> route) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TrailDetailScreen(
-          trailData: {
-            'id': route['id'],
-            'name': route['name'],
-            'difficulty': route['difficulty'],
-            'difficultyLevel': route['difficulty'] == '简单' ? 2 : route['difficulty'] == '困难' ? 4 : 3,
-            'distance': 5.0,
-            'duration': 120,
-            'elevation': 50,
-            'description': '${route['name']}是一条风景优美的徒步路线，难度${route['difficulty']}。',
-            'previewImage': route['previewImage'],
-            'parkingLots': route['parkingLots'],
-          },
+    // 优先使用原始数据，如果没有则构造数据
+    final rawData = route['rawData'] as Map<String, dynamic>?;
+    
+    if (rawData != null) {
+      // 使用完整的原始数据
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TrailDetailScreen(trailData: rawData),
         ),
-      ),
-    );
+      );
+    } else {
+      // 使用构造的数据（fallback）
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TrailDetailScreen(
+            trailData: {
+              'id': route['id'],
+              'name': route['name'],
+              'difficulty': route['difficulty'] == '简单' 
+                  ? 'easy' 
+                  : route['difficulty'] == '困难' 
+                      ? 'hard' 
+                      : 'medium',
+              'distance': route['distance'] ?? 5.0,
+              'duration': route['duration'] ?? 120,
+              'coordinates': (route['path'] as List<LatLng>?)?.map((latLng) => [latLng.longitude, latLng.latitude]).toList(),
+              'description': '${route['name']}是一条风景优美的徒步路线，难度${route['difficulty']}。',
+              'coverImage': route['previewImage'],
+            },
+          ),
+        ),
+      );
+    }
   }
 
   /// 显示SOS紧急求助对话框
@@ -629,6 +768,58 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
 
   /// 构建底部路线卡片列表
   Widget _buildBottomRouteList() {
+    final recommendedRoutes = _getRecommendedRoutes();
+    
+    if (_isLoadingRoutes) {
+      return Positioned(
+        bottom: 16,
+        left: 16,
+        right: 16,
+        child: Container(
+          height: 100,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+    
+    if (recommendedRoutes.isEmpty) {
+      return Positioned(
+        bottom: 16,
+        left: 16,
+        right: 16,
+        child: Container(
+          height: 100,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Center(
+            child: Text('暂无路线数据'),
+          ),
+        ),
+      );
+    }
+    
     return Positioned(
       bottom: 16,
       left: 16,
@@ -649,10 +840,11 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.all(12),
-          itemCount: _testRoutes.length,
+          itemCount: recommendedRoutes.length,
           separatorBuilder: (_, __) => const SizedBox(width: 12),
           itemBuilder: (context, index) {
-            final route = _testRoutes[index];
+            final route = recommendedRoutes[index];
+            final distance = route['_distance'] as double?;
             final Color difficultyColor;
             switch (route['difficulty']) {
               case '简单':
@@ -670,7 +862,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
             return GestureDetector(
               onTap: () => _onRouteCardTap(route),
               child: Container(
-                width: 140,
+                width: 160,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: DesignSystem.getBackgroundElevated(context),
@@ -715,6 +907,17 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
                         color: DesignSystem.getTextSecondary(context),
                       ),
                     ),
+                    if (distance != null)
+                      Text(
+                        distance < 1000 
+                            ? '距你 ${distance.toStringAsFixed(0)}m'
+                            : '距你 ${(distance / 1000).toStringAsFixed(1)}km',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: DesignSystem.getPrimary(context),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                   ],
                 ),
               ),
