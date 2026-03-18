@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'screens/map_screen_simple.dart';
 import 'screens/discovery_screen.dart';
 import 'screens/profile_screen.dart';
@@ -8,6 +9,10 @@ import 'constants/design_system.dart';
 // 稳定版本 - 使用简化的地图页面（无定位、无离线功能）
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 高德地图隐私合规设置
+  AMapFlutterLocation.updatePrivacyShow(true, true);
+  AMapFlutterLocation.updatePrivacyAgree(true);
 
   // 性能优化：设置首选方向
   await SystemChrome.setPreferredOrientations([
