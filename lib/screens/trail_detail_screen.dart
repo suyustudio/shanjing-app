@@ -456,9 +456,9 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             color: DesignSystem.getBackgroundTertiary(context),
-            image: _trailData['coverUrl'] != null
+            image: _trailData['coverUrl'] != null || _trailData['previewImage'] != null
               ? DecorationImage(
-                  image: NetworkImage(_trailData['coverUrl'] as String),
+                  image: NetworkImage(_trailData['coverUrl'] ?? _trailData['previewImage'] as String),
                   fit: BoxFit.cover,
                 )
               : null,
@@ -1234,6 +1234,8 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
 
   /// 构建攻略 Tab
   Widget _buildGuideTab() {
+    final parkingLots = _trailData['parkingLots'] as List<dynamic>?;
+    
     final guides = [
       {
         'title': '最佳徒步时间',
@@ -1249,6 +1251,13 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         'title': '交通指南',
         'icon': Icons.directions_bus,
         'content': '公交：乘坐27路、87路至龙井村站下车\n自驾：导航至"龙井村停车场"，停车费10元/小时\n地铁：乘1号线至凤起路站，转乘公交27路',
+      },
+      {
+        'title': '停车场信息',
+        'icon': Icons.local_parking,
+        'content': parkingLots != null && parkingLots.isNotEmpty
+            ? parkingLots.map((p) => '\u2022 ${p['name']}').join('\n')
+            : '暂无停车场信息',
       },
       {
         'title': '注意事项',

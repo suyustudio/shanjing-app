@@ -23,54 +23,61 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   LatLng? _currentPosition;
   bool _isLocating = false;
   
-  // 测试路线数据（杭州西湖周边）- 更多点让曲线更平滑
+  // 测试路线数据（杭州西湖周边）- 更多点让曲线更平滑，增加停车场
   final List<Map<String, dynamic>> _testRoutes = const [
     {
       'id': '1',
       'name': '断桥残雪',
-      'position': LatLng(30.259, 120.148), // 断桥
+      'position': LatLng(30.259, 120.148),
       'difficulty': '简单',
-      // 白堤漫步路线（更多点，曲线平滑）
+      // 白堤漫步路线
       'path': [
-        LatLng(30.2575, 120.1465), // 起点：锦带桥
+        LatLng(30.2575, 120.1465),
         LatLng(30.2578, 120.1468),
         LatLng(30.2580, 120.1470),
         LatLng(30.2582, 120.1472),
         LatLng(30.2585, 120.1474),
         LatLng(30.2588, 120.1476),
-        LatLng(30.2590, 120.1478), // 平湖秋月附近
+        LatLng(30.2590, 120.1478),
         LatLng(30.2592, 120.1480),
         LatLng(30.2594, 120.1482),
         LatLng(30.2596, 120.1484),
         LatLng(30.2598, 120.1486),
-        LatLng(30.2600, 120.1488), // 断桥
+        LatLng(30.2600, 120.1488),
         LatLng(30.2602, 120.1490),
         LatLng(30.2604, 120.1492),
-        LatLng(30.2606, 120.1494), // 终点：北山街入口
+        LatLng(30.2606, 120.1494),
       ],
+      // 停车场位置
+      'parkingLots': [
+        {'name': '白堤停车场', 'position': LatLng(30.2585, 120.1470)},
+        {'name': '北山街停车场', 'position': LatLng(30.2605, 120.1495)},
+      ],
+      // 预览图
+      'previewImage': 'https://picsum.photos/seed/duanqiao/400/200',
     },
     {
       'id': '2',
       'name': '苏堤春晓',
-      'position': LatLng(30.235, 120.135), // 苏堤
+      'position': LatLng(30.235, 120.135),
       'difficulty': '中等',
-      // 苏堤南北走向（完整路线，更多点）
+      // 苏堤完整路线
       'path': [
-        LatLng(30.2280, 120.1365), // 起点：南山路
+        LatLng(30.2280, 120.1365),
         LatLng(30.2285, 120.1363),
         LatLng(30.2290, 120.1360),
         LatLng(30.2295, 120.1358),
-        LatLng(30.2300, 120.1356), // 花港观鱼附近
+        LatLng(30.2300, 120.1356),
         LatLng(30.2305, 120.1355),
         LatLng(30.2310, 120.1354),
         LatLng(30.2315, 120.1354),
         LatLng(30.2320, 120.1353),
         LatLng(30.2325, 120.1353),
-        LatLng(30.2330, 120.1352), // 三潭印月附近
+        LatLng(30.2330, 120.1352),
         LatLng(30.2335, 120.1352),
         LatLng(30.2340, 120.1351),
         LatLng(30.2345, 120.1351),
-        LatLng(30.2350, 120.1350), // 苏堤中段
+        LatLng(30.2350, 120.1350),
         LatLng(30.2355, 120.1349),
         LatLng(30.2360, 120.1348),
         LatLng(30.2365, 120.1347),
@@ -80,69 +87,86 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
         LatLng(30.2385, 120.1343),
         LatLng(30.2390, 120.1342),
         LatLng(30.2395, 120.1341),
-        LatLng(30.2400, 120.1340), // 曲院风荷附近
+        LatLng(30.2400, 120.1340),
         LatLng(30.2405, 120.1338),
-        LatLng(30.2410, 120.1336), // 终点：北山街
+        LatLng(30.2410, 120.1336),
       ],
+      'parkingLots': [
+        {'name': '苏堤南口停车场', 'position': LatLng(30.2280, 120.1365)},
+        {'name': '花港观鱼停车场', 'position': LatLng(30.2305, 120.1358)},
+        {'name': '曲院风荷停车场', 'position': LatLng(30.2400, 120.1335)},
+      ],
+      'previewImage': 'https://picsum.photos/seed/sudi/400/200',
     },
     {
       'id': '3',
       'name': '灵隐寺',
-      'position': LatLng(30.242, 120.100), // 灵隐
+      'position': LatLng(30.242, 120.100),
       'difficulty': '困难',
-      // 灵隐到飞来峰路线（山路线，更多点）
+      // 灵隐到飞来峰
       'path': [
-        LatLng(30.2380, 120.0980), // 起点：灵隐入口
+        LatLng(30.2380, 120.0980),
         LatLng(30.2383, 120.0982),
         LatLng(30.2386, 120.0984),
         LatLng(30.2389, 120.0986),
         LatLng(30.2392, 120.0988),
-        LatLng(30.2395, 120.0990), // 灵隐寺山门
+        LatLng(30.2395, 120.0990),
         LatLng(30.2398, 120.0992),
         LatLng(30.2401, 120.0994),
         LatLng(30.2404, 120.0996),
         LatLng(30.2407, 120.0998),
-        LatLng(30.2410, 120.1000), // 大雄宝殿
+        LatLng(30.2410, 120.1000),
         LatLng(30.2413, 120.1002),
         LatLng(30.2416, 120.1004),
         LatLng(30.2419, 120.1006),
         LatLng(30.2422, 120.1008),
-        LatLng(30.2425, 120.1010), // 药师殿
+        LatLng(30.2425, 120.1010),
         LatLng(30.2428, 120.1012),
         LatLng(30.2431, 120.1014),
         LatLng(30.2434, 120.1016),
         LatLng(30.2437, 120.1018),
-        LatLng(30.2440, 120.1020), // 飞来峰造像
+        LatLng(30.2440, 120.1020),
         LatLng(30.2443, 120.1023),
-        LatLng(30.2446, 120.1026), // 终点：飞来峰顶
+        LatLng(30.2446, 120.1026),
       ],
+      'parkingLots': [
+        {'name': '灵隐停车场', 'position': LatLng(30.2375, 120.0975)},
+        {'name': '灵隐百货停车场', 'position': LatLng(30.2390, 120.0985)},
+        {'name': '梅灵北路停车场', 'position': LatLng(30.2440, 120.1025)},
+      ],
+      'previewImage': 'https://picsum.photos/seed/lingyin/400/200',
     },
     {
       'id': '4',
       'name': '法喜寺',
-      'position': LatLng(30.235, 120.088), // 法喜寺
+      'position': LatLng(30.235, 120.088),
       'difficulty': '中等',
-      // 法喜寺周边路线（更多点）
+      // 天竺路
       'path': [
-        LatLng(30.2320, 120.0860), // 起点：天竺路
+        LatLng(30.2320, 120.0860),
         LatLng(30.2323, 120.0862),
         LatLng(30.2326, 120.0864),
         LatLng(30.2329, 120.0866),
-        LatLng(30.2332, 120.0868), // 法镜寺附近
+        LatLng(30.2332, 120.0868),
         LatLng(30.2335, 120.0870),
         LatLng(30.2338, 120.0872),
         LatLng(30.2341, 120.0874),
         LatLng(30.2344, 120.0876),
-        LatLng(30.2347, 120.0878), // 法净寺附近
-        LatLng(30.2350, 120.0880), // 法喜寺
+        LatLng(30.2347, 120.0878),
+        LatLng(30.2350, 120.0880),
         LatLng(30.2353, 120.0882),
         LatLng(30.2356, 120.0884),
         LatLng(30.2359, 120.0886),
-        LatLng(30.2362, 120.0888), // 藏经楼
+        LatLng(30.2362, 120.0888),
         LatLng(30.2365, 120.0890),
         LatLng(30.2368, 120.0892),
-        LatLng(30.2371, 120.0894), // 终点：后山观景台
+        LatLng(30.2371, 120.0894),
       ],
+      'parkingLots': [
+        {'name': '法喜寺停车场', 'position': LatLng(30.2315, 120.0855)},
+        {'name': '天竺路停车场', 'position': LatLng(30.2340, 120.0875)},
+      ],
+      'previewImage': 'https://picsum.photos/seed/faxi/400/200',
     },
   ];
   
@@ -264,9 +288,32 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     }).toSet();
   }
 
-  // 所有标记（位置 + 路线）
+  // 所有标记（位置 + 路线 + 停车场）
   Set<Marker> get _allMarkers {
-    return {..._locationMarkers, ..._routeMarkers};
+    return {..._locationMarkers, ..._routeMarkers, ..._parkingMarkers};
+  }
+
+  // 停车场标记
+  Set<Marker> get _parkingMarkers {
+    final markers = <Marker>{};
+    for (final route in _testRoutes) {
+      final parkingLots = route['parkingLots'] as List<dynamic>?;
+      if (parkingLots != null) {
+        for (final parking in parkingLots) {
+          markers.add(
+            Marker(
+              position: parking['position'] as LatLng,
+              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+              infoWindow: InfoWindow(
+                title: '🅿️ ${parking['name']}',
+                snippet: '停车场',
+              ),
+            ),
+          );
+        }
+      }
+    }
+    return markers;
   }
 
   // 路线轨迹线
@@ -328,10 +375,12 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
             'name': route['name'],
             'difficulty': route['difficulty'],
             'difficultyLevel': route['difficulty'] == '简单' ? 2 : route['difficulty'] == '困难' ? 4 : 3,
-            'distance': 5.0, // 简化数据
+            'distance': 5.0,
             'duration': 120,
             'elevation': 50,
             'description': '${route['name']}是一条风景优美的徒步路线，难度${route['difficulty']}。',
+            'previewImage': route['previewImage'],
+            'parkingLots': route['parkingLots'],
           },
         ),
       ),
