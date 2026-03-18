@@ -187,6 +187,8 @@ class _NavigationScreenState extends State<NavigationScreen>
     } catch (e) {
       debugPrint('停止 TTS 时出错: $e');
     }
+    // 释放地图控制器
+    _mapController = null;
     super.dispose();
   }
 
