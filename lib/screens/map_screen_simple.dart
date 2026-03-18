@@ -26,6 +26,10 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   LatLng? _currentPosition;
   bool _isLocating = false;
   
+  // 显示模式：true=显示全部路线，false=只显示附近路线
+  bool _showAllRoutes = false;
+  static const double _nearbyDistanceThreshold = 50000; // 50km
+  
   // 自定义标记图标
   BitmapDescriptor? _startMarkerIcon;
   BitmapDescriptor? _endMarkerIcon;
@@ -419,28 +423,52 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   
   /// 获取推荐的路线（根据当前位置排序）
   List<Map<String, dynamic>> _getRecommendedRoutes() {
-    if (_currentPosition == null || _routes.isEmpty) {
+    if (_routes.isEmpty) {
+      return [];
+    }
+    
+    // 无定位或显示全部模式 → 返回所有路线
+    if (_currentPosition == null || _showAllRoutes) {
       return _routes;
     }
     
-    // 计算每条路线距离当前位置的距离
-    final List<Map<String, dynamic>> routesWithDistance = _routes.map((route) {
+    // 有定位 → 筛选附近路线（50km内）
+    final List<Map<String, dynamic>> nearbyRoutes = [];
+    
+    for (final route in _routes) {
       final position = route['position'] as LatLng;
       final distance = _calculateDistance(_currentPosition!, position);
-      return {
-        ...route,
-        '_distance': distance,
-      };
-    }).toList();
+      
+      if (distance <= _nearbyDistanceThreshold) {
+        nearbyRoutes.add({
+          ...route,
+          '_distance': distance,
+        });
+      }
+    }
     
-    // 按距离排序（最近的在前）
-    routesWithDistance.sort((a, b) {
+    // 按距离排序
+    nearbyRoutes.sort((a, b) {
       final distA = a['_distance'] as double;
       final distB = b['_distance'] as double;
       return distA.compareTo(distB);
     });
     
-    return routesWithDistance;
+    return nearbyRoutes;
+  }
+  
+  /// 检查附近是否有路线
+  bool get _hasNearbyRoutes {
+    if (_currentPosition == null) return false;
+    
+    for (final route in _routes) {
+      final position = route['position'] as LatLng;
+      final distance = _calculateDistance(_currentPosition!, position);
+      if (distance <= _nearbyDistanceThreshold) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// 加载自定义标记图标
@@ -795,6 +823,59 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
       );
     }
     
+    // 附近无路线时的空状态
+    if (recommendedRoutes.isEmpty && !_showAllRoutes) {
+      return Positioned(
+        bottom: 16,
+        left: 16,
+        right: 16,
+        child: Container(
+          height: 120,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.location_off_outlined,
+                color: Colors.grey.shade400,
+                size: 32,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '附近 50km 内暂无路线',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _showAllRoutes = true;
+                  });
+                },
+                icon: const Icon(Icons.map_outlined, size: 18),
+                label: const Text('查看全部路线'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    // 真正无数据的状态
     if (recommendedRoutes.isEmpty) {
       return Positioned(
         bottom: 16,
@@ -990,35 +1071,79 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: DesignSystem.getPrimary(context),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_isLocating)
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    else
-                      const Icon(Icons.location_on, color: Colors.white, size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      _isLocating 
-                        ? '正在定位...' 
-                        : (_currentPosition != null ? '已定位' : '地图 v7 - 含SOS'),
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 定位状态
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: DesignSystem.getPrimary(context),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                  ],
-                ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_isLocating)
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        else
+                          const Icon(Icons.location_on, color: Colors.white, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isLocating
+                              ? '正在定位...'
+                              : (_currentPosition != null ? '已定位' : '地图 v7 - 含SOS'),
+                          style: const TextStyle(color: Colors.white, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 模式切换提示
+                  if (_showAllRoutes && _currentPosition != null && _hasNearbyRoutes)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _showAllRoutes = false;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade100,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.orange.shade300),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.near_me, size: 14, color: Colors.orange.shade800),
+                              const SizedBox(width: 4),
+                              Text(
+                                '显示全部路线',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange.shade800,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(Icons.swap_horiz, size: 14, color: Colors.orange.shade800),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
