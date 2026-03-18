@@ -49,8 +49,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
           _currentPosition = LatLng(latitude, longitude);
           _isLocating = false;
         });
-        // 添加位置标记
-        _addLocationMarker();
+        // 位置已更新，markers 会自动重新构建
       }
     });
   }
@@ -87,20 +86,19 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     }
   }
 
-  /// 添加当前位置标记
-  void _addLocationMarker() {
-    if (_currentPosition == null || _mapController == null) return;
-    
-    final marker = Marker(
-      position: _currentPosition!,
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-      infoWindow: const InfoWindow(
-        title: '当前位置',
-        snippet: '我在这里',
+  // 当前位置标记
+  Set<Marker> get _locationMarkers {
+    if (_currentPosition == null) return {};
+    return {
+      Marker(
+        position: _currentPosition!,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        infoWindow: const InfoWindow(
+          title: '当前位置',
+          snippet: '我在这里',
+        ),
       ),
-    );
-    
-    _mapController?.addMarker(marker);
+    };
   }
 
   /// 定位到当前位置
@@ -114,7 +112,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
           ),
         ),
       );
-      _addLocationMarker();
+      // 位置标记已通过 markers 参数自动显示
     } else {
       // 没有位置，先获取
       _startLocation();
@@ -152,8 +150,8 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
             zoomGesturesEnabled: true,
             rotateGesturesEnabled: false,
             tiltGesturesEnabled: false,
-            // 注：amap_flutter_map 3.0+ 不支持 myLocationEnabled 参数
-            // 定位功能通过 AMapController 设置
+            // 显示当前位置标记
+            markers: _locationMarkers,
           ),
           
           // 顶部安全区域提示
