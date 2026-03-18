@@ -95,7 +95,7 @@ class _SafetyCenterScreenState extends State<SafetyCenterScreen> {
                 children: [
                   Icon(
                     Icons.people,
-                    color: DesignSystem.primaryColor,
+                    color: DesignSystem.primary,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -485,7 +485,7 @@ class _ContactManagerSheet extends StatelessWidget {
                       );
                     },
                     icon: const Icon(Icons.add),
-                    color: DesignSystem.primaryColor,
+                    color: DesignSystem.primary,
                   );
                 },
               ),
@@ -634,7 +634,7 @@ class _AddContactBottomSheetState extends State<_AddContactBottomSheet> {
             child: ElevatedButton(
               onPressed: _isLoading ? null : _saveContact,
               style: ElevatedButton.styleFrom(
-                backgroundColor: DesignSystem.primaryColor,
+                backgroundColor: DesignSystem.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

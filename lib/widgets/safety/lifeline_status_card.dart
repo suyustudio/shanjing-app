@@ -39,7 +39,7 @@ class LifelineStatusCard extends StatelessWidget {
               boxShadow: isActive
                   ? [
                       BoxShadow(
-                        color: DesignSystem.primaryColor.withOpacity(0.2),
+                        color: DesignSystem.primary.withOpacity(0.2),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -305,7 +305,7 @@ class LifelineStatusCard extends StatelessWidget {
             icon: const Icon(Icons.shield, size: 18),
             label: const Text('开启行程守护'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: DesignSystem.primaryColor,
+              backgroundColor: DesignSystem.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(

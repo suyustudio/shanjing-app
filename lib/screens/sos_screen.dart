@@ -539,7 +539,7 @@ class _SOSScreenState extends State<SOSScreen> with TickerProviderStateMixin {
             ),
             child: Row(
               children: [
-                Icon(Icons.location_on, color: DesignSystem.primaryColor),
+                Icon(Icons.location_on, color: DesignSystem.primary),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

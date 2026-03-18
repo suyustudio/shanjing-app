@@ -115,7 +115,7 @@ class _LifelineSetupScreenState extends State<LifelineSetupScreen> {
     return Container(
       padding: const EdgeInsets.all(DesignSystem.spacingLarge),
       decoration: BoxDecoration(
-        color: DesignSystem.primaryColor.withOpacity(0.1),
+        color: DesignSystem.primary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -123,7 +123,7 @@ class _LifelineSetupScreenState extends State<LifelineSetupScreen> {
           Icon(
             Icons.shield,
             size: 48,
-            color: DesignSystem.primaryColor,
+            color: DesignSystem.primary,
           ),
           const SizedBox(height: DesignSystem.spacingSmall),
           Text(
@@ -131,7 +131,7 @@ class _LifelineSetupScreenState extends State<LifelineSetupScreen> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: DesignSystem.primaryColor,
+              color: DesignSystem.primary,
             ),
           ),
           const SizedBox(height: 4),
@@ -139,7 +139,7 @@ class _LifelineSetupScreenState extends State<LifelineSetupScreen> {
             '超时未归时自动通知紧急联系人',
             style: TextStyle(
               fontSize: 14,
-              color: DesignSystem.primaryColor.withOpacity(0.8),
+              color: DesignSystem.primary.withOpacity(0.8),
             ),
           ),
         ],
@@ -262,7 +262,7 @@ class _LifelineSetupScreenState extends State<LifelineSetupScreen> {
                   });
                 }
               },
-              selectedColor: DesignSystem.primaryColor,
+              selectedColor: DesignSystem.primary,
               labelStyle: TextStyle(
                 color: isSelected ? Colors.white : DesignSystem.getTextPrimary(context),
               ),
@@ -365,7 +365,7 @@ class _LifelineSetupScreenState extends State<LifelineSetupScreen> {
                       });
                     }
                   },
-                  selectedColor: DesignSystem.primaryColor,
+                  selectedColor: DesignSystem.primary,
                   labelStyle: TextStyle(
                     color: isSelected ? Colors.white : DesignSystem.getTextPrimary(context),
                   ),
@@ -389,7 +389,7 @@ class _LifelineSetupScreenState extends State<LifelineSetupScreen> {
           child: ElevatedButton(
             onPressed: canStart ? _startLifeline : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: DesignSystem.primaryColor,
+              backgroundColor: DesignSystem.primary,
               foregroundColor: Colors.white,
               disabledBackgroundColor: Colors.grey.shade300,
               shape: RoundedRectangleBorder(
@@ -592,7 +592,7 @@ class _AddContactBottomSheetState extends State<_AddContactBottomSheet> {
             child: ElevatedButton(
               onPressed: _saveContact,
               style: ElevatedButton.styleFrom(
-                backgroundColor: DesignSystem.primaryColor,
+                backgroundColor: DesignSystem.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

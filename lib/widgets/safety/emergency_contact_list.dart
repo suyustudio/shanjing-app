@@ -110,7 +110,7 @@ class EmergencyContactList extends StatelessWidget {
               icon: const Icon(Icons.add, size: 18),
               label: const Text('添加联系人'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: DesignSystem.primaryColor,
+                backgroundColor: DesignSystem.primary,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -126,12 +126,12 @@ class EmergencyContactList extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: isSelected 
-            ? DesignSystem.primaryColor.withOpacity(0.1)
+            ? DesignSystem.primary.withOpacity(0.1)
             : DesignSystem.getCardBackground(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isSelected 
-              ? DesignSystem.primaryColor
+              ? DesignSystem.primary
               : DesignSystem.getDivider(context),
           width: isSelected ? 2 : 1,
         ),
@@ -151,7 +151,7 @@ class EmergencyContactList extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   color: contact.isPrimary
-                      ? DesignSystem.primaryColor.withOpacity(0.1)
+                      ? DesignSystem.primary.withOpacity(0.1)
                       : Colors.grey.shade100,
                   shape: BoxShape.circle,
                 ),
@@ -162,7 +162,7 @@ class EmergencyContactList extends StatelessWidget {
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: contact.isPrimary
-                          ? DesignSystem.primaryColor
+                          ? DesignSystem.primary
                           : Colors.grey.shade700,
                     ),
                   ),
@@ -192,14 +192,14 @@ class EmergencyContactList extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: DesignSystem.primaryColor.withOpacity(0.1),
+                              color: DesignSystem.primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               '主要',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: DesignSystem.primaryColor,
+                                color: DesignSystem.primary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -223,7 +223,7 @@ class EmergencyContactList extends StatelessWidget {
                 Checkbox(
                   value: isSelected,
                   onChanged: (value) => onSelectionChanged?.call(contact.id, value ?? false),
-                  activeColor: DesignSystem.primaryColor,
+                  activeColor: DesignSystem.primary,
                 )
               else if (showEditActions)
                 Row(
@@ -270,10 +270,10 @@ class EmergencyContactList extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: DesignSystem.primaryColor.withOpacity(0.05),
+          color: DesignSystem.primary.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: DesignSystem.primaryColor.withOpacity(0.3),
+            color: DesignSystem.primary.withOpacity(0.3),
             style: BorderStyle.solid,
           ),
         ),
@@ -283,7 +283,7 @@ class EmergencyContactList extends StatelessWidget {
             Icon(
               Icons.add_circle_outline,
               size: 20,
-              color: DesignSystem.primaryColor,
+              color: DesignSystem.primary,
             ),
             const SizedBox(width: 8),
             Text(
@@ -291,7 +291,7 @@ class EmergencyContactList extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: DesignSystem.primaryColor,
+                color: DesignSystem.primary,
               ),
             ),
           ],
