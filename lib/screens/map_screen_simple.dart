@@ -804,7 +804,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
         left: 16,
         right: 16,
         child: Container(
-          height: 100,
+          height: 110,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -882,7 +882,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
         left: 16,
         right: 16,
         child: Container(
-          height: 100,
+          height: 110,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -906,7 +906,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
       left: 16,
       right: 16,
       child: Container(
-        height: 100,
+        height: 110,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
