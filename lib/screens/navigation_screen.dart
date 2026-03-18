@@ -227,6 +227,10 @@ class _NavigationScreenState extends State<NavigationScreen>
         ];
     _calculateTotalDistance();
     _remainingDistance = _totalDistance;
+    
+    // 计算初始预计时间（假设步行速度 1.4m/s）
+    const double walkingSpeed = 1.4; // 米/秒
+    _estimatedArrivalMinutes = (_totalDistance / walkingSpeed / 60).ceil();
   }
 
   /// 计算总距离
@@ -706,7 +710,7 @@ class _NavigationScreenState extends State<NavigationScreen>
               hasAgree: true,
             ),
             initialCameraPosition: CameraPosition(
-              target: _currentLatLng ?? const LatLng(30.25, 120.15),
+              target: _routePoints.isNotEmpty ? _routePoints.first : (_currentLatLng ?? const LatLng(30.25, 120.15)),
               zoom: 17,
             ),
             // myLocationEnabled 参数在 amap_flutter_map 3.0+ 中已移除
