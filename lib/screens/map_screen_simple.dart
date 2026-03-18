@@ -291,7 +291,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
                   color: DesignSystem.getBackgroundElevated(context),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: DesignSystem.getBorderColor(context),
+                    color: Colors.grey.shade300,
                     width: 1,
                   ),
                 ),
