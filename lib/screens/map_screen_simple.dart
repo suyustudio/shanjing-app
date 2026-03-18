@@ -28,24 +28,50 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
       'name': '断桥残雪',
       'position': LatLng(30.259, 120.148), // 断桥
       'difficulty': '简单',
+      // 简化的轨迹线（断桥周边）
+      'path': [
+        LatLng(30.258, 120.147),
+        LatLng(30.259, 120.148),
+        LatLng(30.260, 120.149),
+      ],
     },
     {
       'id': '2',
       'name': '苏堤春晓',
       'position': LatLng(30.235, 120.135), // 苏堤
       'difficulty': '中等',
+      // 苏堤南北走向
+      'path': [
+        LatLng(30.230, 120.135),
+        LatLng(30.233, 120.136),
+        LatLng(30.235, 120.135),
+        LatLng(30.238, 120.134),
+        LatLng(30.240, 120.133),
+      ],
     },
     {
       'id': '3',
       'name': '灵隐寺',
       'position': LatLng(30.242, 120.100), // 灵隐
       'difficulty': '困难',
+      // 灵隐寺周边
+      'path': [
+        LatLng(30.240, 120.098),
+        LatLng(30.242, 120.100),
+        LatLng(30.244, 120.102),
+      ],
     },
     {
       'id': '4',
       'name': '法喜寺',
       'position': LatLng(30.235, 120.088), // 法喜寺
       'difficulty': '中等',
+      // 法喜寺周边
+      'path': [
+        LatLng(30.233, 120.086),
+        LatLng(30.235, 120.088),
+        LatLng(30.237, 120.090),
+      ],
     },
   ];
   
@@ -163,6 +189,31 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     return {..._locationMarkers, ..._routeMarkers};
   }
 
+  // 路线轨迹线
+  Set<Polyline> get _routePolylines {
+    return _testRoutes.map((route) {
+      final Color lineColor;
+      switch (route['difficulty']) {
+        case '简单':
+          lineColor = Colors.green;
+          break;
+        case '困难':
+          lineColor = Colors.red;
+          break;
+        case '中等':
+        default:
+          lineColor = Colors.orange;
+          break;
+      }
+
+      return Polyline(
+        points: route['path'] as List<LatLng>,
+        color: lineColor,
+        width: 4,
+      );
+    }).toSet();
+  }
+
   /// 点击路线标记
   void _onRouteTap(Map<String, dynamic> route) {
     debugPrint('📍 点击路线: ${route['name']}');
@@ -237,6 +288,8 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
             tiltGesturesEnabled: false,
             // 显示所有标记（当前位置 + 路线）
             markers: _allMarkers,
+            // 显示路线轨迹线
+            polylines: _routePolylines,
           ),
           
           // 顶部安全区域提示
@@ -267,7 +320,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
                     Text(
                       _isLocating 
                         ? '正在定位...' 
-                        : (_currentPosition != null ? '已定位' : '地图 v3 - 含路线标记'),
+                        : (_currentPosition != null ? '已定位' : '地图 v4 - 含轨迹线'),
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ],
