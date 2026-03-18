@@ -317,22 +317,26 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   /// 初始化高德定位
   void _initLocation() {
-    _locationPlugin = AMapFlutterLocation();
-    
-    // 使用默认定位参数
-    // 高德地图 SDK 3.0+ 使用不同的 API
-    // 暂时使用基本定位功能
+    // 检查是否已在 main.dart 中初始化
+    // 高德地图 SDK 只需要全局初始化一次
+    try {
+      _locationPlugin = AMapFlutterLocation();
+      
+      // 监听定位结果
+      _locationSubscription = _locationPlugin.onLocationChanged().listen(
+        _onLocationUpdate,
+        onError: (error) {
+          debugPrint('定位错误: $error');
+        },
+      );
 
-    // 监听定位结果
-    _locationSubscription = _locationPlugin.onLocationChanged().listen(
-      _onLocationUpdate,
-      onError: (error) {
-        debugPrint('定位错误: $error');
-      },
-    );
-
-    // 开始定位
-    _locationPlugin.startLocation();
+      // 开始定位
+      _locationPlugin.startLocation();
+    } catch (e) {
+      debugPrint('定位初始化错误: $e');
+      // 使用默认位置
+      _useDefaultLocation();
+    }
   }
 
   /// 初始化语音播报
