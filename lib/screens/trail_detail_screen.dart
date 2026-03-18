@@ -546,8 +546,9 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
             // 星级评分
             Row(
               children: List.generate(5, (index) {
+                final difficultyLevel = _trailData['difficultyLevel'] ?? 3;
                 return Icon(
-                  index < _trailData['difficultyLevel']
+                  index < difficultyLevel
                       ? Icons.star
                       : Icons.star_border,
                   color: DesignSystem.getWarning(context),

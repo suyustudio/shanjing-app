@@ -249,6 +249,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
             'id': route['id'],
             'name': route['name'],
             'difficulty': route['difficulty'],
+            'difficultyLevel': route['difficulty'] == '简单' ? 2 : route['difficulty'] == '困难' ? 4 : 3,
             'distance': 5.0, // 简化数据
             'duration': 120,
             'elevation': 50,
