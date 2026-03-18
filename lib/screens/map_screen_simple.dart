@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../constants/design_system.dart';
+import 'trail_detail_screen.dart';
 
 // 地图页面 v2 - 添加定位功能
 class MapScreenSimple extends StatefulWidget {
@@ -237,9 +239,24 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     }
   }
 
-  /// 点击路线卡片
+  /// 点击路线卡片 - 跳转到详情页
   void _onRouteCardTap(Map<String, dynamic> route) {
-    _onRouteTap(route);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TrailDetailScreen(
+          trailData: {
+            'id': route['id'],
+            'name': route['name'],
+            'difficulty': route['difficulty'],
+            'distance': 5.0, // 简化数据
+            'duration': 120,
+            'elevation': 50,
+            'description': '${route['name']}是一条风景优美的徒步路线，难度${route['difficulty']}。',
+          },
+        ),
+      ),
+    );
   }
 
   /// 构建底部路线卡片列表
@@ -426,7 +443,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
                     Text(
                       _isLocating 
                         ? '正在定位...' 
-                        : (_currentPosition != null ? '已定位' : '地图 v5 - 含路线卡片'),
+                        : (_currentPosition != null ? '已定位' : '地图 v6 - 含详情跳转'),
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ],
