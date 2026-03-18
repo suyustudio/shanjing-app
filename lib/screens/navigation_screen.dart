@@ -92,8 +92,8 @@ class NavigationScreen extends StatefulWidget {
 
 class _NavigationScreenState extends State<NavigationScreen>
     with AnalyticsMixin, WidgetsBindingObserver {
-  // 高德地图定位
-  late AMapFlutterLocation _locationPlugin;
+  // 高德地图定位 - 改为可空类型避免未初始化崩溃
+  AMapFlutterLocation? _locationPlugin;
   StreamSubscription<Map<String, Object>>? _locationSubscription;
 
   // 埋点相关
@@ -173,9 +173,9 @@ class _NavigationScreenState extends State<NavigationScreen>
       );
     }
     _locationSubscription?.cancel();
-    // 安全释放定位资源
+    // 安全释放定位资源 - 检查是否已初始化
     try {
-      _locationPlugin.stopLocation();
+      _locationPlugin?.stopLocation();
     } catch (e) {
       debugPrint('释放定位资源时出错: $e');
     }
@@ -323,7 +323,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       _locationPlugin = AMapFlutterLocation();
       
       // 监听定位结果
-      _locationSubscription = _locationPlugin.onLocationChanged().listen(
+      _locationSubscription = _locationPlugin?.onLocationChanged().listen(
         _onLocationUpdate,
         onError: (error) {
           debugPrint('定位错误: $error');
@@ -331,7 +331,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       );
 
       // 开始定位
-      _locationPlugin.startLocation();
+      _locationPlugin?.startLocation();
     } catch (e) {
       debugPrint('定位初始化错误: $e');
       // 使用默认位置
