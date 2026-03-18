@@ -21,6 +21,34 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   LatLng? _currentPosition;
   bool _isLocating = false;
   
+  // 测试路线数据（杭州西湖周边）
+  final List<Map<String, dynamic>> _testRoutes = const [
+    {
+      'id': '1',
+      'name': '断桥残雪',
+      'position': LatLng(30.259, 120.148), // 断桥
+      'difficulty': '简单',
+    },
+    {
+      'id': '2',
+      'name': '苏堤春晓',
+      'position': LatLng(30.235, 120.135), // 苏堤
+      'difficulty': '中等',
+    },
+    {
+      'id': '3',
+      'name': '灵隐寺',
+      'position': LatLng(30.242, 120.100), // 灵隐
+      'difficulty': '困难',
+    },
+    {
+      'id': '4',
+      'name': '法喜寺',
+      'position': LatLng(30.235, 120.088), // 法喜寺
+      'difficulty': '中等',
+    },
+  ];
+  
   // 硬编码 API Key
   static const String _amapKey = 'e17f8ae117d84e2d2d394a2124866603';
 
@@ -101,6 +129,63 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     };
   }
 
+  // 路线标记
+  Set<Marker> get _routeMarkers {
+    return _testRoutes.map((route) {
+      final Color hueColor;
+      switch (route['difficulty']) {
+        case '简单':
+          hueColor = BitmapDescriptor.hueGreen;
+          break;
+        case '困难':
+          hueColor = BitmapDescriptor.hueRed;
+          break;
+        case '中等':
+        default:
+          hueColor = BitmapDescriptor.hueOrange;
+          break;
+      }
+
+      return Marker(
+        position: route['position'] as LatLng,
+        icon: BitmapDescriptor.defaultMarkerWithHue(hueColor),
+        infoWindow: InfoWindow(
+          title: route['name'] as String,
+          snippet: '难度: ${route['difficulty']}',
+        ),
+        onTap: (String id) => _onRouteTap(route),
+      );
+    }).toSet();
+  }
+
+  // 所有标记（位置 + 路线）
+  Set<Marker> get _allMarkers {
+    return {..._locationMarkers, ..._routeMarkers};
+  }
+
+  /// 点击路线标记
+  void _onRouteTap(Map<String, dynamic> route) {
+    debugPrint('📍 点击路线: ${route['name']}');
+    // 移动到路线位置
+    _mapController?.moveCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: route['position'] as LatLng,
+          zoom: 16,
+        ),
+      ),
+    );
+    // 显示提示
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${route['name']} - 难度: ${route['difficulty']}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   /// 定位到当前位置
   void _goToCurrentLocation() {
     if (_currentPosition != null) {
@@ -150,8 +235,8 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
             zoomGesturesEnabled: true,
             rotateGesturesEnabled: false,
             tiltGesturesEnabled: false,
-            // 显示当前位置标记
-            markers: _locationMarkers,
+            // 显示所有标记（当前位置 + 路线）
+            markers: _allMarkers,
           ),
           
           // 顶部安全区域提示
@@ -182,7 +267,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
                     Text(
                       _isLocating 
                         ? '正在定位...' 
-                        : (_currentPosition != null ? '已定位' : '地图 v2 - 含定位'),
+                        : (_currentPosition != null ? '已定位' : '地图 v3 - 含路线标记'),
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ],
