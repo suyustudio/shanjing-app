@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../analytics/analytics.dart';
 import '../constants/design_system.dart';
 import '../widgets/app_app_bar.dart';
+import '../services/auth_service.dart';
+import 'login_screen.dart';
 
 /// 我的页面
 class ProfileScreen extends StatefulWidget {
@@ -18,6 +20,65 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
 
   @override
   String get pageName => PageEvents.nameProfile;
+
+  // 登录状态
+  bool _isLoggedIn = false;
+  String _userName = '游客';
+  String _userId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  /// 检查登录状态
+  Future<void> _checkLoginStatus() async {
+    final isLoggedIn = await AuthService.checkLoginStatus();
+    final userInfo = await AuthService.getUserInfo();
+    setState(() {
+      _isLoggedIn = isLoggedIn;
+      _userName = userInfo['name'] ?? '游客';
+      _userId = userInfo['id'] ?? '';
+    });
+  }
+
+  /// 跳转到登录页
+  void _goToLogin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    ).then((_) => _checkLoginStatus()); // 返回后刷新登录状态
+  }
+
+  /// 退出登录
+  Future<void> _logout() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('退出登录'),
+        content: const Text('确定要退出登录吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await AuthService.logout();
+              _checkLoginStatus();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('已退出登录')),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('退出'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,24 +104,27 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
       padding: const EdgeInsets.all(DesignSystem.spacingLarge),
       child: Column(
         children: [
-          // 用户头像
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: DesignSystem.getPrimary(context).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.person,
-              size: 40,
-              color: DesignSystem.getPrimary(context),
+          // 用户头像（可点击登录）
+          GestureDetector(
+            onTap: _isLoggedIn ? null : _goToLogin,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: DesignSystem.getPrimary(context).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _isLoggedIn ? Icons.person : Icons.person_outline,
+                size: 40,
+                color: DesignSystem.getPrimary(context),
+              ),
             ),
           ),
           const SizedBox(height: DesignSystem.spacingMedium),
           // 用户昵称
           Text(
-            '徒步爱好者',
+            _userName,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -68,25 +132,37 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
             ),
           ),
           const SizedBox(height: DesignSystem.spacingSmall),
-          // 用户 ID
+          // 用户 ID 或登录提示
           Text(
-            '@hiker_001',
+            _isLoggedIn 
+              ? (_userId.isNotEmpty ? '@$_userId' : '')
+              : '点击头像登录',
             style: TextStyle(
               fontSize: 14,
               color: DesignSystem.getTextSecondary(context),
             ),
           ),
           const SizedBox(height: DesignSystem.spacingMedium),
-          // 编辑资料按钮
-          OutlinedButton(
-            onPressed: () {
-              debugPrint('编辑资料 clicked');
-            },
-            child: const Text('编辑资料'),
-          ),
+          // 登录/编辑资料按钮
+          if (!_isLoggedIn)
+            ElevatedButton(
+              onPressed: _goToLogin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: DesignSystem.getPrimary(context),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('立即登录'),
+            )
+          else
+            OutlinedButton(
+              onPressed: () {
+                debugPrint('编辑资料 clicked');
+              },
+              child: const Text('编辑资料'),
+            ),
           const SizedBox(height: DesignSystem.spacingLarge),
-          // 统计卡片
-          _buildStatsCard(context),
+          // 统计卡片（仅登录显示）
+          if (_isLoggedIn) _buildStatsCard(context),
         ],
       ),
     );
@@ -195,6 +271,21 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
           ),
           onTap: () {},
         ),
+        // 退出登录（仅登录显示）
+        if (_isLoggedIn) ...[
+          Divider(color: DesignSystem.getDivider(context)),
+          ListTile(
+            leading: const Icon(
+              Icons.logout,
+              color: Colors.red,
+            ),
+            title: const Text(
+              '退出登录',
+              style: TextStyle(color: Colors.red),
+            ),
+            onTap: _logout,
+          ),
+        ],
       ],
     );
   }

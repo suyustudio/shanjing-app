@@ -637,6 +637,30 @@ class AuthService {
   /// 检查是否已登录
   bool get isLoggedIn => _authStatus == AuthStatus.authenticated;
 
+  /// 静态方法：检查登录状态
+  static Future<bool> checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString(_accessTokenKey);
+    return token != null && token.isNotEmpty;
+  }
+
+  /// 静态方法：获取用户信息
+  static Future<Map<String, String>> getUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('user_id') ?? '';
+    final userName = prefs.getString('user_name') ?? '游客';
+    return {'id': userId, 'name': userName};
+  }
+
+  /// 静态方法：退出登录
+  static Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_accessTokenKey);
+    await prefs.remove(_refreshTokenKey);
+    await prefs.remove('user_id');
+    await prefs.remove('user_name');
+  }
+
   /// 释放资源
   void dispose() {
     _refreshTimer?.cancel();
