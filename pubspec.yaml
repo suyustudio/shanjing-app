@@ -34,3 +34,6 @@ flutter:
   assets:
     - .env
     - data/json/trails-all.json
+    - assets/markers/marker_start_xhdpi.png
+    - assets/markers/marker_end_xhdpi.png
+    - assets/markers/marker_loop_xhdpi.png

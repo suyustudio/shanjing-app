@@ -23,6 +23,11 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   LatLng? _currentPosition;
   bool _isLocating = false;
   
+  // 自定义标记图标
+  BitmapDescriptor? _startMarkerIcon;
+  BitmapDescriptor? _endMarkerIcon;
+  BitmapDescriptor? _loopMarkerIcon;
+  
   // 测试路线数据（杭州西湖周边）- 更多点让曲线更平滑，增加停车场
   final List<Map<String, dynamic>> _testRoutes = const [
     {
@@ -177,6 +182,29 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   void initState() {
     super.initState();
     _initLocation();
+    _loadMarkerIcons();
+  }
+
+  /// 加载自定义标记图标
+  Future<void> _loadMarkerIcons() async {
+    final startIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/markers/marker_start_xhdpi.png',
+    );
+    final endIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/markers/marker_end_xhdpi.png',
+    );
+    final loopIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/markers/marker_loop_xhdpi.png',
+    );
+    
+    setState(() {
+      _startMarkerIcon = startIcon;
+      _endMarkerIcon = endIcon;
+      _loopMarkerIcon = loopIcon;
+    });
   }
 
   /// 初始化定位
@@ -259,33 +287,37 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     };
   }
 
-  // 路线标记
+  // 路线标记 - 使用自定义起点/终点图标
   Set<Marker> get _routeMarkers {
-    return _testRoutes.map((route) {
-      final double hueColor;
-      switch (route['difficulty']) {
-        case '简单':
-          hueColor = BitmapDescriptor.hueGreen;
-          break;
-        case '困难':
-          hueColor = BitmapDescriptor.hueRed;
-          break;
-        case '中等':
-        default:
-          hueColor = BitmapDescriptor.hueOrange;
-          break;
+    final markers = <Marker>{};
+    
+    for (final route in _testRoutes) {
+      final path = route['path'] as List<dynamic>?;
+      
+      if (path != null && path.isNotEmpty) {
+        // 添加起点标记
+        markers.add(Marker(
+          position: path.first as LatLng,
+          icon: _startMarkerIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          infoWindow: InfoWindow(
+            title: '${route['name']} - 起点',
+            snippet: '难度: ${route['difficulty']}',
+          ),
+        ));
+        
+        // 添加终点标记
+        markers.add(Marker(
+          position: path.last as LatLng,
+          icon: _endMarkerIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          infoWindow: InfoWindow(
+            title: '${route['name']} - 终点',
+            snippet: '难度: ${route['difficulty']}',
+          ),
+        ));
       }
-
-      return Marker(
-        position: route['position'] as LatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(hueColor),
-        infoWindow: InfoWindow(
-          title: route['name'] as String,
-          snippet: '难度: ${route['difficulty']}',
-        ),
-        onTap: (String id) => _onRouteTap(route),
-      );
-    }).toSet();
+    }
+    
+    return markers;
   }
 
   // 所有标记（位置 + 路线 + 停车场）
