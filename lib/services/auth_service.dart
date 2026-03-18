@@ -139,6 +139,10 @@ enum AuthStatus {
 
 /// 认证服务类
 class AuthService {
+  // SharedPreferences keys
+  static const String _accessTokenKey = 'access_token';
+  static const String _refreshTokenKey = 'refresh_token';
+  
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
   AuthService._internal();
@@ -653,7 +657,7 @@ class AuthService {
   }
 
   /// 静态方法：退出登录
-  static Future<void> logout() async {
+  static Future<void> logoutStatic() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_accessTokenKey);
     await prefs.remove(_refreshTokenKey);

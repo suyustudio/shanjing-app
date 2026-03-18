@@ -66,7 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              await AuthService.logout();
+              await AuthService.logoutStatic();
               _checkLoginStatus();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('已退出登录')),
