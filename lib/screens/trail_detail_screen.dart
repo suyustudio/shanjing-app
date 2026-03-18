@@ -779,16 +779,59 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
 
   /// 构建轨迹 Tab
   Widget _buildTrackTab() {
-    // 模拟轨迹数据点
-    final trackPoints = [
-      {'name': '起点', 'lat': 30.2500, 'lng': 120.1500, 'elevation': 15},
-      {'name': '九溪烟树', 'lat': 30.2450, 'lng': 120.1550, 'elevation': 45},
-      {'name': '龙井村', 'lat': 30.2400, 'lng': 120.1600, 'elevation': 85},
-      {'name': '十里琅珰', 'lat': 30.2350, 'lng': 120.1650, 'elevation': 350},
-      {'name': '真际寺', 'lat': 30.2300, 'lng': 120.1700, 'elevation': 420},
-      {'name': '云栖竹径', 'lat': 30.2250, 'lng': 120.1750, 'elevation': 120},
-      {'name': '终点', 'lat': 30.2200, 'lng': 120.1800, 'elevation': 20},
-    ];
+    // 从真实数据读取轨迹点
+    final coordinates = _trailData['coordinates'] as List<dynamic>? ?? [];
+    
+    // 转换坐标点为途径点格式
+    final trackPoints = coordinates.asMap().entries.map((entry) {
+      final index = entry.key;
+      final coord = entry.value;
+      String name;
+      if (index == 0) {
+        name = '起点';
+      } else if (index == coordinates.length - 1) {
+        name = '终点';
+      } else {
+        name = '途经点 ${index}';
+      }
+      
+      // coord 格式是 [longitude, latitude]
+      return {
+        'name': name,
+        'lat': coord[1],
+        'lng': coord[0],
+        'elevation': 15 + (index * 5), // 简单模拟海拔变化
+      };
+    }).toList();
+    
+    // 如果没有轨迹数据，显示空状态
+    if (trackPoints.isEmpty) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle('路线轨迹'),
+            const SizedBox(height: 32),
+            Center(
+              child: Column(
+                children: [
+                  Icon(Icons.map_outlined, size: 64, color: Colors.grey.shade300),
+                  const SizedBox(height: 16),
+                  Text(
+                    '暂无轨迹数据',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
