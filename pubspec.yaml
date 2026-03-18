@@ -24,6 +24,7 @@ dependencies:
   http: ^1.1.0
   shared_preferences: ^2.2.0
   provider: ^6.1.1
+  flutter_svg: ^2.0.9
 
 dev_dependencies:
   flutter_test:
@@ -35,6 +36,11 @@ flutter:
   assets:
     - .env
     - data/json/trails-all.json
+    # 新版 SVG 标记图标
+    - assets/markers/marker_start.svg
+    - assets/markers/marker_end.svg
+    - assets/markers/marker_parking.svg
+    # 旧版 PNG 图标（兼容保留）
     - assets/markers/marker_start_xhdpi.png
     - assets/markers/marker_end_xhdpi.png
     - assets/markers/marker_loop_xhdpi.png
