@@ -132,7 +132,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   // 路线标记
   Set<Marker> get _routeMarkers {
     return _testRoutes.map((route) {
-      final Color hueColor;
+      final double hueColor;
       switch (route['difficulty']) {
         case '简单':
           hueColor = BitmapDescriptor.hueGreen;
