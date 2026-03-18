@@ -593,7 +593,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           _buildInfoItem(
             context: context,
             icon: Icons.location_on_outlined,
-            value: '${_trailData['distance']} km',
+            value: '${_trailData['distance'] ?? 0} km',
             label: '距离',
           ),
           Container(
@@ -604,7 +604,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           _buildInfoItem(
             context: context,
             icon: Icons.timer_outlined,
-            value: _formatDuration(_trailData['duration']),
+            value: _formatDuration(_trailData['duration'] ?? 0),
             label: '时长',
           ),
           Container(
@@ -615,7 +615,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           _buildInfoItem(
             context: context,
             icon: Icons.trending_up_outlined,
-            value: '${_trailData['elevation']} m',
+            value: '${_trailData['elevation'] ?? 0} m',
             label: '海拔爬升',
           ),
         ],
