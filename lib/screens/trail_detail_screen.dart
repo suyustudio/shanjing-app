@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:amap_flutter_base/amap_flutter_base.dart';
 import '../analytics/analytics.dart';
 import '../widgets/app_error.dart';
 import '../widgets/app_loading.dart';
@@ -169,6 +170,19 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     final trailName = _trailData['name']?.toString() ?? '未知路线';
     final trailId = _trailData['id']?.toString() ?? '';
     
+    // 提取轨迹点
+    List<LatLng>? routePoints;
+    final coordinates = _trailData['coordinates'];
+    if (coordinates != null && coordinates is List) {
+      routePoints = coordinates.map((coord) {
+        if (coord is List && coord.length >= 2) {
+          // 数据格式是 [longitude, latitude]，需要转换成 LatLng(latitude, longitude)
+          return LatLng(coord[1].toDouble(), coord[0].toDouble());
+        }
+        return null;
+      }).whereType<LatLng>().toList();
+    }
+    
     // 上报导航开始事件
     AnalyticsService().trackEvent(
       TrailEvents.trailNavigateStart,
@@ -191,7 +205,10 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NavigationScreen(routeName: trailName),
+        builder: (context) => NavigationScreen(
+          routeName: trailName,
+          routePoints: routePoints,
+        ),
       ),
     );
   }
