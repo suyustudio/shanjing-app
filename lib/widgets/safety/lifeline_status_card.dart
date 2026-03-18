@@ -158,7 +158,7 @@ class LifelineStatusCard extends StatelessWidget {
   Color _getBackgroundColor(BuildContext context, bool isActive, bool isOverdue) {
     if (isOverdue) return Colors.red.shade50;
     if (isActive) return Colors.green.shade50;
-    return DesignSystem.getCardBackground(context);
+    return DesignSystem.getBackgroundElevated(context);
   }
 
   Color _getBorderColor(BuildContext context, bool isActive, bool isOverdue) {

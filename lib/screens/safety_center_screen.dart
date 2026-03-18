@@ -81,7 +81,7 @@ class _SafetyCenterScreenState extends State<SafetyCenterScreen> {
     return Container(
       padding: const EdgeInsets.all(DesignSystem.spacingLarge),
       decoration: BoxDecoration(
-        color: DesignSystem.getCardBackground(context),
+        color: DesignSystem.getBackgroundElevated(context),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: DesignSystem.getDivider(context)),
       ),
@@ -116,7 +116,7 @@ class _SafetyCenterScreenState extends State<SafetyCenterScreen> {
             ],
           ),
           const SizedBox(height: DesignSystem.spacingMedium),
-          const EmergencyContactList(
+          EmergencyContactList(
             showAddButton: true,
             showEditActions: false,
             onAddTap: _showAddContactDialog,
@@ -134,7 +134,7 @@ class _SafetyCenterScreenState extends State<SafetyCenterScreen> {
       decoration: BoxDecoration(
         color: _isSOSExpanded 
             ? Colors.red.shade50 
-            : DesignSystem.getCardBackground(context),
+            : DesignSystem.getBackgroundElevated(context),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _isSOSExpanded 

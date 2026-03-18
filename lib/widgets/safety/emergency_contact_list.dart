@@ -75,7 +75,7 @@ class EmergencyContactList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(DesignSystem.spacingLarge),
       decoration: BoxDecoration(
-        color: DesignSystem.getCardBackground(context),
+        color: DesignSystem.getBackgroundElevated(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: DesignSystem.getDivider(context)),
       ),
@@ -127,7 +127,7 @@ class EmergencyContactList extends StatelessWidget {
       decoration: BoxDecoration(
         color: isSelected 
             ? DesignSystem.primary.withOpacity(0.1)
-            : DesignSystem.getCardBackground(context),
+            : DesignSystem.getBackgroundElevated(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isSelected 

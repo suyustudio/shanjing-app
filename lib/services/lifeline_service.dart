@@ -261,12 +261,9 @@ class LifelineService {
   Future<void> _startLocationTracking() async {
     if (_locationPlugin == null) return;
 
-    // 请求定位权限
-    await _locationPlugin?.setLocationOption(AMapLocationOption(
-      onceLocation: false,
+    // 设置定位选项（使用高德地图 Flutter 插件的正确 API）
+    _locationPlugin?.setLocationOption(AMapLocationOption(
       locationInterval: _locationIntervalSeconds * 1000,
-      pausesLocationUpdatesAutomatically: false,
-      desiredAccuracy: CLLocationAccuracy.kCLLocationAccuracyBest,
     ));
 
     _locationSubscription?.cancel();
