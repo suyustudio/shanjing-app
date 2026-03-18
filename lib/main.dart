@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'package:provider/provider.dart';
 import 'providers/emergency_contact_provider.dart';
@@ -13,6 +14,9 @@ import 'constants/design_system.dart';
 // 稳定版本 - 使用简化的地图页面（无定位、无离线功能）
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 加载环境变量
+  await dotenv.load(fileName: ".env");
 
   // 高德地图隐私合规设置
   AMapFlutterLocation.updatePrivacyShow(true, true);
