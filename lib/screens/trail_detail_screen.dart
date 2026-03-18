@@ -170,17 +170,30 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     final trailName = _trailData['name']?.toString() ?? '未知路线';
     final trailId = _trailData['id']?.toString() ?? '';
     
+    debugPrint('🧭 开始导航: $trailName (ID: $trailId)');
+    debugPrint('🧭 trailData keys: ${_trailData.keys.toList()}');
+    
     // 提取轨迹点
     List<LatLng>? routePoints;
     final coordinates = _trailData['coordinates'];
+    debugPrint('🧭 coordinates: $coordinates');
+    
     if (coordinates != null && coordinates is List) {
       routePoints = coordinates.map((coord) {
         if (coord is List && coord.length >= 2) {
           // 数据格式是 [longitude, latitude]，需要转换成 LatLng(latitude, longitude)
-          return LatLng(coord[1].toDouble(), coord[0].toDouble());
+          final latLng = LatLng(coord[1].toDouble(), coord[0].toDouble());
+          debugPrint('🧭 转换坐标: $coord -> LatLng(${latLng.latitude}, ${latLng.longitude})');
+          return latLng;
         }
         return null;
       }).whereType<LatLng>().toList();
+    }
+    
+    debugPrint('🧭 routePoints count: ${routePoints?.length ?? 0}');
+    if (routePoints != null && routePoints.isNotEmpty) {
+      debugPrint('🧭 第一个点: ${routePoints.first}');
+      debugPrint('🧭 最后一个点: ${routePoints.last}');
     }
     
     // 上报导航开始事件

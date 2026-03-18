@@ -217,20 +217,31 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   /// 初始化路线点
   void _initRoutePoints() {
-    _routePoints = widget.routePoints ??
-        const [
-          LatLng(30.24, 120.14),
-          LatLng(30.245, 120.145),
-          LatLng(30.25, 120.15),
-          LatLng(30.255, 120.155),
-          LatLng(30.26, 120.16),
-        ];
+    debugPrint('🗺️ NavigationScreen 初始化路线点');
+    debugPrint('🗺️ widget.routePoints: ${widget.routePoints}');
+    
+    if (widget.routePoints != null && widget.routePoints!.isNotEmpty) {
+      debugPrint('🗺️ 使用传入的 routePoints，第一个点: ${widget.routePoints!.first}');
+      _routePoints = widget.routePoints!;
+    } else {
+      debugPrint('🗺️ routePoints 为空，使用默认杭州数据！');
+      _routePoints = const [
+        LatLng(30.24, 120.14),
+        LatLng(30.245, 120.145),
+        LatLng(30.25, 120.15),
+        LatLng(30.255, 120.155),
+        LatLng(30.26, 120.16),
+      ];
+    }
+    
     _calculateTotalDistance();
     _remainingDistance = _totalDistance;
     
     // 计算初始预计时间（假设步行速度 1.4m/s）
     const double walkingSpeed = 1.4; // 米/秒
     _estimatedArrivalMinutes = (_totalDistance / walkingSpeed / 60).ceil();
+    
+    debugPrint('🗺️ 总距离: $_totalDistance 米, 预计时间: $_estimatedArrivalMinutes 分钟');
   }
 
   /// 计算总距离
