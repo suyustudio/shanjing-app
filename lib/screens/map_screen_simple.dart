@@ -237,6 +237,109 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     }
   }
 
+  /// 点击路线卡片
+  void _onRouteCardTap(Map<String, dynamic> route) {
+    _onRouteTap(route);
+  }
+
+  /// 构建底部路线卡片列表
+  Widget _buildBottomRouteList() {
+    return Positioned(
+      bottom: 16,
+      left: 16,
+      right: 16,
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.all(12),
+          itemCount: _testRoutes.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (context, index) {
+            final route = _testRoutes[index];
+            final Color difficultyColor;
+            switch (route['difficulty']) {
+              case '简单':
+                difficultyColor = Colors.green;
+                break;
+              case '困难':
+                difficultyColor = Colors.red;
+                break;
+              case '中等':
+              default:
+                difficultyColor = Colors.orange;
+                break;
+            }
+
+            return GestureDetector(
+              onTap: () => _onRouteCardTap(route),
+              child: Container(
+                width: 140,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: DesignSystem.getBackgroundElevated(context),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: DesignSystem.getBorderColor(context),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: difficultyColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            route['name'] as String,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '难度: ${route['difficulty']}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: DesignSystem.getTextSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   /// 定位到当前位置
   void _goToCurrentLocation() {
     if (_currentPosition != null) {
@@ -292,6 +395,9 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
             polylines: _routePolylines,
           ),
           
+          // 底部路线卡片列表
+          _buildBottomRouteList(),
+          
           // 顶部安全区域提示
           SafeArea(
             child: Padding(
@@ -320,7 +426,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
                     Text(
                       _isLocating 
                         ? '正在定位...' 
-                        : (_currentPosition != null ? '已定位' : '地图 v4 - 含轨迹线'),
+                        : (_currentPosition != null ? '已定位' : '地图 v5 - 含路线卡片'),
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ],
