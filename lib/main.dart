@@ -13,6 +13,11 @@ void main() async {
   // 高德地图隐私合规设置
   AMapFlutterLocation.updatePrivacyShow(true, true);
   AMapFlutterLocation.updatePrivacyAgree(true);
+  
+  // 设置高德地图 API Key（Android）
+  // iOS 需要在 AppDelegate.swift 中设置
+  const androidApiKey = 'e17f8ae117d84e2d2d394a2124866603';
+  AMapFlutterLocation.setApiKey(androidApiKey, "");
 
   // 性能优化：设置首选方向
   await SystemChrome.setPreferredOrientations([
