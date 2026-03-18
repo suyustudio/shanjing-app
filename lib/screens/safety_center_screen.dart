@@ -123,7 +123,7 @@ class _SafetyCenterScreenState extends State<SafetyCenterScreen> {
     return Container(
       padding: const EdgeInsets.all(DesignSystem.spacingLarge),
       decoration: BoxDecoration(
-        color: DesignSystem.getCardBackground(context),
+        color: DesignSystem.getBackgroundElevated(context),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: DesignSystem.getDivider(context)),
       ),
