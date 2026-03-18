@@ -179,7 +179,14 @@ class _NavigationScreenState extends State<NavigationScreen>
     } catch (e) {
       debugPrint('释放定位资源时出错: $e');
     }
-    _flutterTts.stop();
+    // 安全停止 TTS
+    try {
+      if (_isTtsInitialized) {
+        _flutterTts.stop();
+      }
+    } catch (e) {
+      debugPrint('停止 TTS 时出错: $e');
+    }
     super.dispose();
   }
 
@@ -449,14 +456,20 @@ class _NavigationScreenState extends State<NavigationScreen>
     _currentRouteIndex = nearestIndex;
 
     // 计算剩余距离
-    _remainingDistance = 0;
+    double remainingDistance = 0;
     for (int i = nearestIndex; i < _routePoints.length - 1; i++) {
-      _remainingDistance += _calculateDistance(_routePoints[i], _routePoints[i + 1]);
+      remainingDistance += _calculateDistance(_routePoints[i], _routePoints[i + 1]);
     }
 
     // 计算预计到达时间（假设步行速度 1.4m/s）
     const double walkingSpeed = 1.4; // 米/秒
-    _estimatedArrivalMinutes = (_remainingDistance / walkingSpeed / 60).ceil();
+    final estimatedMinutes = (remainingDistance / walkingSpeed / 60).ceil();
+
+    // 更新状态
+    setState(() {
+      _remainingDistance = remainingDistance;
+      _estimatedArrivalMinutes = estimatedMinutes;
+    });
 
     // 检查是否到达终点
     if (nearestIndex >= _routePoints.length - 1) {
