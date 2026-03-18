@@ -4,6 +4,7 @@ import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'package:provider/provider.dart';
 import 'providers/emergency_contact_provider.dart';
 import 'providers/lifeline_provider.dart';
+import 'analytics/analytics_service.dart';
 import 'screens/map_screen_simple.dart';
 import 'screens/discovery_screen.dart';
 import 'screens/profile_screen.dart';
@@ -21,6 +22,13 @@ void main() async {
   // iOS 需要在 AppDelegate.swift 中设置
   const androidApiKey = 'e17f8ae117d84e2d2d394a2124866603';
   AMapFlutterLocation.setApiKey(androidApiKey, "");
+
+  // 初始化埋点服务
+  await AnalyticsService().initialize(
+    androidKey: '', // 友盟 SDK 已禁用
+    iosKey: '',
+    debugMode: true,
+  );
 
   // 性能优化：设置首选方向
   await SystemChrome.setPreferredOrientations([

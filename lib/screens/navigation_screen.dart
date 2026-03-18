@@ -153,8 +153,8 @@ class _NavigationScreenState extends State<NavigationScreen>
     WidgetsBinding.instance.addObserver(this);
     _navigationStartTime = DateTime.now();
     _initRoutePoints();
-    _requestLocationPermission();
     _initTts();
+    _requestLocationPermission();
   }
 
   @override
