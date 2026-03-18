@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
+import 'package:provider/provider.dart';
+import 'providers/emergency_contact_provider.dart';
+import 'providers/lifeline_provider.dart';
 import 'screens/map_screen_simple.dart';
 import 'screens/discovery_screen.dart';
 import 'screens/profile_screen.dart';
@@ -33,12 +36,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '山径',
-      theme: DesignSystem.lightTheme,
-      darkTheme: DesignSystem.darkTheme,
-      themeMode: ThemeMode.system,
-      home: const MainScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => EmergencyContactProvider()),
+        ChangeNotifierProvider(create: (_) => LifelineProvider()),
+      ],
+      child: MaterialApp(
+        title: '山径',
+        theme: DesignSystem.lightTheme,
+        darkTheme: DesignSystem.darkTheme,
+        themeMode: ThemeMode.system,
+        home: const MainScreen(),
+      ),
     );
   }
 }
