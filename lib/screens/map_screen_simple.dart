@@ -101,11 +101,20 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
       final double? longitude = result['longitude'] as double?;
       
       if (latitude != null && longitude != null && mounted) {
+        final newPosition = LatLng(latitude, longitude);
         setState(() {
-          _currentPosition = LatLng(latitude, longitude);
+          _currentPosition = newPosition;
           _isLocating = false;
         });
-        // 位置已更新，markers 会自动重新构建
+        // 自动移动地图到当前位置
+        _mapController?.moveCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: newPosition,
+              zoom: 16,
+            ),
+          ),
+        );
       }
     });
   }
