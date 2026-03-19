@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import '../analytics/analytics.dart';
 import '../widgets/app_error.dart';
@@ -7,11 +8,16 @@ import '../widgets/app_loading.dart';
 import '../constants/design_system.dart';
 import '../services/favorite_service.dart';
 import '../services/api_client.dart';
+import '../services/weather_service.dart';
 import '../widgets/share_poster.dart';
+import '../widgets/safety/safety_tip_card.dart';
+import '../widgets/safety/weather_alert_card.dart';
+import '../widgets/safety/pre_departure_checklist.dart';
 import 'navigation_screen.dart';
 
 /// 路线详情页
 /// 显示路线封面、基本信息、简介和导航入口
+/// P2安全功能：天气预警、路线难度提示、安全提示卡片
 class TrailDetailScreen extends StatefulWidget {
   final Map<String, dynamic>? trailData;
 
@@ -29,6 +35,13 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
   double _downloadProgress = 0.0;
   bool _isTogglingFavorite = false;
   late TabController _tabController;
+
+  // P2安全功能相关
+  final WeatherService _weatherService = WeatherService();
+  WeatherData? _weatherData;
+  List<WeatherAlert> _weatherAlerts = [];
+  bool _isLoadingWeather = false;
+  List<Map<String, dynamic>> _userHistory = []; // 用户历史记录
 
   // 埋点相关
   @override
@@ -71,12 +84,88 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     super.initState();
     _isFavorite = _trailData['isFavorite'] ?? false;
     _tabController = TabController(length: 4, vsync: this);
+    
+    // P2: 加载天气数据
+    _loadWeatherData();
+    // P2: 加载用户历史（用于个性化难度提示）
+    _loadUserHistory();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  /// P2: 加载天气数据
+  Future<void> _loadWeatherData() async {
+    setState(() {
+      _isLoadingWeather = true;
+    });
+
+    try {
+      // 从路线数据中获取坐标（如果有）
+      final coordinates = _trailData['coordinates'] as List<dynamic>?;
+      double latitude = 30.2741; // 默认杭州
+      double longitude = 120.1551;
+      
+      if (coordinates != null && coordinates.isNotEmpty) {
+        final firstCoord = coordinates[0] as List<dynamic>?;
+        if (firstCoord != null && firstCoord.length >= 2) {
+          // 坐标格式 [longitude, latitude]
+          latitude = firstCoord[1].toDouble();
+          longitude = firstCoord[0].toDouble();
+        }
+      }
+
+      final weather = await _weatherService.getCurrentWeather(
+        latitude: latitude,
+        longitude: longitude,
+      );
+
+      final alerts = _weatherService.checkSevereWeather(weather);
+
+      if (mounted) {
+        setState(() {
+          _weatherData = weather;
+          _weatherAlerts = alerts;
+          _isLoadingWeather = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingWeather = false;
+        });
+      }
+    }
+  }
+
+  /// P2: 刷新天气数据
+  Future<void> _refreshWeather() async {
+    _weatherService.clearCache();
+    await _loadWeatherData();
+  }
+
+  /// P2: 加载用户历史记录（模拟）
+  Future<void> _loadUserHistory() async {
+    // 实际项目中从本地存储或API获取
+    // 这里使用模拟数据
+    _userHistory = [];
+  }
+
+  /// P2: 检查是否为首次尝试此难度
+  bool get _isFirstHighDifficultyAttempt {
+    if (_userHistory.isEmpty) return false;
+    final currentLevel = _trailData['difficultyLevel'] as int? ?? 1;
+    if (currentLevel < 3) return false;
+    
+    final maxCompletedLevel = _userHistory
+        .where((h) => h['completed'] == true)
+        .map((h) => h['difficultyLevel'] as int? ?? 1)
+        .fold(0, (prev, curr) => curr > prev ? curr : prev);
+    
+    return currentLevel > maxCompletedLevel;
   }
 
   /// 切换收藏状态
@@ -165,35 +254,41 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 开始导航
-  void _startNavigation() {
+  /// P2: 开始导航（带检查清单）
+  void _startNavigation() async {
     final trailName = _trailData['name']?.toString() ?? '未知路线';
     final trailId = _trailData['id']?.toString() ?? '';
     
+    // P2: 显示出发前检查清单
+    final confirmed = await PreDepartureChecklistDialog.show(
+      context: context,
+      onConfirm: () {
+        _proceedToNavigation(trailName, trailId);
+      },
+    );
+
+    if (confirmed) {
+      // 检查清单已确认，继续导航
+      _proceedToNavigation(trailName, trailId);
+    }
+  }
+
+  /// P2: 继续导航流程
+  void _proceedToNavigation(String trailName, String trailId) {
     debugPrint('🧭 开始导航: $trailName (ID: $trailId)');
-    debugPrint('🧭 trailData keys: ${_trailData.keys.toList()}');
     
     // 提取轨迹点
     List<LatLng>? routePoints;
     final coordinates = _trailData['coordinates'];
-    debugPrint('🧭 coordinates: $coordinates');
     
     if (coordinates != null && coordinates is List) {
       routePoints = coordinates.map((coord) {
         if (coord is List && coord.length >= 2) {
-          // 数据格式是 [longitude, latitude]，需要转换成 LatLng(latitude, longitude)
           final latLng = LatLng(coord[1].toDouble(), coord[0].toDouble());
-          debugPrint('🧭 转换坐标: $coord -> LatLng(${latLng.latitude}, ${latLng.longitude})');
           return latLng;
         }
         return null;
       }).whereType<LatLng>().toList();
-    }
-    
-    debugPrint('🧭 routePoints count: ${routePoints?.length ?? 0}');
-    if (routePoints != null && routePoints.isNotEmpty) {
-      debugPrint('🧭 第一个点: ${routePoints.first}');
-      debugPrint('🧭 最后一个点: ${routePoints.last}');
     }
     
     // 上报导航开始事件
@@ -206,7 +301,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
       },
     );
     
-    // 上报导航开始事件（导航模块专用）
     AnalyticsService().trackEvent(
       NavigationEvents.navigationStart,
       params: {
@@ -233,7 +327,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     final trailId = _trailData['id']?.toString() ?? '';
     final trailName = _trailData['name']?.toString() ?? '';
     
-    // 上报下载事件
     AnalyticsService().trackEvent(
       TrailEvents.trailDownload,
       params: {
@@ -248,14 +341,10 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
       _downloadProgress = 0.0;
     });
     
-    // 显示带进度的 SnackBar
     _showDownloadSnackBar();
-    
-    // 模拟下载进度（实际项目中替换为真实下载逻辑）
     _simulateDownload();
   }
   
-  /// 显示下载进度 SnackBar
   void _showDownloadSnackBar() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -308,16 +397,13 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
             ? SnackBarAction(
                 label: '查看',
                 textColor: Colors.white,
-                onPressed: () {
-                  // TODO: 跳转到离线地图管理页面
-                },
+                onPressed: () {},
               )
             : null,
       ),
     );
   }
   
-  /// 模拟下载进度
   void _simulateDownload() {
     const totalSteps = 20;
     var currentStep = 0;
@@ -328,7 +414,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         _downloadProgress = currentStep / totalSteps;
       });
       
-      // 更新 SnackBar 显示
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       _showDownloadSnackBar();
       
@@ -338,7 +423,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           _isDownloading = false;
         });
         
-        // 下载完成，显示完成提示
         Future.delayed(const Duration(milliseconds: 500), () {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -379,14 +463,13 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
       routeName: _trailData['name'] ?? '未知路线',
       routeCoverUrl: _trailData['coverUrl'],
       distance: (_trailData['distance'] ?? 0).toDouble(),
-      duration: (_trailData['duration'] ?? 0) / 60, // 转换为小时
+      duration: (_trailData['duration'] ?? 0) / 60,
       elevation: _trailData['elevation'] ?? 0,
       difficulty: _trailData['difficulty'] ?? '未知',
-      location: '杭州', // TODO: 从数据中读取
+      location: '杭州',
       routeId: _trailData['id']?.toString() ?? '',
     );
     
-    // 上报分享事件
     AnalyticsService().trackEvent(
       TrailEvents.trailShare,
       params: {
@@ -400,7 +483,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    // 检查路线数据是否为空
     if (widget.trailData == null) {
       return _buildEmptyState();
     }
@@ -411,11 +493,9 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         child: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
-              // 封面图
               SliverToBoxAdapter(
                 child: _buildCoverImage(context),
               ),
-              // 标题区域
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -432,7 +512,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
                   ),
                 ),
               ),
-              // TabBar - 吸顶
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _TabBarDelegate(
@@ -458,13 +537,9 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           body: TabBarView(
             controller: _tabController,
             children: [
-              // 简介 Tab
               _buildIntroductionTab(),
-              // 轨迹 Tab
               _buildTrackTab(),
-              // 评价 Tab
               _buildReviewTab(),
-              // 攻略 Tab
               _buildGuideTab(),
             ],
           ),
@@ -474,11 +549,9 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 构建封面图区域
   Widget _buildCoverImage(BuildContext context) {
     return Stack(
       children: [
-        // 封面图
         Container(
           height: 240,
           width: double.infinity,
@@ -494,10 +567,9 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
               : null,
           ),
         ),
-        // 收藏按钮 - 右上角
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
-          right: 80, // 为分享按钮留出空间
+          right: 80,
           child: Container(
             decoration: BoxDecoration(
               color: DesignSystem.getBackgroundElevated(context).withOpacity(0.9),
@@ -513,7 +585,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
             ),
           ),
         ),
-        // 分享按钮 - 右上角
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
           right: 24,
@@ -532,7 +603,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
             ),
           ),
         ),
-        // 返回按钮 - 左上角
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
           left: 24,
@@ -555,12 +625,10 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 构建标题区域（路线名称 + 难度标签）
   Widget _buildTitleSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 路线名称 - 22px Semibold
         Text(
           _trailData['name'],
           style: TextStyle(
@@ -570,10 +638,8 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           ),
         ),
         const SizedBox(height: 8),
-        // 星级 + 难度标签
         Row(
           children: [
-            // 星级评分
             Row(
               children: List.generate(5, (index) {
                 final difficultyLevel = _trailData['difficultyLevel'] ?? 3;
@@ -587,7 +653,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
               }),
             ),
             const SizedBox(width: 8),
-            // 难度标签
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
@@ -609,7 +674,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 构建信息行（距离/时长/海拔）
   Widget _buildInfoRow(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -653,7 +717,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 构建单个信息项
   Widget _buildInfoItem({
     required BuildContext context,
     required IconData icon,
@@ -668,7 +731,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           size: 24,
         ),
         const SizedBox(height: 8),
-        // 核心数据 - 24px 大号字体
         Text(
           value,
           style: TextStyle(
@@ -690,7 +752,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 构建路线简介
   Widget _buildDescription(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -718,13 +779,33 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 构建简介 Tab
+  /// P2: 简介 Tab - 添加天气预警、难度提示、安全提示
   Widget _buildIntroductionTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // P2: 天气预警卡片
+          if (_weatherData != null)
+            WeatherAlertCard(
+              weather: _weatherData!,
+              alerts: _weatherAlerts,
+              onRefresh: _refreshWeather,
+            ),
+          
+          // P2: 路线难度提示卡片
+          TrailDifficultyCard(
+            difficulty: _trailData['difficulty'] ?? '未知',
+            difficultyLevel: _trailData['difficultyLevel'] ?? 1,
+            isFirstAttempt: _isFirstHighDifficultyAttempt,
+          ),
+          
+          // P2: 安全提示卡片
+          SafetyTipCard.fromTrailData(trailData: _trailData),
+          
+          const SizedBox(height: 24),
+          
           // 路线描述
           _buildSectionTitle('路线描述'),
           const SizedBox(height: 12),
@@ -737,52 +818,45 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
             ),
           ),
           const SizedBox(height: 24),
-          // 难度说明
-          _buildSectionTitle('难度说明'),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _getDifficultyColor(_trailData['difficulty']).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  _trailData['difficulty'],
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: _getDifficultyColor(_trailData['difficulty']),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
+          
           // 适合人群
           _buildSectionTitle('适合人群'),
           const SizedBox(height: 12),
           Text(
-            '适合喜欢自然风光、希望轻松徒步的户外爱好者。全程路况良好，无技术难点。',
+            _getSuitableAudience(),
             style: TextStyle(
               fontSize: 14,
               color: DesignSystem.getTextSecondary(context),
               height: 1.8,
             ),
           ),
-          const SizedBox(height: 100), // 底部留白
+          const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  /// 构建轨迹 Tab
+  /// P2: 根据难度获取适合人群说明
+  String _getSuitableAudience() {
+    final difficultyLevel = _trailData['difficultyLevel'] as int? ?? 1;
+    
+    switch (difficultyLevel) {
+      case 1:
+      case 2:
+        return '适合所有人群，包括家庭出行、儿童和老人。路况良好，坡度平缓，是入门徒步的绝佳选择。';
+      case 3:
+        return '适合有一定户外经验的徒步者。需要有基本的体力和耐力，建议携带登山杖。';
+      case 4:
+      case 5:
+        return '适合经验丰富的户外爱好者。需要良好的体能和户外技能，建议结伴而行，充分准备装备。';
+      default:
+        return '请根据自身情况评估是否适合此路线。如有疑问，建议咨询专业户外人士。';
+    }
+  }
+
   Widget _buildTrackTab() {
-    // 从真实数据读取轨迹点
     final coordinates = _trailData['coordinates'] as List<dynamic>? ?? [];
     
-    // 转换坐标点为途径点格式
     final trackPoints = coordinates.asMap().entries.map((entry) {
       final index = entry.key;
       final coord = entry.value;
@@ -795,16 +869,14 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         name = '途经点 ${index}';
       }
       
-      // coord 格式是 [longitude, latitude]
       return {
         'name': name,
         'lat': coord[1],
         'lng': coord[0],
-        'elevation': 15 + (index * 5), // 简单模拟海拔变化
+        'elevation': 15 + (index * 5),
       };
     }).toList();
     
-    // 如果没有轨迹数据，显示空状态
     if (trackPoints.isEmpty) {
       return SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -840,12 +912,8 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         children: [
           _buildSectionTitle('路线轨迹'),
           const SizedBox(height: 16),
-          
-          // 轨迹概览卡片
           _buildTrackOverviewCard(),
           const SizedBox(height: 24),
-          
-          // 轨迹点列表
           _buildSectionTitle('途径点'),
           const SizedBox(height: 12),
           ...trackPoints.asMap().entries.map((entry) {
@@ -860,21 +928,16 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
               index: index + 1,
             );
           }).toList(),
-          
           const SizedBox(height: 24),
-          
-          // 海拔图表（简化版）
           _buildSectionTitle('海拔剖面'),
           const SizedBox(height: 12),
           _buildElevationChart(trackPoints),
-          
           const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  /// 轨迹概览卡片
   Widget _buildTrackOverviewCard() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -893,7 +956,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 轨迹统计项
   Widget _buildTrackStatItem(String label, String value, IconData icon) {
     return Column(
       children: [
@@ -919,7 +981,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 轨迹点项
   Widget _buildTrackPointItem({
     required String name,
     required int elevation,
@@ -930,7 +991,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 时间轴
         Column(
           children: [
             Container(
@@ -958,7 +1018,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
           ],
         ),
         const SizedBox(width: 12),
-        // 内容
         Expanded(
           child: Container(
             padding: const EdgeInsets.only(bottom: 16),
@@ -999,7 +1058,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 海拔图表（简化柱状图）
   Widget _buildElevationChart(List<Map<String, dynamic>> points) {
     final maxElevation = points.map((p) => p['elevation'] as int? ?? 0).reduce((a, b) => a > b ? a : b);
     
@@ -1043,9 +1101,7 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 构建评价 Tab
   Widget _buildReviewTab() {
-    // 模拟评价数据
     final reviews = [
       {
         'userName': '户外探险家',
@@ -1081,22 +1137,17 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 评分概览
           _buildReviewOverview(),
           const SizedBox(height: 24),
-          
-          // 评价列表
           _buildSectionTitle('用户评价 (${reviews.length})'),
           const SizedBox(height: 12),
           ...reviews.map((review) => _buildReviewItem(review)),
-          
           const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  /// 评分概览
   Widget _buildReviewOverview() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1106,7 +1157,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
       ),
       child: Row(
         children: [
-          // 左侧大评分
           Column(
             children: [
               Text(
@@ -1137,7 +1187,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
             ],
           ),
           const SizedBox(width: 24),
-          // 右侧评分分布
           Expanded(
             child: Column(
               children: [
@@ -1154,7 +1203,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 评分条
   Widget _buildRatingBar(int star, double percentage) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -1194,7 +1242,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 评价项
   Widget _buildReviewItem(Map<String, dynamic> review) {
     final images = review['images'] as List<dynamic>;
     
@@ -1209,10 +1256,8 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 用户信息行
           Row(
             children: [
-              // 头像
               Container(
                 width: 40,
                 height: 40,
@@ -1226,7 +1271,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              // 用户名和评分
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1270,7 +1314,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
             ],
           ),
           const SizedBox(height: 12),
-          // 评价内容
           Text(
             review['content'] as String? ?? '',
             style: TextStyle(
@@ -1279,7 +1322,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
               height: 1.6,
             ),
           ),
-          // 评价图片
           if (images.isNotEmpty) ...[
             const SizedBox(height: 12),
             Row(
@@ -1305,7 +1347,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 构建攻略 Tab
   Widget _buildGuideTab() {
     final parkingLots = _trailData['parkingLots'] as List<dynamic>?;
     
@@ -1358,7 +1399,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 攻略项
   Widget _buildGuideItem(Map<String, dynamic> guide) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1403,7 +1443,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 构建章节标题
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
@@ -1415,7 +1454,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 构建底部操作栏
   Widget _buildBottomButton(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1433,7 +1471,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         top: false,
         child: Row(
           children: [
-            // 收藏按钮 - 固定56px宽度
             SizedBox(
               width: 56,
               height: 48,
@@ -1449,7 +1486,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
               ),
             ),
             const SizedBox(width: 12),
-            // 下载按钮 - 固定120px宽度
             SizedBox(
               width: 120,
               height: 48,
@@ -1507,7 +1543,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
               ),
             ),
             const SizedBox(width: 12),
-            // 开始导航按钮 - flex填充剩余空间
             Expanded(
               child: SizedBox(
                 height: 48,
@@ -1539,7 +1574,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 构建空状态
   Widget _buildEmptyState() {
     return Scaffold(
       backgroundColor: DesignSystem.getBackground(context),
@@ -1552,7 +1586,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     );
   }
 
-  /// 格式化时长
   String _formatDuration(dynamic duration) {
     if (duration == null) return '--';
     
@@ -1572,7 +1605,6 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
   }
 }
 
-/// TabBar 吸顶委托
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   final Widget child;
 
