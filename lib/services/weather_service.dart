@@ -360,6 +360,8 @@ class WeatherAlert {
         return DesignSystem.getWarning(context);
       case AlertSeverity.high:
         return DesignSystem.getError(context);
+      default:
+        return DesignSystem.getInfo(context);
     }
   }
 }
