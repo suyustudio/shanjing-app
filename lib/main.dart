@@ -9,6 +9,7 @@ import 'analytics/analytics_service.dart';
 import 'screens/map_screen_simple.dart';
 import 'screens/discovery_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/onboarding/onboarding_screen.dart';
 import 'constants/design_system.dart';
 import 'utils/performance_optimizer.dart';
 
@@ -20,12 +21,7 @@ void main() async {
   PerformanceOptimizer.initialize();
 
   // 加载环境变量
-  try {
-    await dotenv.load(fileName: ".env");
-    print('[Main] 环境变量加载成功');
-  } catch (e) {
-    print('[Main] 环境变量加载失败（可能文件不存在）: $e');
-  }
+  await dotenv.load(fileName: ".env");
   PerformanceOptimizer.markPhase('env_loaded');
 
   // 高德地图隐私合规设置
@@ -37,17 +33,12 @@ void main() async {
   AMapFlutterLocation.setApiKey(androidApiKey, "");
   PerformanceOptimizer.markPhase('map_initialized');
 
-  // 初始化埋点服务（允许失败）
-  try {
-    await AnalyticsService().initialize(
-      androidKey: '',
-      iosKey: '',
-      debugMode: true,
-    );
-    print('[Main] 埋点服务初始化成功');
-  } catch (e) {
-    print('[Main] 埋点服务初始化失败: $e');
-  }
+  // 初始化埋点服务
+  await AnalyticsService().initialize(
+    androidKey: '',
+    iosKey: '',
+    debugMode: true,
+  );
   PerformanceOptimizer.markPhase('analytics_initialized');
 
   // 性能优化：设置首选方向
@@ -77,7 +68,7 @@ class MyApp extends StatelessWidget {
         theme: DesignSystem.lightTheme,
         darkTheme: DesignSystem.darkTheme,
         themeMode: ThemeMode.system,
-        home: const MainScreen(), // 直接显示主界面，跳过新手引导
+        home: const MainScreen(),
       ),
     );
   }
@@ -92,6 +83,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  bool _showOnboarding = false;
 
   final List<Widget> _pages = const [
     MapScreenSimple(),
@@ -107,20 +99,56 @@ class _MainScreenState extends State<MainScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // 延迟检查是否需要显示新手引导
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkFirstLaunch();
+    });
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    // 临时：始终显示新手引导用于测试
+    // TODO: 恢复首次启动检查
+    setState(() {
+      _showOnboarding = true;
+    });
+  }
+
+  void _onOnboardingComplete() {
+    setState(() {
+      _showOnboarding = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
+      body: Stack(
+        children: [
+          // 主界面
+          IndexedStack(
+            index: _currentIndex,
+            children: _pages,
+          ),
+          // 新手引导层
+          if (_showOnboarding)
+            OnboardingScreen(
+              onComplete: _onOnboardingComplete,
+              onSkip: _onOnboardingComplete,
+            ),
+        ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: List.generate(3, (index) => BottomNavigationBarItem(
-          icon: Icon(_icons[index]),
-          label: _titles[index],
-        )),
-      ),
+      bottomNavigationBar: _showOnboarding
+          ? null // 新手引导时隐藏底部导航
+          : BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() => _currentIndex = index),
+              items: List.generate(3, (index) => BottomNavigationBarItem(
+                icon: Icon(_icons[index]),
+                label: _titles[index],
+              )),
+            ),
     );
   }
 }
