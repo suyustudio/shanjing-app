@@ -216,17 +216,108 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     }
   }
 
-  Future<void> _completeOnboarding() async {
-    await _onboardingService.setCompletedAt();
-    await _onboardingService.markCompleted();
+  /// 调试简化版：直接跳转，跳过所有 SharedPreferences 操作
+  /// 用于验证是否是存储问题导致的无法跳转
+  Future<void> _completeOnboardingSimple() async {
+    print('[Onboarding] 🚀 简化版完成流程（跳过存储）');
+    print('[Onboarding] 当前 mounted: $mounted');
+    
+    if (!mounted) {
+      print('[Onboarding] ⚠️ 未 mounted，但仍尝试跳转');
+      widget.onComplete();
+      return;
+    }
+    
+    print('[Onboarding] 🎯 直接调用 onComplete');
     widget.onComplete();
+    print('[Onboarding] ✅ 跳转已触发');
+  }
+
+  Future<void> _completeOnboarding() async {
+    try {
+      print('[Onboarding] 🚀 开始完成引导流程');
+      print('[Onboarding] 当前 mounted 状态: $mounted');
+      
+      // 检查 mounted 状态
+      if (!mounted) {
+        print('[Onboarding] ⚠️ 警告: context 未 mounted，但仍尝试调用 onComplete');
+        widget.onComplete();
+        return;
+      }
+      
+      // 执行 SharedPreferences 操作
+      try {
+        print('[Onboarding] 📦 正在设置完成时间...');
+        await _onboardingService.setCompletedAt();
+        print('[Onboarding] ✅ 已设置完成时间');
+      } catch (e, stackTrace) {
+        print('[Onboarding] ⚠️ setCompletedAt 失败: $e');
+        print('[Onboarding] 堆栈: $stackTrace');
+      }
+      
+      try {
+        print('[Onboarding] 📦 正在标记引导完成...');
+        await _onboardingService.markCompleted();
+        print('[Onboarding] ✅ 已标记引导完成');
+      } catch (e, stackTrace) {
+        print('[Onboarding] ⚠️ markCompleted 失败: $e');
+        print('[Onboarding] 堆栈: $stackTrace');
+      }
+      
+      print('[Onboarding] 🎯 准备调用 onComplete 回调');
+      widget.onComplete();
+      print('[Onboarding] ✅ onComplete 已调用');
+    } catch (e, stackTrace) {
+      print('[Onboarding] ❌ _completeOnboarding 错误: $e');
+      print('[Onboarding] 堆栈: $stackTrace');
+      // 即使出错也尝试跳转
+      widget.onComplete();
+    }
   }
 
   Future<void> _skipOnboarding() async {
-    final confirmed = await _showSkipConfirmDialog();
-    if (confirmed == true) {
-      await _onboardingService.markSkipped();
-      widget.onSkip?.call();
+    try {
+      print('[Onboarding] 🚀 开始跳过引导流程');
+      print('[Onboarding] 当前 mounted 状态: $mounted');
+      
+      final confirmed = await _showSkipConfirmDialog();
+      print('[Onboarding] 用户确认跳过: $confirmed');
+      
+      if (confirmed == true) {
+        // 尝试标记为跳过
+        try {
+          print('[Onboarding] 📦 正在标记跳过...');
+          await _onboardingService.markSkipped();
+          print('[Onboarding] ✅ 已标记跳过');
+        } catch (e, stackTrace) {
+          print('[Onboarding] ⚠️ markSkipped 失败: $e');
+          print('[Onboarding] 堆栈: $stackTrace');
+        }
+        
+        // 调用跳过回调
+        try {
+          print('[Onboarding] 🎯 调用 onSkip 回调');
+          widget.onSkip?.call();
+          print('[Onboarding] ✅ onSkip 已调用');
+        } catch (e, stackTrace) {
+          print('[Onboarding] ⚠️ onSkip 调用失败: $e');
+          print('[Onboarding] 堆栈: $stackTrace');
+        }
+        
+        // 调用完成回调
+        try {
+          print('[Onboarding] 🎯 调用 onComplete 回调');
+          widget.onComplete();
+          print('[Onboarding] ✅ onComplete 已调用');
+        } catch (e, stackTrace) {
+          print('[Onboarding] ❌ onComplete 调用失败: $e');
+          print('[Onboarding] 堆栈: $stackTrace');
+        }
+      }
+    } catch (e, stackTrace) {
+      print('[Onboarding] ❌ _skipOnboarding 错误: $e');
+      print('[Onboarding] 堆栈: $stackTrace');
+      // 即使出错也尝试跳转
       widget.onComplete();
     }
   }
