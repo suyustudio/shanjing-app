@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../constants/design_system.dart';
+import '../../constants/design_system.dart';
 
 /// 安全提示卡片组件
 /// 根据路线特点显示相应的安全建议
