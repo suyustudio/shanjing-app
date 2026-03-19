@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <!-- 渐变定义 -->
+    <linearGradient id="notifBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EEF7FF"/>
+      <stop offset="100%" stop-color="#D6EBFF"/>
+    </linearGradient>
+    <linearGradient id="bellGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B9EFF"/>
+      <stop offset="100%" stop-color="#1A7AD4"/>
+    </linearGradient>
+    <linearGradient id="messageGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F0F7FF"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景圆 -->
+  <circle cx="100" cy="100" r="90" fill="url(#notifBg)"/>
+  
+  <!-- 装饰圆点 -->
+  <circle cx="45" cy="55" r="5" fill="#3B9EFF" opacity="0.25"/>
+  <circle cx="160" cy="145" r="7" fill="#3B9EFF" opacity="0.2"/>
+  <circle cx="155" cy="50" r="4" fill="#3B9EFF" opacity="0.3"/>
+  <circle cx="40" cy="155" r="6" fill="#3B9EFF" opacity="0.15"/>
+  <circle cx="175" cy="90" r="3" fill="#3B9EFF" opacity="0.2"/>
+  
+  <!-- 背景消息气泡 -->
+  <g transform="translate(60, 70) rotate(-10)" opacity="0.4">
+    <rect x="-25" y="-18" width="50" height="36" rx="10" fill="#3B9EFF"/>
+    <path d="M-5 18 L0 28 L5 18 Z" fill="#3B9EFF"/>
+    <line x1="-15" y1="-5" x2="15" y2="-5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+    <line x1="-15" y1="5" x2="10" y2="5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  </g>
+  
+  <g transform="translate(145, 120) rotate(8)" opacity="0.35">
+    <rect x="-22" y="-15" width="44" height="30" rx="8" fill="#3B9EFF"/>
+    <path d="M-4 15 L0 23 L4 15 Z" fill="#3B9EFF"/>
+    <line x1="-12" y1="-4" x2="12" y2="-4" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+    <line x1="-12" y1="4" x2="8" y2="4" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+  </g>
+  
+  <!-- 主铃铛图标 -->
+  <g transform="translate(100, 100)">
+    <!-- 铃铛背景圆 -->
+    <circle cx="0" cy="0" r="45" fill="#FFFFFF" stroke="#3B9EFF" stroke-width="2"/>
+    
+    <!-- 铃铛主体 -->
+    <g transform="translate(0, -2)">
+      <!-- 铃铛顶部 -->
+      <rect x="-4" y="-32" width="8" height="8" rx="2" fill="url(#bellGradient)"/>
+      
+      <!-- 铃铛身 -->
+      <path d="M-22 -20 Q-22 -32 0 -32 Q22 -32 22 -20 L26 15 Q28 22 20 22 L-20 22 Q-28 22 -26 15 Z" fill="url(#bellGradient)"/>
+      
+      <!-- 铃铛底部 -->
+      <ellipse cx="0" cy="24" rx="10" ry="6" fill="#1A7AD4"/>
+      <circle cx="0" cy="28" r="5" fill="#1A7AD4"/>
+      
+      <!-- 铃铛高光 -->
+      <ellipse cx="-8" cy="-12" rx="5" ry="8" fill="#FFFFFF" opacity="0.3"/>
+    </g>
+    
+    <!-- 通知红点 -->
+    <circle cx="18" cy="-18" r="10" fill="#FF4444"/>
+    <text x="18" y="-14" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="bold" font-family="system-ui">3</text>
+  </g>
+  
+  <!-- 声音波纹 -->
+  <g transform="translate(100, 100)" opacity="0.3">
+    <path d="M-55 -20 Q-65 -25 -65 -35 Q-65 -45 -55 -50" stroke="#3B9EFF" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M-50 -12 Q-58 -15 -58 -22 Q-58 -29 -50 -32" stroke="#3B9EFF" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M55 -20 Q65 -25 65 -35 Q65 -45 55 -50" stroke="#3B9EFF" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M50 -12 Q58 -15 58 -22 Q58 -29 50 -32" stroke="#3B9EFF" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- 前层消息气泡 -->
+  <g transform="translate(135, 70) rotate(5)" opacity="0.7">
+    <rect x="-18" y="-12" width="36" height="24" rx="6" fill="#FFFFFF" stroke="#3B9EFF" stroke-width="1.5"/>
+    <path d="M-3 12 L0 18 L3 12 Z" fill="#FFFFFF" stroke="#3B9EFF" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M-3 12 L0 18 L3 12 Z" fill="#FFFFFF"/>
+    <line x1="-10" y1="-3" x2="10" y2="-3" stroke="#3B9EFF" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+    <line x1="-10" y1="4" x2="6" y2="4" stroke="#3B9EFF" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+  </g>
+</svg>

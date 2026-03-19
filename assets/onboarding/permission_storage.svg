@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <!-- 渐变定义 -->
+    <linearGradient id="storageBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF8E7"/>
+      <stop offset="100%" stop-color="#FFEFC8"/>
+    </linearGradient>
+    <linearGradient id="folderFront" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFB800"/>
+      <stop offset="100%" stop-color="#E6A600"/>
+    </linearGradient>
+    <linearGradient id="folderBack" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFC940"/>
+      <stop offset="100%" stop-color="#FFB800"/>
+    </linearGradient>
+    <linearGradient id="downloadIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFF8E7"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景圆 -->
+  <circle cx="100" cy="100" r="90" fill="url(#storageBg)"/>
+  
+  <!-- 装饰圆点 -->
+  <circle cx="45" cy="55" r="6" fill="#FFB800" opacity="0.3"/>
+  <circle cx="160" cy="145" r="8" fill="#FFB800" opacity="0.2"/>
+  <circle cx="155" cy="50" r="4" fill="#FFB800" opacity="0.25"/>
+  <circle cx="40" cy="150" r="5" fill="#FFB800" opacity="0.2"/>
+  
+  <!-- 文件夹组 -->
+  <g transform="translate(100, 105)">
+    <!-- 后方文件夹 -->
+    <g transform="translate(-45, -20) rotate(-15)">
+      <path d="M-35 -25 L-15 -25 L-10 -35 L35 -35 L35 35 L-35 35 Z" fill="url(#folderBack)"/>
+      <rect x="-35" y="-25" width="70" height="8" fill="#E6A600" opacity="0.5"/>
+    </g>
+    
+    <!-- 侧方文件夹 -->
+    <g transform="translate(40, -15) rotate(12)">
+      <path d="M-30 -30 L-10 -30 L-5 -40 L30 -40 L30 30 L-30 30 Z" fill="#FFD966"/>
+      <rect x="-30" y="-30" width="60" height="6" fill="#E6A600" opacity="0.4"/>
+    </g>
+    
+    <!-- 主文件夹 -->
+    <g transform="translate(0, 5)">
+      <!-- 文件夹后部 -->
+      <path d="M-45 -30 L-20 -30 L-12 -42 L45 -42 L45 40 L-45 40 Z" fill="url(#folderBack)"/>
+      
+      <!-- 文件夹标签 -->
+      <path d="M-45 -30 L-20 -30 L-12 -42 L-12 -30 Z" fill="#E6A600"/>
+      
+      <!-- 文件夹前部 -->
+      <path d="M-45 -20 L45 -20 L45 45 C45 48 42 50 40 50 L-40 50 C-42 50 -45 48 -45 45 Z" fill="url(#folderFront)"/>
+      
+      <!-- 文件夹内部阴影 -->
+      <rect x="-40" y="-20" width="80" height="6" fill="#CC9400" opacity="0.3"/>
+      
+      <!-- 下载箭头图标 -->
+      <g transform="translate(0, 15)">
+        <circle cx="0" cy="0" r="18" fill="#FFFFFF" stroke="#FFB800" stroke-width="2"/>
+        <path d="M-6 -4 L0 6 L6 -4" stroke="#FFB800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <line x1="0" y1="6" x2="0" y2="-8" stroke="#FFB800" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+    </g>
+  </g>
+  
+  <!-- 下载进度指示 -->
+  <g transform="translate(100, 165)">
+    <rect x="-40" y="0" width="80" height="6" rx="3" fill="#FFFFFF" stroke="#FFB800" stroke-width="1"/>
+    <rect x="-38" y="2" width="50" height="2" rx="1" fill="#FFB800"/>
+  </g>
+  
+  <!-- 小云图标 - 表示云存储 -->
+  <g transform="translate(145, 65)" opacity="0.6">
+    <ellipse cx="0" cy="0" rx="12" ry="8" fill="#FFB800"/>
+    <ellipse cx="-8" cy="2" rx="8" ry="6" fill="#FFB800"/>
+    <ellipse cx="8" cy="2" rx="8" ry="6" fill="#FFB800"/>
+    <ellipse cx="0" cy="-4" rx="6" ry="5" fill="#FFB800"/>
+  </g>
+</svg>

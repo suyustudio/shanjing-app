@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/design_system.dart';
 
 /// 安全提示卡片组件
 /// 根据路线特点显示相应的安全建议
@@ -37,7 +38,7 @@ class SafetyTipCard extends StatelessWidget {
     final Color warningColor = const Color(0xFFFFA726);
     final Color textPrimaryColor = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF1A1A1A);
     final Color textSecondaryColor = isDark ? const Color(0xFFB0B0B0) : const Color(0xFF666666);
-    final Color primaryColor = const Color(0xFF2D968A);
+    final Color primaryColor = DesignSystem.primary;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

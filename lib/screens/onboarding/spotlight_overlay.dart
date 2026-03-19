@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../constants/design_system.dart';
 
 /// 高亮位置枚举
 enum SpotlightPosition {
@@ -293,7 +294,7 @@ class _SpotlightOverlayState extends State<SpotlightOverlay>
           const Icon(
             Icons.touch_app_outlined,
             size: 36,
-            color: Color(0xFF2D968A),
+            color: DesignSystem.primary,
           ),
           const SizedBox(height: 12),
           Text(
@@ -312,7 +313,7 @@ class _SpotlightOverlayState extends State<SpotlightOverlay>
             child: FilledButton(
               onPressed: _handleNext,
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF2D968A),
+                backgroundColor: DesignSystem.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),

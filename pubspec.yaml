@@ -48,3 +48,10 @@ flutter:
     - assets/markers/marker_start_xhdpi.png
     - assets/markers/marker_end_xhdpi.png
     - assets/markers/marker_loop_xhdpi.png
+    # Onboarding 插画资源
+    - assets/onboarding/welcome_illustration.svg
+    - assets/onboarding/permission_location.svg
+    - assets/onboarding/permission_storage.svg
+    - assets/onboarding/permission_notification.svg
+    - assets/onboarding/features_illustration.svg
+    - assets/onboarding/celebration_illustration.svg

@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 280" fill="none">
+  <defs>
+    <!-- 渐变定义 -->
+    <linearGradient id="celebrateBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FAFBFB"/>
+      <stop offset="100%" stop-color="#E8F5F3"/>
+    </linearGradient>
+    <linearGradient id="trophyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFB800"/>
+      <stop offset="50%" stop-color="#FFD700"/>
+      <stop offset="100%" stop-color="#FF9500"/>
+    </linearGradient>
+    <linearGradient id="trophyShine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF8E7"/>
+      <stop offset="100%" stop-color="#FFE4A1"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="280" height="280" fill="url(#celebrateBg)"/>
+  
+  <!-- 装饰性大圆 -->
+  <circle cx="140" cy="140" r="100" fill="#2D968A" opacity="0.08"/>
+  <circle cx="140" cy="140" r="70" fill="#2D968A" opacity="0.05"/>
+  
+  <!-- 彩带 - 左上 -->
+  <g transform="translate(50, 60) rotate(-30)">
+    <path d="M0 0 Q10 20 0 40 Q-10 20 0 0" fill="#FF6B6B"/>
+    <path d="M-5 15 Q5 25 -5 35" stroke="#FF6B6B" stroke-width="3" fill="none"/>
+  </g>
+  <g transform="translate(70, 45) rotate(-15)">
+    <path d="M0 0 Q8 15 0 30 Q-8 15 0 0" fill="#3B9EFF"/>
+  </g>
+  
+  <!-- 彩带 - 右上 -->
+  <g transform="translate(230, 60) rotate(30)">
+    <path d="M0 0 Q10 20 0 40 Q-10 20 0 0" fill="#5BC4A6"/>
+    <path d="M5 15 Q-5 25 5 35" stroke="#5BC4A6" stroke-width="3" fill="none"/>
+  </g>
+  <g transform="translate(210, 45) rotate(15)">
+    <path d="M0 0 Q8 15 0 30 Q-8 15 0 0" fill="#FFB800"/>
+  </g>
+  
+  <!-- 彩带 - 左下 -->
+  <g transform="translate(45, 200) rotate(-45)">
+    <path d="M0 0 Q8 15 0 30 Q-8 15 0 0" fill="#9B59B6"/>
+  </g>
+  
+  <!-- 彩带 - 右下 -->
+  <g transform="translate(235, 200) rotate(45)">
+    <path d="M0 0 Q8 15 0 30 Q-8 15 0 0" fill="#FF6B9D"/>
+  </g>
+  
+  <!-- 小圆点装饰 -->
+  <circle cx="30" cy="100" r="6" fill="#FFB800" opacity="0.6"/>
+  <circle cx="250" cy="110" r="5" fill="#3B9EFF" opacity="0.6"/>
+  <circle cx="40" cy="180" r="4" fill="#FF6B6B" opacity="0.5"/>
+  <circle cx="245" cy="170" r="7" fill="#5BC4A6" opacity="0.5"/>
+  <circle cx="60" cy="130" r="3" fill="#9B59B6" opacity="0.4"/>
+  <circle cx="220" cy="190" r="4" fill="#FFB800" opacity="0.5"/>
+  <circle cx="35" cy="140" r="5" fill="#FF6B9D" opacity="0.4"/>
+  <circle cx="255" cy="85" r="4" fill="#5BC4A6" opacity="0.5"/>
+  
+  <!-- 星星装饰 -->
+  <g transform="translate(80, 85)">
+    <path d="M0 -10 L2 -3 L9 -3 L3 2 L5 9 L0 5 L-5 9 L-3 2 L-9 -3 L-2 -3 Z" fill="#FFB800" opacity="0.8"/>
+  </g>
+  <g transform="translate(200, 95) scale(0.8)">
+    <path d="M0 -10 L2 -3 L9 -3 L3 2 L5 9 L0 5 L-5 9 L-3 2 L-9 -3 L-2 -3 Z" fill="#FFB800" opacity="0.7"/>
+  </g>
+  <g transform="translate(90, 190) scale(0.6)">
+    <path d="M0 -10 L2 -3 L9 -3 L3 2 L5 9 L0 5 L-5 9 L-3 2 L-9 -3 L-2 -3 Z" fill="#3B9EFF" opacity="0.6"/>
+  </g>
+  <g transform="translate(190, 185) scale(0.7)">
+    <path d="M0 -10 L2 -3 L9 -3 L3 2 L5 9 L0 5 L-5 9 L-3 2 L-9 -3 L-2 -3 Z" fill="#FF6B6B" opacity="0.6"/>
+  </g>
+  
+  <!-- 奖杯 -->
+  <g transform="translate(140, 140)">
+    <!-- 奖杯阴影 -->
+    <ellipse cx="0" cy="58" rx="35" ry="8" fill="#000000" opacity="0.1"/>
+    
+    <!-- 奖杯底座 -->
+    <rect x="-20" y="45" width="40" height="8" rx="2" fill="#E6A600"/>
+    <rect x="-15" y="38" width="30" height="7" rx="1" fill="#FFB800"/>
+    
+    <!-- 奖杯主体 -->
+    <path d="M-30 -20 Q-30 35 0 45 Q30 35 30 -20 L-30 -20 Z" fill="url(#trophyGradient)"/>
+    
+    <!-- 奖杯口 -->
+    <ellipse cx="0" cy="-20" rx="30" ry="8" fill="#FFC940"/>
+    <ellipse cx="0" cy="-20" rx="26" ry="6" fill="#FFF8E7" opacity="0.5"/>
+    
+    <!-- 奖杯把手 -->
+    <path d="M-30 -15 Q-45 -15 -45 5 Q-45 20 -28 25" stroke="#FFB800" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M30 -15 Q45 -15 45 5 Q45 20 28 25" stroke="#FFB800" stroke-width="5" fill="none" stroke-linecap="round"/>
+    
+    <!-- 奖杯高光 -->
+    <ellipse cx="-10" cy="0" rx="8" ry="15" fill="#FFFFFF" opacity="0.4"/>
+    <ellipse cx="-12" cy="5" rx="4" ry="8" fill="#FFFFFF" opacity="0.3"/>
+    
+    <!-- 星星徽章 -->
+    <g transform="translate(0, 15)">
+      <circle cx="0" cy="0" r="12" fill="#FFFFFF" stroke="#FFB800" stroke-width="2"/>
+      <path d="M0 -8 L2 -2 L8 -2 L3 2 L5 8 L0 4 L-5 8 L-3 2 L-8 -2 L-2 -2 Z" fill="#FFB800"/>
+    </g>
+  </g>
+  
+  <!-- 笑脸图标 -->
+  <g transform="translate(75, 135)">
+    <circle cx="0" cy="0" r="18" fill="#FFFFFF" stroke="#2D968A" stroke-width="2"/>
+    <!-- 眼睛 -->
+    <circle cx="-5" cy="-3" r="2" fill="#2D968A"/>
+    <circle cx="5" cy="-3" r="2" fill="#2D968A"/>
+    <!-- 嘴巴 -->
+    <path d="M-7 5 Q0 12 7 5" stroke="#2D968A" stroke-width="2" stroke-linecap="round" fill="none"/>
+  </g>
+  
+  <g transform="translate(205, 135)">
+    <circle cx="0" cy="0" r="18" fill="#FFFFFF" stroke="#2D968A" stroke-width="2"/>
+    <!-- 眼睛 -->
+    <circle cx="-5" cy="-3" r="2" fill="#2D968A"/>
+    <circle cx="5" cy="-3" r="2" fill="#2D968A"/>
+    <!-- 嘴巴 -->
+    <path d="M-7 5 Q0 12 7 5" stroke="#2D968A" stroke-width="2" stroke-linecap="round" fill="none"/>
+  </g>
+  
+  <!-- 完成标记 -->
+  <g transform="translate(140, 225)">
+    <rect x="-50" y="-12" width="100" height="24" rx="12" fill="#2D968A"/>
+    <text x="0" y="4" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="bold" font-family="system-ui">完成!</text>
+  </g>
+  
+  <!-- 漂浮的彩纸屑 -->
+  <rect x="110" y="50" width="6" height="6" rx="1" fill="#FF6B6B" opacity="0.7" transform="rotate(15)"/>
+  <rect x="165" y="70" width="5" height="5" rx="1" fill="#3B9EFF" opacity="0.6" transform="rotate(-20)"/>
+  <rect x="95" y="210" width="4" height="4" rx="1" fill="#FFB800" opacity="0.5" transform="rotate(30)"/>
+  <rect x="180" y="200" width="5" height="5" rx="1" fill="#5BC4A6" opacity="0.6" transform="rotate(-10)"/>
+</svg>
