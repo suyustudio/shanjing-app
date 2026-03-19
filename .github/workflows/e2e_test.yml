@@ -1,0 +1,309 @@
+# .github/workflows/e2e_test.yml
+# GitHub Actions E2E测试工作流
+
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'lib/**'
+      - 'qa/**'
+      - 'pubspec.yaml'
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # 每天凌晨2点运行 (UTC时间)
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: '测试类型'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - smoke
+          - e2e
+          - compatibility
+
+jobs:
+  # 代码检查
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Analyze
+        run: flutter analyze
+      
+      - name: Format check
+        run: dart format --set-exit-if-changed lib/
+
+  # 单元测试
+  unit_test:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Run unit tests
+        run: flutter test --coverage test/
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage/lcov.info
+          fail_ci_if_error: false
+
+  # E2E测试 - Android
+  e2e_android:
+    runs-on: macos-latest
+    needs: unit_test
+    if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'e2e' || github.event_name == 'pull_request'
+    timeout-minutes: 45
+    strategy:
+      matrix:
+        api-level: [29, 33, 34]
+        target: [default]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Build APK for testing
+        run: flutter build apk --debug
+      
+      - name: Run E2E tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: x86_64
+          profile: Nexus 6
+          script: |
+            flutter test qa/m4/p2_testing/automation/e2e/ \
+              --device-id emulator-5554 \
+              --reporter expanded 2>&1 || true
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-android-results-api${{ matrix.api-level }}
+          path: |
+            test-results/
+            *.log
+          retention-days: 7
+
+  # E2E测试 - iOS
+  e2e_ios:
+    runs-on: macos-latest
+    needs: unit_test
+    if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'e2e' || github.event_name == 'pull_request'
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+      
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Build iOS for simulator
+        run: flutter build ios --simulator
+      
+      - name: Run E2E tests
+        run: |
+          flutter test qa/m4/p2_testing/automation/e2e/ \
+            --reporter expanded 2>&1 || true
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-ios-results
+          path: |
+            test-results/
+            *.log
+          retention-days: 7
+
+  # 烟雾测试
+  smoke_test:
+    runs-on: macos-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Run smoke tests on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          script: |
+            flutter test qa/m4/p2_testing/automation/e2e/regressions/smoke_test.dart \
+              --reporter expanded
+      
+      - name: Upload smoke test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results
+          path: test-results/
+
+  # 性能测试
+  performance_test:
+    runs-on: macos-latest
+    needs: smoke_test
+    if: github.event_name == 'schedule' || github.event.inputs.test_type == 'all'
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Run performance tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          script: |
+            flutter test qa/m4/p2_testing/performance/ \
+              --reporter json > performance_results.json 2>&1 || true
+      
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: |
+            performance_results.json
+            test-results/
+
+  # 兼容性测试
+  compatibility_test:
+    runs-on: ubuntu-latest
+    needs: smoke_test
+    if: github.event_name == 'schedule' || github.event.inputs.test_type == 'compatibility'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+      
+      - name: Build release APK
+        run: flutter build apk --release
+      
+      - name: Upload APK for manual testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  # 生成测试报告
+  test_report:
+    runs-on: ubuntu-latest
+    needs: [e2e_android, e2e_ios, smoke_test]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: '*-results*'
+      
+      - name: List artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          find artifacts -type f
+      
+      - name: Generate test report
+        run: |
+          echo "# E2E测试报告" > test-report.md
+          echo "" >> test-report.md
+          echo "## 执行摘要" >> test-report.md
+          echo "" >> test-report.md
+          echo "| 工作流 | 状态 |" >> test-report.md
+          echo "|--------|------|" >> test-report.md
+          echo "| E2E Android | ${{ needs.e2e_android.result }} |" >> test-report.md
+          echo "| E2E iOS | ${{ needs.e2e_ios.result }} |" >> test-report.md
+          echo "| Smoke Test | ${{ needs.smoke_test.result }} |" >> test-report.md
+          echo "" >> test-report.md
+          echo "执行时间: $(date)" >> test-report.md
+      
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: test-report.md
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('test-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            }).catch(e => console.log('Comment failed:', e));

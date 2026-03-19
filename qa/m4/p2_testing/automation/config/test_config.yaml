@@ -1,0 +1,112 @@
+# qa/m4/p2_testing/automation/config/test_config.yaml
+# E2E测试配置文件
+
+test_data:
+  users:
+    - phone: "13800138000"
+      code: "123456"
+      nickname: "测试用户1"
+      avatar: "https://example.com/avatar1.jpg"
+    - phone: "13800138001"
+      code: "123456"
+      nickname: "测试用户2"
+      avatar: "https://example.com/avatar2.jpg"
+  
+  trails:
+    - id: "R001"
+      name: "九溪烟树线"
+      city: "杭州"
+      distance: 5200
+      duration: 120
+      difficulty: "easy"
+    - id: "R002"
+      name: "龙井村线"
+      city: "杭州"
+      distance: 6800
+      duration: 150
+      difficulty: "moderate"
+    - id: "R003"
+      name: "宝石山线"
+      city: "杭州"
+      distance: 3200
+      duration: 90
+      difficulty: "easy"
+    - id: "R009"
+      name: "西湖环湖线"
+      city: "杭州"
+      distance: 10800
+      duration: 180
+      difficulty: "easy"
+  
+  locations:
+    - name: "断桥残雪"
+      lat: 30.2596
+      lng: 120.1479
+    - name: "白堤"
+      lat: 30.2588
+      lng: 120.1432
+    - name: "苏堤春晓"
+      lat: 30.2315
+      lng: 120.1289
+    - name: "雷峰塔"
+      lat: 30.2311
+      lng: 120.1498
+    - name: "柳浪闻莺"
+      lat: 30.2420
+      lng: 120.1556
+
+timeouts:
+  default: 30
+  navigation: 120
+  offline_download: 180
+  sos: 10
+  login: 15
+  page_load: 10
+
+mock_services:
+  wechat:
+    enabled: true
+    auto_auth: true
+    mock_user:
+      openid: "mock_openid_123"
+      nickname: "微信测试用户"
+      avatar: "https://example.com/wechat_avatar.jpg"
+  
+  location:
+    enabled: true
+    mock_provider: true
+    default_accuracy: 5.0
+  
+  network:
+    enabled: true
+    can_simulate_weak: true
+    can_simulate_offline: true
+  
+  sos:
+    enabled: true
+    mock_send: true
+    auto_success: true
+
+screenshots:
+  enabled: true
+  on_failure: true
+  on_success: false
+  directory: "test-results/screenshots"
+  max_count: 100
+
+logging:
+  level: "info"  # debug, info, warning, error
+  save_to_file: true
+  directory: "test-results/logs"
+  max_file_size_mb: 10
+
+retry:
+  enabled: true
+  max_attempts: 3
+  delay_seconds: 5
+
+reporting:
+  format: "markdown"  # markdown, json, html
+  include_screenshots: true
+  include_logs: true
+  output_directory: "test-results/reports"
