@@ -327,18 +327,18 @@ class AuthService {
         _authStatusController.add(_authStatus);
         
         // 埋点：登录成功
-        AnalyticsService().trackEvent(AuthEvents.loginSuccess, params: {
-          AuthEvents.paramUserId: _currentUser?.id,
-          AuthEvents.paramPhone: phone,
-          AuthEvents.paramMethod: 'password',
+        AnalyticsService().trackEvent(UserEvents.loginSuccess, params: {
+          UserEvents.paramUserId: _currentUser?.id,
+          UserEvents.paramPhone: phone,
+          UserEvents.paramMethod: 'password',
         });
       } else {
         // 埋点：登录失败
-        AnalyticsService().trackEvent(AuthEvents.loginFailed, params: {
-          AuthEvents.paramPhone: phone,
-          AuthEvents.paramMethod: 'password',
-          AuthEvents.paramErrorCode: apiResponse.errorCode,
-          AuthEvents.paramErrorMessage: apiResponse.errorMessage,
+        AnalyticsService().trackEvent(UserEvents.loginFailed, params: {
+          UserEvents.paramPhone: phone,
+          UserEvents.paramMethod: 'password',
+          UserEvents.paramErrorCode: apiResponse.errorCode,
+          UserEvents.paramErrorMessage: apiResponse.errorMessage,
         });
       }
       
@@ -350,11 +350,11 @@ class AuthService {
       );
     } catch (e) {
       // 埋点：登录失败（网络错误）
-      AnalyticsService().trackEvent(AuthEvents.loginFailed, params: {
-        AuthEvents.paramPhone: phone,
-        AuthEvents.paramMethod: 'password',
-        AuthEvents.paramErrorCode: 'NETWORK_ERROR',
-        AuthEvents.paramErrorMessage: '网络请求失败: $e',
+      AnalyticsService().trackEvent(UserEvents.loginFailed, params: {
+        UserEvents.paramPhone: phone,
+        UserEvents.paramMethod: 'password',
+        UserEvents.paramErrorCode: 'NETWORK_ERROR',
+        UserEvents.paramErrorMessage: '网络请求失败: $e',
       });
       return ApiResponse(
         success: false,
@@ -503,18 +503,18 @@ class AuthService {
         _authStatusController.add(_authStatus);
         
         // 埋点：登录成功
-        AnalyticsService().trackEvent(AuthEvents.loginSuccess, params: {
-          AuthEvents.paramUserId: _currentUser?.id,
-          AuthEvents.paramPhone: phone,
-          AuthEvents.paramMethod: 'phone_code',
+        AnalyticsService().trackEvent(UserEvents.loginSuccess, params: {
+          UserEvents.paramUserId: _currentUser?.id,
+          UserEvents.paramPhone: phone,
+          UserEvents.paramMethod: 'phone_code',
         });
       } else {
         // 埋点：登录失败
-        AnalyticsService().trackEvent(AuthEvents.loginFailed, params: {
-          AuthEvents.paramPhone: phone,
-          AuthEvents.paramMethod: 'phone_code',
-          AuthEvents.paramErrorCode: apiResponse.errorCode,
-          AuthEvents.paramErrorMessage: apiResponse.errorMessage,
+        AnalyticsService().trackEvent(UserEvents.loginFailed, params: {
+          UserEvents.paramPhone: phone,
+          UserEvents.paramMethod: 'phone_code',
+          UserEvents.paramErrorCode: apiResponse.errorCode,
+          UserEvents.paramErrorMessage: apiResponse.errorMessage,
         });
       }
       
@@ -526,11 +526,11 @@ class AuthService {
       );
     } catch (e) {
       // 埋点：登录失败（网络错误）
-      AnalyticsService().trackEvent(AuthEvents.loginFailed, params: {
-        AuthEvents.paramPhone: phone,
-        AuthEvents.paramMethod: 'phone_code',
-        AuthEvents.paramErrorCode: 'NETWORK_ERROR',
-        AuthEvents.paramErrorMessage: '网络请求失败: $e',
+      AnalyticsService().trackEvent(UserEvents.loginFailed, params: {
+        UserEvents.paramPhone: phone,
+        UserEvents.paramMethod: 'phone_code',
+        UserEvents.paramErrorCode: 'NETWORK_ERROR',
+        UserEvents.paramErrorMessage: '网络请求失败: $e',
       });
       return ApiResponse(
         success: false,
