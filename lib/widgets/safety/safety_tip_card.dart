@@ -128,16 +128,19 @@ class SafetyTip {
     this.category = TipCategory.general,
   });
 
+  /// 在 Widget 中获取实际颜色
+  /// 注意：此方法需要在有 DesignSystem 导入的上下文中调用
   Color getSeverityColor(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    
     switch (severity) {
       case TipSeverity.low:
-        return DesignSystem.getSuccess(context);
+        return isDark ? const Color(0xFF4CAF50) : const Color(0xFF4CAF50);
       case TipSeverity.medium:
-        return DesignSystem.getWarning(context);
+        return isDark ? const Color(0xFFFFA726) : const Color(0xFFFFA726);
       case TipSeverity.high:
-        return DesignSystem.getError(context);
-      default:
-        return DesignSystem.getInfo(context);
+        return isDark ? const Color(0xFFEF5350) : const Color(0xFFEF5350);
     }
   }
 }
