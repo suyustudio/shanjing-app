@@ -749,13 +749,15 @@ class _NavigationScreenState extends State<NavigationScreen>
     );
 
     // ✅ 调用新的 API，包含所有必需参数
-    final success = await SosService().triggerSos(
+    final result = await SosService().triggerSos(
       location: location,
       triggerType: 'manual', // 用户主动触发
       countdownRemainingSec: 0, // 倒计时已结束
       routeId: null, // 可选参数
       sendMethod: 'both',
     );
+    
+    final success = result == SOSSendStatus.sent;
 
     if (mounted) {
       if (success) {

@@ -7,7 +7,7 @@ import '../widgets/app_app_bar.dart';
 import '../widgets/safety/emergency_contact_list.dart';
 import '../widgets/safety/lifeline_status_card.dart';
 import 'lifeline_setup_screen.dart';
-import 'sos_screen.dart';
+import 'sos_screen_enhanced.dart';
 
 /// 安全中心页面（重构版）
 /// 新结构：
