@@ -9,7 +9,9 @@ on:
     paths:
       - 'lib/**'
       - 'qa/**'
+      - 'integration_test/**'
       - 'pubspec.yaml'
+      - '.github/workflows/e2e_test.yml'
   pull_request:
     branches: [main, develop]
   schedule:
@@ -48,7 +50,7 @@ jobs:
         run: flutter analyze
       
       - name: Format check
-        run: dart format --set-exit-if-changed lib/
+        run: dart format --set-exit-if-changed lib/ qa/
 
   # 单元测试
   unit_test:
@@ -67,7 +69,7 @@ jobs:
         run: flutter pub get
       
       - name: Run unit tests
-        run: flutter test --coverage test/
+        run: flutter test test/ --coverage
       
       - name: Upload coverage
         uses: codecov/codecov-action@v3
@@ -80,11 +82,12 @@ jobs:
     runs-on: macos-latest
     needs: unit_test
     if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'e2e' || github.event_name == 'pull_request'
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       matrix:
         api-level: [29, 33, 34]
         target: [default]
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
       
@@ -108,9 +111,15 @@ jobs:
           arch: x86_64
           profile: Nexus 6
           script: |
-            flutter test qa/m4/p2_testing/automation/e2e/ \
-              --device-id emulator-5554 \
-              --reporter expanded 2>&1 || true
+            # 创建测试结果目录
+            mkdir -p test-results
+            
+            # 运行E2E测试 - 使用正确的integration_test命令
+            flutter test integration_test/ qa/m4/p2_testing/automation/e2e/ \
+              --reporter expanded 2>&1 | tee test-results/e2e-android-api${{ matrix.api-level }}.log
+            
+            # 检查测试结果
+            exit ${PIPESTATUS[0]}
       
       - name: Upload test results
         if: always()
@@ -119,7 +128,7 @@ jobs:
           name: e2e-android-results-api${{ matrix.api-level }}
           path: |
             test-results/
-            *.log
+            coverage/
           retention-days: 7
 
   # E2E测试 - iOS
@@ -127,7 +136,7 @@ jobs:
     runs-on: macos-latest
     needs: unit_test
     if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'e2e' || github.event_name == 'pull_request'
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       
@@ -150,8 +159,15 @@ jobs:
       
       - name: Run E2E tests
         run: |
-          flutter test qa/m4/p2_testing/automation/e2e/ \
-            --reporter expanded 2>&1 || true
+          # 创建测试结果目录
+          mkdir -p test-results
+          
+          # 运行E2E测试
+          flutter test integration_test/ qa/m4/p2_testing/automation/e2e/ \
+            --reporter expanded 2>&1 | tee test-results/e2e-ios.log
+          
+          # 检查测试结果
+          exit ${PIPESTATUS[0]}
       
       - name: Upload test results
         if: always()
@@ -160,7 +176,7 @@ jobs:
           name: e2e-ios-results
           path: |
             test-results/
-            *.log
+            coverage/
           retention-days: 7
 
   # 烟雾测试
@@ -186,8 +202,15 @@ jobs:
           target: default
           arch: x86_64
           script: |
+            # 创建测试结果目录
+            mkdir -p test-results
+            
+            # 运行烟雾测试 - 修复路径
             flutter test qa/m4/p2_testing/automation/e2e/regressions/smoke_test.dart \
-              --reporter expanded
+              --reporter expanded 2>&1 | tee test-results/smoke-test.log
+            
+            # 检查测试结果 - 不再忽略失败
+            exit ${PIPESTATUS[0]}
       
       - name: Upload smoke test results
         if: always()
@@ -201,7 +224,7 @@ jobs:
     runs-on: macos-latest
     needs: smoke_test
     if: github.event_name == 'schedule' || github.event.inputs.test_type == 'all'
-    timeout-minutes: 120
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
       
@@ -221,16 +244,28 @@ jobs:
           target: default
           arch: x86_64
           script: |
+            # 创建测试结果目录
+            mkdir -p test-results
+            
+            # 运行性能测试 - 修复路径和命令
             flutter test qa/m4/p2_testing/performance/ \
-              --reporter json > performance_results.json 2>&1 || true
+              --reporter json > test-results/performance_results.json 2>&1
+            
+            # 同时生成文本报告
+            flutter test qa/m4/p2_testing/performance/ \
+              --reporter expanded 2>&1 | tee test-results/performance.log
+            
+            # 检查测试结果
+            exit ${PIPESTATUS[0]}
       
       - name: Upload performance results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: performance-results
           path: |
-            performance_results.json
             test-results/
+            coverage/
 
   # 兼容性测试
   compatibility_test:
@@ -286,7 +321,19 @@ jobs:
           echo "| E2E iOS | ${{ needs.e2e_ios.result }} |" >> test-report.md
           echo "| Smoke Test | ${{ needs.smoke_test.result }} |" >> test-report.md
           echo "" >> test-report.md
-          echo "执行时间: $(date)" >> test-report.md
+          echo "## 执行详情" >> test-report.md
+          echo "" >> test-report.md
+          echo "- 执行时间: $(date)" >> test-report.md
+          echo "- 触发方式: ${{ github.event_name }}" >> test-report.md
+          echo "- 分支: ${{ github.ref }}" >> test-report.md
+          echo "- 提交: ${{ github.sha }}" >> test-report.md
+          echo "" >> test-report.md
+          echo "## 测试日志" >> test-report.md
+          echo "" >> test-report.md
+          echo "测试日志已作为artifact上传，可下载查看详细结果。" >> test-report.md
+          
+          # 显示报告
+          cat test-report.md
       
       - name: Upload test report
         uses: actions/upload-artifact@v4

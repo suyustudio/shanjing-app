@@ -10,6 +10,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
+import 'result.dart';
 
 /// 应用错误类型枚举
 enum AppErrorType {
@@ -74,6 +75,18 @@ class AppError implements Exception {
   String toString() {
     return 'AppError(type: $type, message: $message, code: $code, isRetryable: $isRetryable)';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is AppError &&
+        other.type == type &&
+        other.message == message &&
+        other.code == code;
+  }
+
+  @override
+  int get hashCode => Object.hash(type, message, code);
 }
 
 /// 错误处理器
@@ -252,13 +265,23 @@ class ErrorHandler {
 /// 安全的异步执行包装器
 /// 
 /// 自动捕获和处理异常，避免未捕获的异常导致应用崩溃
-Future<T?> safeAsync<T>(
+/// 返回 Result<T> 类型，显式处理成功/失败状态
+/// 
+/// 使用示例:
+/// ```dart
+/// Result<String> result = await safeAsync(() => fetchData());
+/// 
+/// result
+///   .onSuccess((data) => print('成功: $data'))
+///   .onFailure((error) => print('失败: ${error.message}'));
+/// ```
+Future<Result<T>> safeAsync<T>(
   Future<T> Function() action, {
   Function(AppError error)? onError,
-  T? defaultValue,
 }) async {
   try {
-    return await action();
+    final value = await action();
+    return Success(value);
   } catch (e) {
     final appError = ErrorHandler.handle(e);
     
@@ -268,7 +291,7 @@ Future<T?> safeAsync<T>(
     // 调用错误回调
     onError?.call(appError);
     
-    return defaultValue;
+    return Failure(appError);
   }
 }
 
@@ -278,33 +301,41 @@ Future<T?> safeAsync<T>(
 /// [maxRetries] 最大重试次数
 /// [retryDelay] 重试延迟
 /// [shouldRetry] 自定义重试条件
-Future<T?> retryAsync<T>(
+/// 
+/// 返回 Result<T>，即使失败也不会抛出异常
+Future<Result<T>> retryAsync<T>(
   Future<T> Function() action, {
   int maxRetries = 3,
   Duration retryDelay = const Duration(seconds: 1),
   bool Function(dynamic error)? shouldRetry,
 }) async {
   int attempts = 0;
+  AppError? lastError;
   
-  while (true) {
+  while (attempts <= maxRetries) {
     try {
-      attempts++;
-      return await action();
+      final value = await action();
+      return Success(value);
     } catch (e) {
       final appError = ErrorHandler.handle(e);
+      lastError = appError;
       
       // 判断是否应该重试
       final canRetry = attempts < maxRetries &&
           (shouldRetry?.call(e) ?? appError.isRetryable);
       
       if (!canRetry) {
-        throw appError;
+        return Failure(appError);
       }
       
       // 等待后重试
-      await Future.delayed(retryDelay * attempts);
+      await Future.delayed(retryDelay * (attempts + 1));
+      attempts++;
     }
   }
+  
+  // 所有重试都失败
+  return Failure(lastError!);
 }
 
 /// 记录错误日志

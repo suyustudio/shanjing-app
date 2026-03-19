@@ -99,7 +99,8 @@ extension NumExtensions on num {
   }
 
   /// 限制在指定范围内
-  num clamp(num min, num max) {
+  /// 注意：此方法名为 clampRange，避免与 Dart 内置的 clamp 冲突
+  num clampRange(num min, num max) {
     if (this < min) return min;
     if (this > max) return max;
     return this;
