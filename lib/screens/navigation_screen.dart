@@ -125,7 +125,19 @@ class _NavigationScreenState extends State<NavigationScreen>
   static const double _offRouteThreshold = 50.0; // 偏航阈值（米）
   static const int _offRouteConfirmCount = 3; // 确认偏航所需连续次数
   int _offRouteCount = 0;
+  int _totalDeviationCount = 0; // 总偏航次数
   NavigationStatus _status = NavigationStatus.navigating;
+
+  // 暂停统计
+  int _pauseCount = 0;
+  int _pauseDurationSec = 0;
+  DateTime? _lastPauseTime;
+  
+  // 拍照统计
+  int _photoCount = 0;
+  
+  // 实际行走距离
+  double _actualDistanceTraveled = 0;
 
   // 导航进度
   double _totalDistance = 0; // 总距离（米）
@@ -154,7 +166,31 @@ class _NavigationScreenState extends State<NavigationScreen>
     _navigationStartTime = DateTime.now();
     _initRoutePoints();
     _initTts();
-    _requestLocationPermission();
+    _requestLocationPermission().then((_) {
+      // ✅ 埋点：导航初始化完成后触发 navigation_start
+      _trackNavigationStart();
+    });
+  }
+  
+  /// 上报 navigation_start 事件
+  void _trackNavigationStart() {
+    final startTimestamp = DateTime.now().millisecondsSinceEpoch;
+    
+    AnalyticsService().trackEvent(
+      NavigationEvents.navigationStart,
+      params: {
+        NavigationEvents.paramRouteName: widget.routeName,
+        NavigationEvents.paramRouteDistanceM: _totalDistance.round(),
+        NavigationEvents.paramRouteDurationMin: (_totalDistance / 1.4 / 60).ceil(),
+        NavigationEvents.paramDifficulty: 'medium', // 默认中等难度，实际应从路线数据获取
+        NavigationEvents.paramStartType: 'normal',
+        NavigationEvents.paramLocationEnabled: _currentPosition != null,
+        NavigationEvents.paramLocationAccuracyM: _currentPosition?.accuracy ?? 0.0,
+        NavigationEvents.paramOfflineMode: false, // 默认非离线模式
+        NavigationEvents.paramVoiceEnabled: _isTtsInitialized,
+        NavigationEvents.paramStartTimestamp: startTimestamp,
+      },
+    );
   }
 
   @override
@@ -497,21 +533,38 @@ class _NavigationScreenState extends State<NavigationScreen>
       setState(() => _status = NavigationStatus.arrived);
       _navigationCompleted = true;
       
-      // 上报导航完成事件
+      // 上报导航完成事件（符合 data-tracking-spec-v1.2）
       if (_navigationStartTime != null) {
-        final duration = DateTime.now().difference(_navigationStartTime!).inSeconds;
+        final completionTimestamp = DateTime.now().millisecondsSinceEpoch;
+        final actualDurationSec = DateTime.now().difference(_navigationStartTime!).inSeconds;
+        final actualDistanceM = _totalDistance - _remainingDistance;
+        final plannedDurationMin = (_totalDistance / 1.4 / 60).ceil();
+        final avgSpeedMs = actualDurationSec > 0 ? actualDistanceM / actualDurationSec : 0.0;
+        
+        // ✅ trail_navigate_complete 事件（根据规范 v1.2 保留此名称）
         AnalyticsService().trackEvent(
           TrailEvents.trailNavigateComplete,
           params: {
             TrailEvents.paramRouteName: widget.routeName,
-            TrailEvents.paramCompletionTime: duration,
+            TrailEvents.paramCompletionType: 'auto', // 自动到达终点
+            TrailEvents.paramActualDistanceM: actualDistanceM.round(),
+            TrailEvents.paramActualDurationSec: actualDurationSec,
+            TrailEvents.paramPlannedDistanceM: _totalDistance.round(),
+            TrailEvents.paramPlannedDurationMin: plannedDurationMin,
+            TrailEvents.paramDeviationCount: _totalDeviationCount,
+            TrailEvents.paramAvgSpeedMs: double.parse(avgSpeedMs.toStringAsFixed(2)),
+            TrailEvents.paramPauseCount: _pauseCount,
+            TrailEvents.paramPauseDurationSec: _pauseDurationSec,
+            TrailEvents.paramPhotoCount: _photoCount,
+            TrailEvents.paramCompletionTimestamp: completionTimestamp,
           },
         );
+        
         AnalyticsService().trackEvent(
           NavigationEvents.navigationComplete,
           params: {
             NavigationEvents.paramRouteName: widget.routeName,
-            NavigationEvents.paramDuration: duration,
+            NavigationEvents.paramDuration: actualDurationSec,
           },
         );
       }
@@ -541,6 +594,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       _offRouteCount++;
       if (_offRouteCount >= _offRouteConfirmCount) {
         setState(() => _status = NavigationStatus.offRoute);
+        _totalDeviationCount++; // 统计总偏航次数
         _speak('您已偏离路线，请返回');
         
         // 上报偏航事件
@@ -694,7 +748,14 @@ class _NavigationScreenState extends State<NavigationScreen>
       accuracy: _currentPosition!.accuracy,
     );
 
-    final success = await SosService().triggerSos(location);
+    // ✅ 调用新的 API，包含所有必需参数
+    final success = await SosService().triggerSos(
+      location: location,
+      triggerType: 'manual', // 用户主动触发
+      countdownRemainingSec: 0, // 倒计时已结束
+      routeId: null, // 可选参数
+      sendMethod: 'both',
+    );
 
     if (mounted) {
       if (success) {

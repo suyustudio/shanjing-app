@@ -14,4 +14,12 @@ class ShareEvents {
   static const String paramShareCode = 'share_code';
   static const String paramShareChannel = 'share_channel';
   static const String paramErrorCode = 'error_code';
+  
+  // 新增的参数（符合 data-tracking-spec-v1.2）
+  static const String paramRouteId = 'route_id';
+  static const String paramRouteName = 'route_name';
+  static const String paramTemplateType = 'template_type';
+  static const String paramShareTimeMs = 'share_time_ms';
+  static const String paramPosterSizeKb = 'poster_size_kb';
+  static const String paramGenerationDurationMs = 'generation_duration_ms';
 }
