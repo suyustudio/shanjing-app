@@ -9,7 +9,6 @@ import 'analytics/analytics_service.dart';
 import 'screens/map_screen_simple.dart';
 import 'screens/discovery_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/onboarding/onboarding.dart';
 import 'constants/design_system.dart';
 import 'utils/performance_optimizer.dart';
 
@@ -21,7 +20,12 @@ void main() async {
   PerformanceOptimizer.initialize();
 
   // 加载环境变量
-  await dotenv.load(fileName: ".env");
+  try {
+    await dotenv.load(fileName: ".env");
+    print('[Main] 环境变量加载成功');
+  } catch (e) {
+    print('[Main] 环境变量加载失败（可能文件不存在）: $e');
+  }
   PerformanceOptimizer.markPhase('env_loaded');
 
   // 高德地图隐私合规设置
@@ -33,12 +37,17 @@ void main() async {
   AMapFlutterLocation.setApiKey(androidApiKey, "");
   PerformanceOptimizer.markPhase('map_initialized');
 
-  // 初始化埋点服务
-  await AnalyticsService().initialize(
-    androidKey: '',
-    iosKey: '',
-    debugMode: true,
-  );
+  // 初始化埋点服务（允许失败）
+  try {
+    await AnalyticsService().initialize(
+      androidKey: '',
+      iosKey: '',
+      debugMode: true,
+    );
+    print('[Main] 埋点服务初始化成功');
+  } catch (e) {
+    print('[Main] 埋点服务初始化失败: $e');
+  }
   PerformanceOptimizer.markPhase('analytics_initialized');
 
   // 性能优化：设置首选方向
@@ -68,59 +77,7 @@ class MyApp extends StatelessWidget {
         theme: DesignSystem.lightTheme,
         darkTheme: DesignSystem.darkTheme,
         themeMode: ThemeMode.system,
-        home: const SplashScreen(),
-      ),
-    );
-  }
-}
-
-/// 启动页 - 检查是否需要显示新手引导
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
-
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  final OnboardingService _onboardingService = OnboardingService();
-
-  @override
-  void initState() {
-    super.initState();
-    _checkOnboarding();
-  }
-
-  Future<void> _checkOnboarding() async {
-    await _onboardingService.initialize();
-    final shouldShowOnboarding = await _onboardingService.shouldShowOnboarding();
-
-    if (mounted) {
-      if (shouldShowOnboarding) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => OnboardingScreen(
-              onComplete: () => _navigateToHome(),
-            ),
-          ),
-        );
-      } else {
-        _navigateToHome();
-      }
-    }
-  }
-
-  void _navigateToHome() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const MainScreen()),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
+        home: const MainScreen(), // 直接显示主界面，跳过新手引导
       ),
     );
   }
