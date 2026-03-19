@@ -301,55 +301,58 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
         );
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Logo 和品牌名
-            _buildLogoSection(isDark),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo 和品牌名
+              _buildLogoSection(isDark),
 
-            const SizedBox(height: 48),
+              const SizedBox(height: 32),
 
-            // 主视觉插图区域（使用渐变占位）
-            _buildIllustrationPlaceholder(
-              isDark,
-              Icons.landscape_outlined,
-              const Color(0xFF2D968A),
-            ),
-
-            const SizedBox(height: 48),
-
-            // 标题和副标题
-            Text(
-              '发现城市中的自然',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : DesignSystem.textPrimary,
+              // 主视觉插图区域（使用渐变占位）
+              _buildIllustrationPlaceholder(
+                isDark,
+                Icons.landscape_outlined,
+                DesignSystem.primary,
               ),
-              textAlign: TextAlign.center,
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 32),
 
-            Text(
-              '探索身边的徒步路线，享受自然，保持安全',
-              style: TextStyle(
-                fontSize: 16,
-                color: DesignSystem.getTextSecondary(context),
+              // 标题和副标题
+              Text(
+                '发现城市中的自然',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : DesignSystem.textPrimary,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
 
-            const SizedBox(height: 48),
+              const SizedBox(height: 16),
 
-            // 开始按钮
-            _buildPrimaryButton(
-              '开始探索',
-              _nextPage,
-            ),
-          ],
+              Text(
+                '探索身边的徒步路线，享受自然，保持安全',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: DesignSystem.getTextSecondary(context),
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 32),
+
+              // 开始按钮
+              _buildPrimaryButton(
+                '开始探索',
+                _nextPage,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -365,86 +368,90 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           child: child,
         );
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '为了更好体验',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : DesignSystem.textPrimary,
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // 权限说明插图
-            _buildIllustrationPlaceholder(
-              isDark,
-              Icons.security_outlined,
-              const Color(0xFF3B9EFF),
-            ),
-
-            const SizedBox(height: 32),
-
-            // 权限卡片列表
-            _buildPermissionCard(
-              PermissionType.location,
-              Icons.location_on_outlined,
-              const Color(0xFFE8F5F3),
-              const Color(0xFF2D968A),
-            ),
-
-            const SizedBox(height: 12),
-
-            _buildPermissionCard(
-              PermissionType.storage,
-              Icons.storage_outlined,
-              const Color(0xFFFFF8E7),
-              const Color(0xFFFFB800),
-            ),
-
-            const SizedBox(height: 12),
-
-            _buildPermissionCard(
-              PermissionType.notification,
-              Icons.notifications_outlined,
-              const Color(0xFFEEF7FF),
-              const Color(0xFF3B9EFF),
-            ),
-
-            const SizedBox(height: 32),
-
-            // 按钮组
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildSecondaryButton(
-                  '稍后设置',
-                  _nextPage,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '为了更好体验',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : DesignSystem.textPrimary,
                 ),
-                const SizedBox(width: 16),
-                _buildPrimaryButton(
-                  '允许权限',
-                  _requestAllPermissions,
-                  width: 160,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            Text(
-              '你可以在设置中随时更改权限',
-              style: TextStyle(
-                fontSize: 12,
-                color: DesignSystem.getTextTertiary(context),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 24),
+
+              // 权限说明插图
+              _buildIllustrationPlaceholder(
+                isDark,
+                Icons.security_outlined,
+                const Color(0xFF3B9EFF),
+                size: 160,
+              ),
+
+              const SizedBox(height: 24),
+
+              // 权限卡片列表
+              _buildPermissionCard(
+                PermissionType.location,
+                Icons.location_on_outlined,
+                const Color(0xFFE8F5F3),
+                DesignSystem.primary,
+              ),
+
+              const SizedBox(height: 12),
+
+              _buildPermissionCard(
+                PermissionType.storage,
+                Icons.storage_outlined,
+                const Color(0xFFFFF8E7),
+                const Color(0xFFFFB800),
+              ),
+
+              const SizedBox(height: 12),
+
+              _buildPermissionCard(
+                PermissionType.notification,
+                Icons.notifications_outlined,
+                const Color(0xFFEEF7FF),
+                const Color(0xFF3B9EFF),
+              ),
+
+              const SizedBox(height: 24),
+
+              // 按钮组
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildSecondaryButton(
+                    '稍后设置',
+                    _nextPage,
+                  ),
+                  const SizedBox(width: 16),
+                  _buildPrimaryButton(
+                    '允许权限',
+                    _requestAllPermissions,
+                    width: 160,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              Text(
+                '你可以在设置中随时更改权限',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: DesignSystem.getTextTertiary(context),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -455,7 +462,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     final features = [
       {
         'icon': Icons.map_outlined,
-        'color': const Color(0xFF2D968A),
+        'color': DesignSystem.primary,
         'title': '发现路线',
         'description': '探索身边的徒步路线，发现城市中的自然之美',
       },
@@ -530,68 +537,71 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
         );
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // 庆祝图标
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF2D968A).withOpacity(0.1),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // 庆祝图标
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: DesignSystem.primary.withOpacity(0.1),
+                ),
+                child: Icon(
+                  Icons.celebration_outlined,
+                  size: 64,
+                  color: DesignSystem.primary,
+                ),
               ),
-              child: const Icon(
-                Icons.celebration_outlined,
-                size: 64,
-                color: Color(0xFF2D968A),
+
+              const SizedBox(height: 24),
+
+              Text(
+                '🎉 欢迎加入山径！',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : DesignSystem.textPrimary,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 12),
 
-            Text(
-              '🎉 欢迎加入山径！',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : DesignSystem.textPrimary,
+              Text(
+                '你的户外探索之旅即将开始',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: DesignSystem.getTextSecondary(context),
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 32),
 
-            Text(
-              '你的户外探索之旅即将开始',
-              style: TextStyle(
-                fontSize: 16,
-                color: DesignSystem.getTextSecondary(context),
+              // 开始使用按钮
+              _buildPrimaryButton(
+                '开始探索',
+                _completeOnboarding,
               ),
-              textAlign: TextAlign.center,
-            ),
 
-            const SizedBox(height: 48),
+              const SizedBox(height: 12),
 
-            // 开始使用按钮
-            _buildPrimaryButton(
-              '开始探索',
-              _completeOnboarding,
-            ),
-
-            const SizedBox(height: 16),
-
-            // 查看使用指南链接
-            TextButton(
-              onPressed: () {
-                // TODO: 跳转到使用指南页面
-                _completeOnboarding();
-              },
-              child: const Text('查看使用指南'),
-            ),
-          ],
+              // 查看使用指南链接
+              TextButton(
+                onPressed: () {
+                  // TODO: 跳转到使用指南页面
+                  _completeOnboarding();
+                },
+                child: const Text('查看使用指南'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -606,7 +616,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           width: 72,
           height: 72,
           decoration: BoxDecoration(
-            color: const Color(0xFF2D968A),
+            color: DesignSystem.primary,
             borderRadius: BorderRadius.circular(16),
           ),
           child: const Icon(
@@ -680,14 +690,14 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isGranted
-            ? const Color(0xFFE8F5F3)
+            ? DesignSystem.primary.withOpacity(0.1)
             : (Theme.of(context).brightness == Brightness.dark
                 ? DesignSystem.darkSurfaceSecondary
                 : Colors.white),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isGranted
-              ? const Color(0xFF2D968A)
+              ? DesignSystem.primary
               : (Theme.of(context).brightness == Brightness.dark
                   ? DesignSystem.darkBorder
                   : Colors.transparent),
@@ -713,7 +723,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             ),
             child: Icon(
               isGranted ? Icons.check_circle : icon,
-              color: isGranted ? const Color(0xFF2D968A) : iconColor,
+              color: isGranted ? DesignSystem.primary : iconColor,
               size: 24,
             ),
           ),
@@ -742,9 +752,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             ),
           ),
           if (isGranted)
-            const Icon(
+            Icon(
               Icons.check_circle,
-              color: Color(0xFF2D968A),
+              color: DesignSystem.primary,
               size: 20,
             ),
         ],
@@ -846,7 +856,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2D968A),
+          backgroundColor: DesignSystem.primary,
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
