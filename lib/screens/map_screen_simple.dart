@@ -684,40 +684,64 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
 
   /// 点击路线卡片 - 跳转到详情页
   void _onRouteCardTap(Map<String, dynamic> route) {
-    // 优先使用原始数据，如果没有则构造数据
-    final rawData = route['rawData'] as Map<String, dynamic>?;
-    
-    if (rawData != null) {
-      // 使用完整的原始数据
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TrailDetailScreen(trailData: rawData),
+    // 统一使用构造的数据，确保字段完整且格式一致
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TrailDetailScreen(
+          trailData: _buildTrailData(route),
         ),
-      );
-    } else {
-      // 使用构造的数据（fallback）
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TrailDetailScreen(
-            trailData: {
-              'id': route['id'],
-              'name': route['name'],
-              'difficulty': route['difficulty'] == '简单' 
-                  ? 'easy' 
-                  : route['difficulty'] == '困难' 
-                      ? 'hard' 
-                      : 'medium',
-              'distance': route['distance'] ?? 5.0,
-              'duration': route['duration'] ?? 120,
-              'coordinates': (route['path'] as List<LatLng>?)?.map((latLng) => [latLng.longitude, latLng.latitude]).toList(),
-              'description': '${route['name']}是一条风景优美的徒步路线，难度${route['difficulty']}。',
-              'coverImage': route['previewImage'],
-            },
-          ),
-        ),
-      );
+      ),
+    );
+  }
+
+  /// 构建完整的路线数据，确保所有必需字段存在
+  Map<String, dynamic> _buildTrailData(Map<String, dynamic> route) {
+    return {
+      'id': route['id']?.toString() ?? 'trail_unknown',
+      'name': route['name']?.toString() ?? '未知路线',
+      'difficulty': route['difficulty']?.toString() ?? '简单', // 保持中文
+      'difficultyLevel': _getDifficultyLevel(route['difficulty']?.toString()),
+      'distance': (route['distance'] as num?)?.toDouble() ?? 5.0,
+      'duration': route['duration'] as int? ?? 120,
+      'elevation': (route['elevation'] as num?)?.toInt() ?? 0,
+      'coordinates': _extractCoordinates(route['path']),
+      'description': '${route['name'] ?? '此路线'}是一条风景优美的徒步路线，难度${route['difficulty'] ?? '简单'}。',
+      'coverUrl': route['previewImage']?.toString() ?? '', // 统一使用 coverUrl
+      'isFavorite': false,
+      'parkingLots': route['parkingLots'] ?? [],
+    };
+  }
+
+  /// 获取难度等级数值
+  int _getDifficultyLevel(String? difficulty) {
+    switch (difficulty) {
+      case '简单':
+        return 1;
+      case '中等':
+        return 3;
+      case '困难':
+        return 5;
+      default:
+        return 1;
+    }
+  }
+
+  /// 提取坐标数据
+  List<List<double>> _extractCoordinates(dynamic path) {
+    if (path == null || path is! List || path.isEmpty) {
+      return [];
+    }
+    try {
+      return path.map((latLng) {
+        if (latLng is LatLng) {
+          return [latLng.longitude, latLng.latitude];
+        }
+        return null;
+      }).whereType<List<double>>().toList();
+    } catch (e) {
+      debugPrint('提取坐标失败: $e');
+      return [];
     }
   }
 

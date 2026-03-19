@@ -59,24 +59,83 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
   // 收藏服务
   final FavoriteService _favoriteService = FavoriteService();
 
-  /// 获取路线数据（优先使用传递的数据）
+  /// 获取路线数据（优先使用传递的数据，添加防御性校验）
   Map<String, dynamic> get _trailData {
-    if (widget.trailData != null) {
-      return widget.trailData!;
+    final data = widget.trailData;
+    
+    if (data == null) {
+      return _getDefaultTrailData();
     }
-    // 默认数据
+    
+    // 防御性复制，确保所有必需字段存在且类型正确
     return {
-      'id': 'trail_001',
-      'name': '西湖环湖步道',
-      'coverUrl': 'https://picsum.photos/400/240',
-      'difficulty': '中等',
-      'difficultyLevel': 3,
-      'distance': 12.5,
-      'duration': 240,
-      'elevation': 150,
-      'description': '这是一条风景优美的徒步路线，沿途可欣赏西湖美景，经过断桥、苏堤、白堤等著名景点。适合周末休闲，全程平坦，路面状况良好，是杭州最受欢迎的徒步路线之一。',
-      'isFavorite': false,
+      'id': data['id']?.toString() ?? 'trail_unknown',
+      'name': data['name']?.toString() ?? '未知路线',
+      'difficulty': _normalizeDifficulty(data['difficulty']),
+      'difficultyLevel': data['difficultyLevel'] ?? _getDifficultyLevelFromString(data['difficulty']),
+      'distance': (data['distance'] as num?)?.toDouble() ?? 5.0,
+      'duration': data['duration'] as int? ?? 120,
+      'elevation': (data['elevation'] as num?)?.toInt() ?? 0,
+      'description': data['description']?.toString() ?? '暂无路线描述',
+      'coverUrl': data['coverUrl']?.toString() ?? data['coverImage']?.toString() ?? data['previewImage']?.toString() ?? '',
+      'isFavorite': data['isFavorite'] as bool? ?? false,
+      'coordinates': data['coordinates'] as List<dynamic>? ?? [],
+      'parkingLots': data['parkingLots'] as List<dynamic>? ?? [],
     };
+  }
+
+  /// 默认路线数据
+  Map<String, dynamic> _getDefaultTrailData() => {
+    'id': 'trail_001',
+    'name': '西湖环湖步道',
+    'coverUrl': 'https://picsum.photos/400/240',
+    'difficulty': '中等',
+    'difficultyLevel': 3,
+    'distance': 12.5,
+    'duration': 240,
+    'elevation': 150,
+    'description': '这是一条风景优美的徒步路线，沿途可欣赏西湖美景，经过断桥、苏堤、白堤等著名景点。适合周末休闲，全程平坦，路面状况良好，是杭州最受欢迎的徒步路线之一。',
+    'isFavorite': false,
+    'coordinates': [],
+    'parkingLots': [],
+  };
+
+  /// 标准化难度值（统一为中文）
+  String _normalizeDifficulty(dynamic difficulty) {
+    final d = difficulty?.toString().toLowerCase() ?? '';
+    switch (d) {
+      case '简单':
+      case 'easy':
+        return '简单';
+      case '中等':
+      case 'medium':
+      case '中等难度':
+        return '中等';
+      case '困难':
+      case 'hard':
+      case '高难度':
+        return '困难';
+      default:
+        return '简单';
+    }
+  }
+
+  /// 从难度字符串获取等级数值
+  int _getDifficultyLevelFromString(dynamic difficulty) {
+    final d = difficulty?.toString().toLowerCase() ?? '';
+    switch (d) {
+      case '简单':
+      case 'easy':
+        return 1;
+      case '中等':
+      case 'medium':
+        return 3;
+      case '困难':
+      case 'hard':
+        return 5;
+      default:
+        return 1;
+    }
   }
 
   @override
