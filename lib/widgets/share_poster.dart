@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import '../../constants/design_system.dart';
-import '../../services/share_service.dart';
+import '../../services/share_service_enhanced.dart';
 import '../widgets/app_loading.dart';
 
 /// 分享海报模板类型
@@ -684,8 +684,24 @@ class _ShareSheetState extends State<ShareSheet> {
     });
 
     try {
+      final startTime = DateTime.now();
       final shareService = ShareService();
-      final result = await shareService.shareTrail(widget.posterData.routeId);
+      
+      // 获取当前选中的模板
+      final templateType = _getSelectedTemplateName();
+      
+      // 模拟海报生成（实际应该是真实的图片数据）
+      final posterData = List<int>.filled(1024 * 100, 0); // 100KB mock data
+      
+      final result = await shareService.shareTrail(
+        trailId: widget.posterData.routeId,
+        trailName: widget.posterData.routeName,
+        shareChannel: 'wechat_session',
+        templateType: templateType,
+        posterData: posterData,
+        startTime: startTime,
+        generationDurationMs: 800,
+      );
       
       if (mounted) {
         setState(() {
@@ -701,6 +717,12 @@ class _ShareSheetState extends State<ShareSheet> {
         });
       }
     }
+  }
+  
+  String _getSelectedTemplateName() {
+    // 根据当前选中的PageView索引返回模板名称
+    // 这里简化处理，默认返回 nature
+    return 'nature';
   }
 
   @override

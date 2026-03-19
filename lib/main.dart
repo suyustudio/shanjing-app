@@ -10,35 +10,44 @@ import 'screens/map_screen_simple.dart';
 import 'screens/discovery_screen.dart';
 import 'screens/profile_screen.dart';
 import 'constants/design_system.dart';
+import 'utils/performance_optimizer.dart';
 
 // 稳定版本 - 使用简化的地图页面（无定位、无离线功能）
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 性能优化：初始化
+  PerformanceOptimizer.initialize();
+
   // 加载环境变量
   await dotenv.load(fileName: ".env");
+  PerformanceOptimizer.markPhase('env_loaded');
 
   // 高德地图隐私合规设置
   AMapFlutterLocation.updatePrivacyShow(true, true);
   AMapFlutterLocation.updatePrivacyAgree(true);
   
   // 设置高德地图 API Key（Android）
-  // iOS 需要在 AppDelegate.swift 中设置
   const androidApiKey = 'e17f8ae117d84e2d2d394a2124866603';
   AMapFlutterLocation.setApiKey(androidApiKey, "");
+  PerformanceOptimizer.markPhase('map_initialized');
 
   // 初始化埋点服务
   await AnalyticsService().initialize(
-    androidKey: '', // 友盟 SDK 已禁用
+    androidKey: '',
     iosKey: '',
     debugMode: true,
   );
+  PerformanceOptimizer.markPhase('analytics_initialized');
 
   // 性能优化：设置首选方向
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // 打印启动性能报告
+  PerformanceOptimizer.printStartupReport();
 
   runApp(const MyApp());
 }
