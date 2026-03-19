@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../constants/design_system.dart';
 
 /// 安全提示卡片组件
 /// 根据路线特点显示相应的安全建议
@@ -31,14 +30,23 @@ class SafetyTipCard extends StatelessWidget {
   Widget build(BuildContext context) {
     if (tips.isEmpty) return const SizedBox.shrink();
 
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+
+    // 颜色定义
+    final Color warningColor = const Color(0xFFFFA726);
+    final Color textPrimaryColor = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF1A1A1A);
+    final Color textSecondaryColor = isDark ? const Color(0xFFB0B0B0) : const Color(0xFF666666);
+    final Color primaryColor = const Color(0xFF2D968A);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: DesignSystem.getWarning(context).withOpacity(0.1),
+        color: warningColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: DesignSystem.getWarning(context).withOpacity(0.3),
+          color: warningColor.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -50,7 +58,7 @@ class SafetyTipCard extends StatelessWidget {
             children: [
               Icon(
                 Icons.lightbulb_outline,
-                color: DesignSystem.getWarning(context),
+                color: warningColor,
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -59,7 +67,7 @@ class SafetyTipCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: DesignSystem.getTextPrimary(context),
+                  color: textPrimaryColor,
                 ),
               ),
               const Spacer(),
@@ -70,7 +78,7 @@ class SafetyTipCard extends StatelessWidget {
                     '更多',
                     style: TextStyle(
                       fontSize: 13,
-                      color: DesignSystem.getPrimary(context),
+                      color: primaryColor,
                     ),
                   ),
                 ),
@@ -85,6 +93,10 @@ class SafetyTipCard extends StatelessWidget {
   }
 
   Widget _buildTipItem(BuildContext context, SafetyTip tip) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final Color textSecondaryColor = isDark ? const Color(0xFFB0B0B0) : const Color(0xFF666666);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -105,7 +117,7 @@ class SafetyTipCard extends StatelessWidget {
               tip.message,
               style: TextStyle(
                 fontSize: 14,
-                color: DesignSystem.getTextSecondary(context),
+                color: textSecondaryColor,
                 height: 1.5,
               ),
             ),
@@ -129,18 +141,17 @@ class SafetyTip {
   });
 
   /// 在 Widget 中获取实际颜色
-  /// 注意：此方法需要在有 DesignSystem 导入的上下文中调用
   Color getSeverityColor(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
     
     switch (severity) {
       case TipSeverity.low:
-        return isDark ? const Color(0xFF4CAF50) : const Color(0xFF4CAF50);
+        return const Color(0xFF4CAF50);
       case TipSeverity.medium:
-        return isDark ? const Color(0xFFFFA726) : const Color(0xFFFFA726);
+        return const Color(0xFFFFA726);
       case TipSeverity.high:
-        return isDark ? const Color(0xFFEF5350) : const Color(0xFFEF5350);
+        return const Color(0xFFEF5350);
       default:
         return const Color(0xFF4CAF50);
     }
@@ -199,142 +210,59 @@ class SafetyTipGenerator {
       tips.add(SafetyTip(
         message: '本路线较长（${distance}km），建议带足水和食物，注意体力分配',
         severity: TipSeverity.medium,
-        category: TipCategory.equipment,
+        category: TipCategory.difficulty,
+      ));
+    } else if (distance >= 8) {
+      tips.add(SafetyTip(
+        message: '本路线距离适中（${distance}km），建议准备适量的水和食物',
+        severity: TipSeverity.low,
+        category: TipCategory.difficulty,
       ));
     }
 
-    // 根据爬升生成提示
+    // 根据海拔生成提示
     if (elevation >= 500) {
       tips.add(SafetyTip(
-        message: '累计爬升较大（${elevation}m），注意控制节奏，避免高反',
+        message: '本路线有较大爬升（${elevation}m），建议携带登山杖，注意心率',
         severity: TipSeverity.medium,
         category: TipCategory.terrain,
       ));
-    } else if (elevation >= 300) {
+    }
+
+    // 根据描述关键词生成提示
+    if (description.contains('涉水') || name.contains('溪') || name.contains('瀑')) {
       tips.add(SafetyTip(
-        message: '有一定海拔爬升，建议携带登山杖辅助',
+        message: '本路线有涉水路段，雨后路面湿滑，请穿防滑鞋，注意安全',
+        severity: TipSeverity.medium,
+        category: TipCategory.terrain,
+      ));
+    }
+
+    if (description.contains('台阶') || name.contains('寺') || name.contains('岳')) {
+      tips.add(SafetyTip(
+        message: '本路线有较多台阶，注意保护膝盖，建议携带护膝',
         severity: TipSeverity.low,
-        category: TipCategory.equipment,
-      ));
-    }
-
-    // 根据路线名称和描述分析特殊地形
-    final lowerName = name.toLowerCase();
-    final lowerDesc = description.toLowerCase();
-
-    // 涉水路段
-    if (lowerName.contains('溪') || 
-        lowerName.contains('涧') || 
-        lowerDesc.contains('涉水') ||
-        lowerDesc.contains('过河')) {
-      tips.add(SafetyTip(
-        message: '本路线有涉水路段，请注意防滑，建议穿防水登山鞋',
-        severity: TipSeverity.medium,
         category: TipCategory.terrain,
       ));
     }
 
-    // 悬崖/陡峭路段
-    if (lowerDesc.contains('悬崖') || 
-        lowerDesc.contains('陡峭') || 
-        lowerDesc.contains('险') ||
-        lowerName.contains('崖')) {
+    if (description.contains('野路') || description.contains('未开发')) {
       tips.add(SafetyTip(
-        message: '本路线有陡峭路段，请小心行走，不要冒险拍照',
+        message: '本路线包含未开发路段，建议携带轨迹导航，结伴而行',
         severity: TipSeverity.high,
         category: TipCategory.terrain,
       ));
     }
 
-    // 密林路段
-    if (lowerDesc.contains('林') || 
-        lowerDesc.contains('森') ||
-        lowerDesc.contains('树')) {
-      tips.add(SafetyTip(
-        message: '途径林区，建议穿长袖衣物，携带驱虫喷雾',
-        severity: TipSeverity.low,
-        category: TipCategory.wildlife,
-      ));
-    }
-
-    // 草甸/开阔地
-    if (lowerDesc.contains('草甸') || 
-        lowerDesc.contains('草原') ||
-        lowerDesc.contains('开阔')) {
-      tips.add(SafetyTip(
-        message: '有开阔路段，注意防晒，雷雨天气避免在此停留',
-        severity: TipSeverity.medium,
-        category: TipCategory.weather,
-      ));
-    }
-
-    // 山洞/隧道
-    if (lowerDesc.contains('洞') || 
-        lowerDesc.contains('隧道')) {
-      tips.add(SafetyTip(
-        message: '途径隧道或山洞，建议携带头灯或手电筒',
-        severity: TipSeverity.medium,
-        category: TipCategory.equipment,
-      ));
-    }
-
-    // 冬季/雪地
-    if (lowerDesc.contains('雪') || lowerName.contains('雪')) {
-      tips.add(SafetyTip(
-        message: '本路线可能有积雪或结冰，建议携带冰爪',
-        severity: TipSeverity.high,
-        category: TipCategory.weather,
-      ));
-    }
-
-    // 补充默认提示（如果提示较少）
+    // 默认提示
     if (tips.isEmpty) {
       tips.add(SafetyTip(
-        message: '出发前请检查装备，告知亲友行程安排',
+        message: '徒步前请检查装备，确保手机电量充足，建议开启行程守护',
         severity: TipSeverity.low,
         category: TipCategory.general,
       ));
     }
 
-    // 返回前3条提示（避免过多）
-    return tips.take(3).toList();
-  }
-
-  /// 根据用户历史记录生成个性化建议
-  static List<SafetyTip> generatePersonalizedTips({
-    required Map<String, dynamic> trailData,
-    required List<Map<String, dynamic>> userHistory,
-  }) {
-    final tips = generateFromTrailData(trailData);
-
-    // 分析用户历史
-    if (userHistory.isEmpty) {
-      // 新用户
-      final difficultyLevel = trailData['difficultyLevel'] as int? ?? 1;
-      if (difficultyLevel >= 3) {
-        tips.insert(0, SafetyTip(
-          message: '这是您首次尝试此难度路线，建议结伴而行',
-          severity: TipSeverity.high,
-          category: TipCategory.difficulty,
-        ));
-      }
-    } else {
-      // 分析用户能力
-      final maxDifficulty = userHistory
-          .map((h) => h['difficultyLevel'] as int? ?? 1)
-          .reduce((a, b) => a > b ? a : b);
-      
-      final currentDifficulty = trailData['difficultyLevel'] as int? ?? 1;
-      
-      if (currentDifficulty > maxDifficulty + 1) {
-        tips.insert(0, SafetyTip(
-          message: '此路线难度超过您以往经验，请充分评估自身能力',
-          severity: TipSeverity.high,
-          category: TipCategory.difficulty,
-        ));
-      }
-    }
-
-    return tips.take(4).toList();
+    return tips;
   }
 }
