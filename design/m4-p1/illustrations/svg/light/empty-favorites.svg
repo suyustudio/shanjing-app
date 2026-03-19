@@ -1,0 +1,38 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="boxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2D968A"/>
+      <stop offset="100%" style="stop-color:#238B7F"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景山形 -->
+  <path d="M20 160 L50 120 L90 150 L130 110 L180 160 Z" fill="#E5E7EB" opacity="0.3"/>
+  
+  <!-- 打开的空盒子 -->
+  <g transform="translate(100, 100)">
+    <!-- 盒子底部 -->
+    <path d="M-40 20 L-40 -10 L40 -10 L40 20 L0 35 Z" fill="url(#boxGrad)"/>
+    <!-- 盒子内部 -->
+    <ellipse cx="0" cy="-10" rx="40" ry="12" fill="#FFFFFF"/>
+    <!-- 左盖 -->
+    <path d="M-40 -10 L-40 -35 L0 -25 L0 -10 Z" fill="#72C0B5" opacity="0.8"/>
+    <!-- 右盖 -->
+    <path d="M40 -10 L40 -35 L0 -25 L0 -10 Z" fill="#5CB8AC" opacity="0.9"/>
+    <!-- 盒子边框线条 -->
+    <path d="M-40 20 L-40 -10 L40 -10 L40 20 L0 35 Z" stroke="#1F7A70" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- 飘落的叶子 -->
+  <g transform="translate(60, 70) rotate(-45)">
+    <ellipse cx="0" cy="0" rx="8" ry="5" fill="#FFC107"/>
+    <line x1="-6" y1="0" x2="6" y2="0" stroke="#E6A700" stroke-width="0.8"/>
+  </g>
+  <g transform="translate(140, 80) rotate(30)">
+    <ellipse cx="0" cy="0" rx="6" ry="4" fill="#72C0B5" opacity="0.7"/>
+  </g>
+  
+  <!-- 小星星 -->
+  <circle cx="50" cy="50" r="3" fill="#FFC107" opacity="0.8"/>
+  <circle cx="150" cy="55" r="2" fill="#9DD6CE" opacity="0.6"/>
+</svg>

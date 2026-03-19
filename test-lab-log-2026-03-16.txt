@@ -1,0 +1,338 @@
+03-16 04:50:57.240 1582 3806 D ConnectivityService: NetReassign [no changes]
+03-16 04:50:57.359 1582 3950 I RescueParty: Starting to observe: [android], updated namespace: storage_native_boot
+03-16 04:50:57.360 1582 3950 I PackageWatchdog: Updated health check state for package android: INACTIVE -> INACTIVE
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Syncing state, reason: observing new packages
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Removing 63666ms from all packages on all observers
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724726ms
+03-16 04:50:57.361 1582 1662 D PackageWatchdog: rescue-party-observer added the following packages to monitor [android]
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Syncing state, reason: updated observers
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Not pruning observers, elapsed time: 0ms
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724726ms
+03-16 04:50:57.362 1582 1662 I PackageWatchdog: Saving observer state to file
+03-16 04:50:57.367 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.367 1582 1582 I PackageWatchdog: Syncing health check requests for packages: \{\}
+03-16 04:50:57.367 1582 1582 I ExplicitHealthCheckController: Service not ready to get health check supported packages. Binding...
+03-16 04:50:57.371 1582 1582 I ExplicitHealthCheckController: Explicit health check service is bound
+03-16 04:50:57.371 1582 1582 D StorageManagerService: Isolated storage local flag 0 and remote flag 0 resolved to true
+03-16 04:50:57.381 1582 1582 D StorageManagerService: Device Config flag for FUSE is enabled, turn Settings fuse flag on
+03-16 04:50:57.395 1582 1582 I ExplicitHealthCheckController: Explicit health check service is connected ComponentInfo\{com.google.android.ext.services/android.ext.services.watchdog.ExplicitHealthCheckServiceImpl\}
+03-16 04:50:57.395 1582 1582 I ExplicitHealthCheckController: Service initialized, syncing requests
+03-16 04:50:57.395 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.395 1582 1582 I PackageWatchdog: Syncing health check requests for packages: \{\}
+03-16 04:50:57.395 1582 1582 D ExplicitHealthCheckController: Getting health check supported packages
+03-16 04:50:57.399 1582 3950 I ExplicitHealthCheckController: Explicit health check supported packages [PackageConfig\{com.google.android.networkstack, 86400000\}]
+03-16 04:50:57.399 1582 3950 D PackageWatchdog: Received supported packages [PackageConfig\{com.google.android.networkstack, 86400000\}]
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 D ExplicitHealthCheckController: Getting health check requested packages
+03-16 04:50:57.400 1582 3950 I ExplicitHealthCheckController: Explicit health check requested packages []
+03-16 04:50:57.400 1582 3950 I ExplicitHealthCheckController: No more health check requests, unbinding...
+03-16 04:50:57.403 1582 3950 I ExplicitHealthCheckController: Explicit health check service is unbound
+03-16 04:50:57.420 1582 5242 I RescueParty: Starting to observe: [android], updated namespace: runtime_native_boot
+03-16 04:50:57.421 1582 5242 I PackageWatchdog: Updated health check state for package android: INACTIVE -> INACTIVE
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Syncing state, reason: observing new packages
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Removing 59ms from all packages on all observers
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.422 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724667ms
+03-16 04:50:57.422 1582 1662 D PackageWatchdog: rescue-party-observer added the following packages to monitor [android]
+03-16 04:50:57.422 1582 1662 I PackageWatchdog: Syncing state, reason: updated observers
+03-16 04:50:57.422 1582 1662 I PackageWatchdog: Not pruning observers, elapsed time: 0ms
+03-16 04:50:57.422 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724667ms
+03-16 04:50:57.422 1582 1662 I PackageWatchdog: Saving observer state to file
+03-16 04:50:57.424 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.424 1582 1582 I PackageWatchdog: Syncing health check requests for packages: \{\}
+03-16 04:50:57.425 1582 1582 I ExplicitHealthCheckController: Service not ready to get health check supported packages. Binding...
+03-16 04:50:57.427 1582 1582 I ExplicitHealthCheckController: Explicit health check service is bound
+03-16 04:50:57.430 15552 21280 I PlatformConfigurator: updateFromConfigurations using legacy put method [CONTEXT service_id=204 ]
+03-16 04:50:57.430 1582 1582 I ExplicitHealthCheckController: Explicit health check service is connected ComponentInfo\{com.google.android.ext.services/android.ext.services.watchdog.ExplicitHealthCheckServiceImpl\}
+00-00 00:00:00.000 0 0 ? (none) : --------- beginning of main
+03-16 04:50:57.430 1582 1582 I ExplicitHealthCheckController: Service initialized, syncing requests
+03-16 04:50:57.431 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.431 1582 1582 I PackageWatchdog: Syncing health check requests for packages: \{\}
+03-16 04:50:57.431 1582 1582 D ExplicitHealthCheckController: Getting health check supported packages
+03-16 04:50:57.433 1582 5242 I ExplicitHealthCheckController: Explicit health check supported packages [PackageConfig\{com.google.android.networkstack, 86400000\}]
+03-16 04:50:57.433 1582 5242 D PackageWatchdog: Received supported packages [PackageConfig\{com.google.android.networkstack, 86400000\}]
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.434 1582 5242 D ExplicitHealthCheckController: Getting health check requested packages
+03-16 04:50:57.434 1582 5242 I ExplicitHealthCheckController: Explicit health check requested packages []
+03-16 04:50:57.434 1582 5242 I ExplicitHealthCheckController: No more health check requests, unbinding...
+03-16 04:50:57.436 1582 5242 I ExplicitHealthCheckController: Explicit health check service is unbound
+03-16 04:50:57.518 1582 3950 I RescueParty: Starting to observe: [android], updated namespace: netd_native
+03-16 04:50:57.518 1582 3950 I PackageWatchdog: Updated health check state for package android: INACTIVE -> INACTIVE
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Syncing state, reason: observing new packages
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Removing 96ms from all packages on all observers
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.519 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724571ms
+03-16 04:50:57.519 1582 1662 D PackageWatchdog: rescue-party-observer added the following packages to monitor [android]
+03-16 04:50:57.519 1582 1662 I PackageWatchdog: Syncing state, reason: updated observers
+03-16 04:50:57.519 1582 1662 I PackageWatchdog: Not pruning observers, elapsed time: 0ms
+03-16 04:50:57.519 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724571ms
+03-16 04:50:57.519 1582 1662 I PackageWatchdog: Saving observer state to file
+03-16 04:50:57.521 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.521 1582 1582 I PackageWatchdog: Syncing health check requests for packages: \{\}
+03-16 04:50:57.521 1582 1582 I ExplicitHealthCheckController: Service not ready to get health check supported packages. Binding...
+03-16 04:50:57.524 1582 1582 I ExplicitHealthCheckController: Explicit health check service is bound
+03-16 04:50:57.526 1582 1582 I ExplicitHealthCheckController: Explicit health check service is connected ComponentInfo\{com.google.android.ext.services/android.ext.services.watchdog.ExplicitHealthCheckServiceImpl\}
+03-16 04:50:57.526 1582 1582 I ExplicitHealthCheckController: Service initialized, syncing requests
+03-16 04:50:57.526 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.526 1582 1582 I PackageWatchdog: Syncing health check requests for packages: \{\}
+03-16 04:50:57.526 1582 1582 D ExplicitHealthCheckController: Getting health check supported packages
+03-16 04:50:57.529 1582 3950 I ExplicitHealthCheckController: Explicit health check supported packages [PackageConfig\{com.google.android.networkstack, 86400000\}]
+03-16 04:50:57.529 1582 3950 D PackageWatchdog: Received supported packages [PackageConfig\{com.google.android.networkstack, 86400000\}]
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 D ExplicitHealthCheckController: Getting health check requested packages
+03-16 04:50:57.529 1582 3950 I ExplicitHealthCheckController: Explicit health check requested packages []
+03-16 04:50:57.529 1582 3950 I ExplicitHealthCheckController: No more health check requests, unbinding...
+03-16 04:50:57.532 1582 3950 I ExplicitHealthCheckController: Explicit health check service is unbound
+03-16 04:50:57.604 1582 6407 I RescueParty: Starting to observe: [com.google.android.networkstack], updated namespace: connectivity
+03-16 04:50:57.604 1582 6407 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: INACTIVE -> INACTIVE
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Syncing state, reason: observing new packages
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Removing 86ms from all packages on all observers
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724485ms
+03-16 04:50:57.605 1582 1662 D PackageWatchdog: rescue-party-observer added the following packages to monitor [com.google.android.networkstack]
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Syncing state, reason: updated observers
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Not pruning observers, elapsed time: 0ms
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Scheduling next state sync in 172728918ms
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Saving observer state to file
+03-16 04:50:57.608 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.608 1582 1582 I PackageWatchdog: Syncing health check requests for packages: \{\}
+03-16 04:50:57.608 1582 1582 I ExplicitHealthCheckController: Service not ready to get health check supported packages. Binding...
+03-16 04:50:57.610 1582 1582 I ExplicitHealthCheckController: Explicit health check service is bound
+03-16 04:50:57.612 1582 1582 I ExplicitHealthCheckController: Explicit health check service is connected ComponentInfo\{com.google.android.ext.services/android.ext.services.watchdog.ExplicitHealthCheckServiceImpl\}
+03-16 04:50:57.613 1582 1582 I ExplicitHealthCheckController: Service initialized, syncing requests
+03-16 04:50:57.613 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.613 1582 1582 I PackageWatchdog: Syncing health check requests for packages: \{\}
+03-16 04:50:57.613 1582 1582 D ExplicitHealthCheckController: Getting health check supported packages
+03-16 04:50:57.614 1582 3950 I ExplicitHealthCheckController: Explicit health check supported packages [PackageConfig\{com.google.android.networkstack, 86400000\}]
+03-16 04:50:57.615 1582 3950 D PackageWatchdog: Received supported packages [PackageConfig\{com.google.android.networkstack, 86400000\}]
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 D ExplicitHealthCheckController: Getting health check requested packages
+03-16 04:50:57.615 1582 3950 I ExplicitHealthCheckController: Explicit health check requested packages []
+03-16 04:50:57.615 1582 3950 I ExplicitHealthCheckController: No more health check requests, unbinding...
+03-16 04:50:57.617 1582 3950 I ExplicitHealthCheckController: Explicit health check service is unbound
+03-16 04:50:57.710 905 1005 D VSC : @ 313.405: [WO] isFlat() nearest_rotation: 1, flat_angle: 40
+03-16 04:50:57.710 905 1005 D VSC : @ 313.405: [WO] orientation angle 89, orientation 1
+03-16 04:50:57.728 1582 5242 I RescueParty: Starting to observe: [android], updated namespace: wifi
+03-16 04:50:57.729 1582 5242 I PackageWatchdog: Updated health check state for package android: INACTIVE -> INACTIVE
+03-16 04:50:57.729 1582 1662 I PackageWatchdog: Syncing state, reason: observing new packages
+03-16 04:50:57.729 1582 1662 I PackageWatchdog: Removing 124ms from all packages on all observers
+03-16 04:50:57.729 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.729 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.729 1582 1662 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.729 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.730 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.730 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.730 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.730 1582 1662 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.730 1582 1662 I PackageWatchdog: Scheduling next state sync in 172728794ms
+03-16 04:50:57.730 1582 1662 D PackageWatchdog: rescue-party-observer added the following packages to monitor [android]
+03-16 04:50:57.730 1582 1662 I PackageWatchdog: Syncing state, reason: updated observers
+03-16 04:50:57.730 1582 1662 I PackageWatchdog: Not pruning observers, elapsed time: 0ms
+03-16 04:50:57.730 1582 1662 I PackageWatchdog: Scheduling next state sync in 172728794ms
+03-16 04:50:57.730 1582 1662 I PackageWatchdog: Saving observer state to file
+03-16 04:50:57.734 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.734 1582 1582 I PackageWatchdog: Syncing health check requests for packages: \{\}
+03-16 04:50:57.734 1582 1582 I ExplicitHealthCheckController: Service not ready to get health check supported packages. Binding...
+03-16 04:50:57.736 1582 1582 I ExplicitHealthCheckController: Explicit health check service is bound
+03-16 04:50:57.738 1582 1582 I ExplicitHealthCheckController: Explicit health check service is connected ComponentInfo\{com.google.android.ext.services/android.ext.services.watchdog.ExplicitHealthCheckServiceImpl\}
+03-16 04:50:57.739 1582 1582 I ExplicitHealthCheckController: Service initialized, syncing requests
+03-16 04:50:57.739 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.739 1582 1582 I PackageWatchdog: Syncing health check requests for packages: \{\}
+03-16 04:50:57.739 1582 1582 D ExplicitHealthCheckController: Getting health check supported packages
+03-16 04:50:57.741 1582 6407 I ExplicitHealthCheckController: Explicit health check supported packages [PackageConfig\{com.google.android.networkstack, 86400000\}]
+03-16 04:50:57.741 1582 6407 D PackageWatchdog: Received supported packages [PackageConfig\{com.google.android.networkstack, 86400000\}]
+03-16 04:50:57.741 1582 6407 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.741 1582 6407 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.741 1582 6407 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.741 1582 6407 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.741 1582 6407 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.741 1582 6407 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.741 1582 6407 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.741 1582 6407 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.741 1582 6407 D ExplicitHealthCheckController: Getting health check requested packages
+03-16 04:50:57.742 1582 6407 I ExplicitHealthCheckController: Explicit health check requested packages []
+03-16 04:50:57.742 1582 6407 I ExplicitHealthCheckController: No more health check requests, unbinding...
+03-16 04:50:57.744 1582 6407 I ExplicitHealthCheckController: Explicit health check service is unbound
+03-16 04:50:57.749 15552 15564 I .gms.persisten: Background young concurrent copying GC freed 1053469(49MB) AllocSpace objects, 26(856KB) LOS objects, 67% free, 23MB/73MB, paused 46us total 153.261ms
+03-16 04:50:57.834 18513 18534 I Finsky:quick_launch: [1565] Stats for Executor: bgExecutor uzx@a5efbe2[Running, pool size = 4, active threads = 0, queued tasks = 0, completed tasks = 21]
+03-16 04:50:57.836 15552 19922 W GetConfigSnapshotOp: Succeeded but not registered: com.google.android.platform.safetycore [CONTEXT service_id=51 ]
+03-16 04:50:57.839 15552 19922 W PhBaseOp: Phenotype API error. Event: # hgsc@8d664e5c, EventCode: COMMIT_CONFIG [CONTEXT service_id=51 ]
+03-16 04:50:58.024 907 968 I android.hardware.thermal@2.0-service.pixel: panel-audio-therm: 42.049
+03-16 04:50:58.025 907 968 I android.hardware.thermal@2.0-service.pixel: skin-therm-monitor: 42.049
+03-16 04:50:58.063 1582 1582 W Binder:1582_11: type=1400 audit(0.0:501): avc: denied \{ getopt \} for scontext=u:r:system_server:s0 tcontext=u:r:shell:s0 tclass=unix_stream_socket permissive=0
+03-16 04:50:58.112 1582 3501 W RuleEvaluation: Integrity rule files are not available.
+03-16 04:50:58.113 1582 1685 I PackageManager: Integrity check passed for file:///data/app/vmdl1022997162.tmp
+03-16 04:50:58.125 1582 1685 D CompatibilityChangeReporter: Compat change id reported: 135549675; UID 10272; state: ENABLED
+03-16 04:50:58.217 1582 1685 W PackageManager: User 0 is not ready. Restore at install didn't take place.
+03-16 04:50:58.227 1089 3459 E installd: Couldn't opendir /data/app/vmdl1022997162.tmp: No such file or directory
+03-16 04:50:58.227 1089 3459 E installd: Failed to delete /data/app/vmdl1022997162.tmp: No such file or directory
+03-16 04:50:58.246 1582 1649 I RoleManagerService: Granting default roles...
+03-16 04:50:58.247 5175 5175 I MediaProvider: Invalidating LocalCallingIdentity cache for package com.google.testing.helium.utp.android.companion.instrumentations.locale. Reason: package android.intent.action.PACKAGE_ADDED
+03-16 04:50:58.250 1582 3495 I InputReader: Reconfiguring input devices, changes=KEYBOARD_LAYOUTS |
+03-16 04:50:58.253 5195 5195 I GsaVoiceInteractionSrv: O received Intent \{ act=android.intent.action.PACKAGE_ADDED dat=package:com.google.testing.helium.utp.android.companion.instrumentations.locale flg=0x4000010 (has extras) \}
+03-16 04:50:58.255 17890 17890 I Finsky : [2] ahwr - Received: android.intent.action.PACKAGE_ADDED, [p96ijs_D_wMlU6vwB82HkMOUnY1mjoEL-op4Avju01k]
+03-16 04:50:58.256 3863 3863 V AvrcpMediaPlayerList: mPackageChangedBroadcastReceiver: action: android.intent.action.PACKAGE_ADDED
+03-16 04:50:58.256 3863 3863 D AvrcpMediaPlayerList: Name of package changed: com.google.testing.helium.utp.android.companion.instrumentations.locale
+03-16 04:50:58.308 874 874 D Zygote : Forked child process 21601
+03-16 04:50:58.311 18017 18057 I Finsky:background: [1544] Current account updated in PVS
+03-16 04:50:58.311 18017 18060 I Finsky:background: [1546] Current account updated in PVS
+03-16 04:50:58.316 17890 17955 I Finsky : [1543] Current account updated in PVS
+03-16 04:50:58.317 17890 17890 I Finsky : [2] Clearing split related stale data.
+03-16 04:50:58.317 17890 17951 I Finsky : [1540] Current account updated in PVS
+03-16 04:50:58.319 21601 21601 E ackageinstalle: Not starting debugger since process cannot load the jdwp agent.
+03-16 04:50:58.320 17890 17951 I Finsky : [1540] Current account updated in PVS
+03-16 04:50:58.327 18017 18056 I Finsky:background: [1543] Current account updated in PVS
+03-16 04:50:58.335 17890 17951 I Finsky : [1540] Current account updated in PVS
+03-16 04:50:58.339 5267 5267 D RegisteredNfcFServicesCache: Service unchanged, not updating
+03-16 04:50:58.349 20053 21285 I Auth : (REDACTED) [SupervisedAccountIntentOperation] onHandleIntent: %s
+03-16 04:50:58.350 18017 18057 I Finsky:background: [1544] Current account updated in PVS
+03-16 04:50:58.363 17890 17952 I Finsky : [1541] Current account updated in PVS
+03-16 04:50:58.419 4384 4384 D ImsResolver: maybeAddedImsService, packageName: com.google.testing.helium.utp.android.companion.instrumentations.locale
+03-16 04:50:58.420 4384 4384 D CarrierConfigLoader: mHandler: 9 phoneId: 0
+03-16 04:50:58.424 18017 18060 I Finsky:background: [1546] Current account updated in PVS
+03-16 04:50:58.449 21637 21640 I cmd : oneway function results will be dropped but finished with status OK and parcel size 4
+03-16 04:50:58.449 21601 21601 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+03-16 04:50:58.449 21601 21601 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+03-16 04:50:58.461 17890 17890 I Finsky : [2] DTU: Received onPackageAdded, replacing: false
+03-16 04:50:58.489 1582 1582 W Binder:1582_11: type=1400 audit(0.0:502): avc: denied \{ getopt \} for scontext=u:r:system_server:s0 tcontext=u:r:shell:s0 tclass=unix_stream_socket permissive=0
+03-16 04:50:58.532 21643 21643 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+03-16 04:50:58.534 21643 21643 E libc : Access denied finding property "persist.device_config.runtime_native_boot.profilebootclasspath"
+03-16 04:50:58.534 21643 21643 E libc : Access denied finding property "persist.device_config.runtime_native_boot.enable_apex_image"
+03-16 04:50:58.534 21643 21643 I AndroidRuntime: Using default boot image
+03-16 04:50:58.534 21643 21643 E libc : Access denied finding property "persist.device_config.runtime_native_boot.disable_lock_profiling"
+03-16 04:50:58.534 21643 21643 I AndroidRuntime: Leaving lock profiling enabled
+03-16 04:50:58.534 21643 21643 E libc : Access denied finding property "persist.device_config.runtime_native_boot.enable_generational_cc"
+03-16 04:50:58.654 21643 21643 D AndroidRuntime: Calling main entry com.android.commands.am.Am
+03-16 04:50:58.657 20053 20112 I Icing : Indexing com.google.android.gms-apps from com.google.android.gms
+03-16 04:50:58.663 1582 3945 I ActivityManager: Force stopping com.google.testing.helium.utp.android.companion.instrumentations.locale appid=10272 user=0: start instr
+03-16 04:50:58.668 21479 21531 I droid.apps.doc: The ClassLoaderContext is a special shared library.
+03-16 04:50:58.698 1582 1649 W Looper : Slow delivery took 324ms android.fg h=android.os.Handler c=<recycled PooledLambda@15b6c78> m=0
+03-16 04:50:58.700 1582 3945 D CompatibilityChangeReporter: Compat change id reported: 135634846; UID 10272; state: DISABLED
+03-16 04:50:58.701 1582 3945 D CompatibilityChangeReporter: Compat change id reported: 135754954; UID 10272; state: ENABLED
+03-16 04:50:58.701 1582 1664 D CompatibilityChangeReporter: Compat change id reported: 143937733; UID 10272; state: ENABLED
+03-16 04:50:58.709 874 874 D Zygote : Forked child process 21660
+03-16 04:50:58.712 1582 1664 I ActivityManager: Start proc 21660:com.google.testing.helium.utp.android.companion.instrumentations.locale/u0a272 for added application com.google.testing.helium.utp.android.companion.instrumentations.locale
+03-16 04:50:58.712 20053 20112 I Icing : Indexing done com.google.android.gms-apps
+03-16 04:50:58.714 21660 21660 I ntations.local: Late-enabling -Xcheck:jni
+03-16 04:50:58.729 21660 21660 I ntations.local: Unquickening 12 vdex files!
+03-16 04:50:58.751 21479 21666 E GoogleApiManager: Failed to get service from broker.
+03-16 04:50:58.751 21479 21666 E GoogleApiManager: java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+03-16 04:50:58.818 21479 21531 I ProviderInstaller: Installed default security provider GmsCore_OpenSSL
+03-16 04:50:58.837 1582 3942 I RescueParty: Starting to observe: [android], updated namespace: autofill
+03-16 04:50:58.853 21660 21660 W ntations.local: Accessing hidden method Landroid/app/IActivityManager;->getConfiguration()Landroid/content/res/Configuration; (greylist, linking, allowed)
+03-16 04:50:58.853 21660 21660 W ntations.local: Accessing hidden method Landroid/app/IActivityManager;->updatePersistentConfiguration(Landroid/content/res/Configuration;)V (greylist, linking, allowed)
+03-16 04:50:58.853 21660 21660 W ntations.local: Accessing hidden method Landroid/app/ActivityManagerNative;->getDefault()Landroid/app/IActivityManager; (greylist, linking, allowed)
+03-16 04:50:58.857 21660 21660 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+03-16 04:50:58.858 21660 21660 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+03-16 04:50:58.866 21660 21660 I ConfigureLocale: Current Locale: en_US. Existing locale same as new locale. Exiting ...
+03-16 04:50:58.875 21660 21660 D Companion: Instrumentation completed successfully
+03-16 04:50:58.877 1582 3945 I ActivityManager: Force stopping com.google.testing.helium.utp.android.companion.instrumentations.locale appid=10272 user=0: finished inst
+03-16 04:50:58.877 1582 3945 I ActivityManager: Killing 21660:com.google.testing.helium.utp.android.companion.instrumentations.locale/u0a272 (adj 0): stop com.google.testing.helium.utp.android.companion.instrumentations.locale due to finished inst
+03-16 04:50:58.877 21643 21643 D AndroidRuntime: Shutting down VM
+03-16 04:50:58.903 874 874 I Zygote : Process 21660 exited due to signal 9 (Killed)
+03-16 04:50:58.910 1582 1665 I libprocessgroup: Successfully killed process cgroup uid 10272 pid 21660 in 31ms
+03-16 04:50:59.317 1582 21685 I ActivityManager: Failure reporting to instrumentation watcher: comp=ComponentInfo\{com.google.testing.helium.utp.android.companion.instrumentations.locale/com.google.testing.helium.utp.android.companion.instrumentations.locale.ConfigureLocale\} results=Bundle[mParcelledData.dataSize=40]
+03-16 04:50:59.785 1582 5892 I ActivityTaskManager: START u0 \{act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10000000 cmp=com.google.testing.helium.utp.android.companion.backdrop/.BackdropActivity\} from uid 2000
+03-16 04:51:00.606 20053 20112 I Icing : Indexing com.google.android.gms-apps from com.google.android.gms
+03-16 04:51:00.609 20053 20112 I Icing : Indexing done com.google.android.gms-apps
+03-16 04:51:00.861 874 874 D Zygote : Forked child process 21733
+03-16 04:51:00.897 1582 1664 W ActivityManager: Slow operation: 62ms so far, now at startProcess: done updating battery stats
+03-16 04:51:00.897 1582 1664 W ActivityManager: Slow operation: 62ms so far, now at startProcess: building log message
+03-16 04:51:00.897 1582 1664 I ActivityManager: Start proc 21733:com.google.testing.helium.utp.android.companion.backdrop/u0a273 for pre-top-activity \{com.google.testing.helium.utp.android.companion.backdrop/com.google.testing.helium.utp.android.companion.backdrop.BackdropActivity\}
+03-16 04:51:00.897 1582 1664 W ActivityManager: Slow operation: 62ms so far, now at startProcess: starting to update pids map
+03-16 04:51:00.897 1582 1664 W ActivityManager: Slow operation: 63ms so far, now at startProcess: done updating pids map
+03-16 04:51:00.922 4743 4758 I adbd : jdwp connection from 21733
+03-16 04:51:01.297 21733 21733 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+03-16 04:51:01.298 21733 21733 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+03-16 04:51:01.374 21733 21733 I BackdropActivity: onCreate()
+03-16 04:51:01.604 21733 21733 I BackdropActivity: onResume()
+03-16 04:51:01.755 1582 1662 I ActivityTaskManager: Displayed com.google.testing.helium.utp.android.companion.backdrop/.BackdropActivity: +963ms
+03-16 04:51:01.765 21733 21733 I BackdropActivity: onCreate()
+03-16 04:51:01.794 21733 21733 I BackdropActivity: android_id: 3874071891563891108
+03-16 04:51:01.800 21733 21733 I BackdropActivity: onResume()
+03-16 04:51:03.743 6620 6656 D DeviceStateHelper: Audo mode: 0
+03-16 04:51:03.745 6620 6656 D DeviceStateHelper: Audo mode: 0
+03-16 04:51:04.880 21774 21776 I cmd : oneway function results will be dropped but finished with status OK and parcel size 4
+03-16 04:51:04.920 21779 21781 I cmd : oneway function results will be dropped but finished with status OK and parcel size 4
+03-16 04:51:04.948 21586 21586 I abb : StartCommandInProcess(73657474696e67730067657400676c6f settings.get.glo [truncated])
+03-16 04:51:04.952 21586 21739 I abb : oneway function results will be dropped but finished with status OK and parcel size 4
+03-16 04:51:04.955 21586 21586 I abb : StartCommandInProcess(7061636b61676500696e7374616c6c00 package.install. [truncated])
+03-16 04:51:05.081 1582 3501 W RuleEvaluation: Integrity rule files are not available.
+03-16 04:51:05.081 1582 1685 I PackageManager: Integrity check passed for file:///data/app/vmdl1221290859.tmp
+03-16 04:51:05.102 1582 1685 D CompatibilityChangeReporter: Compat change id reported: 135549675; UID 10274; state: ENABLED
+03-16 04:51:05.203 1582 1685 W PackageManager: User 0 is not ready. Restore at install didn't take place.
+03-16 04:51:05.203 1582 1685 I AppsFilter: interaction: PackageSetting\{4e8a9fa com.google.testing.helium.utp.android.companion.backdrop/10273\} -> PackageSetting\{fb8899a com.google.testing.helium.utp.android.companion.instrumentations.runtimestats/10274\} BLOCKED
+03-16 04:51:05.203 1582 1685 I AppsFilter: interaction: PackageSetting\{1f53425 com.google.testing.helium.utp.android.companion.instrumentations.locale/10272\} -> PackageSetting\{fb8899a com.google.testing.helium.utp.android.companion.instrumentations.runtimestats/10274\} BLOCKED
+03-16 04:51:05.209 1089 3459 E installd: Couldn't opendir /data/app/vmdl1221290859.tmp: No such file or directory
+03-16 04:51:05.209 1089 3459 E installd: Failed to delete /data/app/vmdl1221290859.tmp: No such file or directory
+03-16 04:51:05.225 5175 5175 I MediaProvider: Invalidating LocalCallingIdentity cache for package com.google.testing.helium.utp.android.companion.instrumentations.runtimestats. Reason: package android.intent.action.PACKAGE_ADDED
+03-16 04:51:05.232 1582 3495 I InputReader: Reconfiguring input devices, changes=KEYBOARD_LAYOUTS |
+03-16 04:51:05.237 3863 3863 V AvrcpMediaPlayerList: mPackageChangedBroadcastReceiver: action: android.intent.action.PACKAGE_ADDED
+03-16 04:51:05.237 3863 3863 D AvrcpMediaPlayerList: Name of package changed: com.google.testing.helium.utp.android.companion.instrumentations.runtimestats
+03-16 04:51:05.237 5195 5195 I GsaVoiceInteractionSrv: O received Intent \{ act=android.intent.action.PACKAGE_ADDED dat=package:com.google.testing.helium.utp.android.companion.instrumentations.runtimestats flg=0x4000010 (has extras) \}
+03-16 04:51:05.239 18017 18017 I Finsky:background: [2] ahwh - Received: android.intent.action.PACKAGE_ADDED, [NCpE2tWFy5Mf3mKzP-AiMw79q7QdOuaST3Y36Qx0uyI]
+03-16 04:51:05.239 17890 17890 I Finsky : [2] ahwr - Received: android.intent.action.PACKAGE_ADDED, [NCpE2tWFy5Mf3mKzP-AiMw79q7QdOuaST3Y36Qx0uyI]
+03-16 04:51:05.293 21786 21786 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+03-16 04:51:05.296 21786 21786 E libc : Access denied finding property "persist.device_config.runtime_native_boot.profilebootclasspath"
+03-16 04:51:05.296 21786 21786 E libc : Access denied finding property "persist.device_config.runtime_native_boot.enable_apex_image"
+03-16 04:51:05.296 21786 21786 I AndroidRuntime: Using default boot image
+03-16 04:51:05.296 21786 21786 E libc : Access denied finding property "persist.device_config.runtime_native_boot.disable_lock_profiling"
+03-16 04:51:05.296 21786 21786 I AndroidRuntime: Leaving lock profiling enabled
+03-16 04:51:05.296 21786 21786 E libc : Access denied finding property "persist.device_config.runtime_native_boot.enable_generational_cc"

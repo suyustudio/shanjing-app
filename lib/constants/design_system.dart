@@ -24,7 +24,16 @@ class DesignSystem {
   
   // 边框和分割线
   static const Color border = Color(0xFFE0E0E0);
+  static const Color borderColor = Color(0xFFE0E0E0);
   static const Color divider = Color(0xFFEEEEEE);
+  
+  // 表面/卡片颜色
+  static const Color surfacePrimary = Color(0xFFFFFFFF);
+  static const Color surfaceSecondary = Color(0xFFF9FAFB);
+  
+  // 特定组件颜色
+  static const Color trailTitleColor = Color(0xFF111827);
+  static const Color ratingColor = Color(0xFFFFB800);
   
   // 功能色
   static const Color success = Color(0xFF4CAF50);
@@ -32,34 +41,60 @@ class DesignSystem {
   static const Color error = Color(0xFFF44336);
   static const Color info = Color(0xFF2196F3);
 
-  // ==================== 暗黑模式颜色 ====================
+  // ==================== 暗黑模式颜色 (M4 规范) ====================
   
-  // 主色调（暗黑模式下保持相同或微调）
+  // 主色调（暗黑模式）
   static const Color primaryDarkMode = Color(0xFF4DB6AC);
   static const Color primaryLightDarkMode = Color(0xFF80CBC4);
   static const Color primaryDarkDarkMode = Color(0xFF2D968A);
   
-  // 背景色（暗黑模式）
+  // 暗黑模式主色（根据 design-system-dark-mode-v1.0.md）
+  static const Color darkPrimary = Color(0xFF3DAB9E);
+  static const Color darkPrimaryLight = Color(0xFF4DB6AC);
+  static const Color darkPrimaryDark = Color(0xFF2D968A);
+  
+  // 背景色（暗黑模式 - M4 规范）
   static const Color backgroundDark = Color(0xFF121212);
+  static const Color darkBackground = Color(0xFF0A0F14);
   static const Color backgroundSecondaryDark = Color(0xFF1E1E1E);
+  static const Color darkBgSecondary = Color(0xFF111820);
   static const Color backgroundTertiaryDark = Color(0xFF2C2C2C);
+  static const Color darkBgTertiary = Color(0xFF1A222C);
   static const Color backgroundElevatedDark = Color(0xFF242424);
   
-  // 文字颜色（暗黑模式）
+  // 表面/卡片背景（暗黑模式）
+  static const Color darkSurface = Color(0xFF141C24);
+  static const Color darkSurfaceSecondary = Color(0xFF1E2730);
+  static const Color darkSurfaceTertiary = Color(0xFF28323D);
+  static const Color darkSurfaceElevated = Color(0xFF2A3540);
+  
+  // 文字颜色（暗黑模式 - M4 规范）
   static const Color textPrimaryDark = Color(0xFFE0E0E0);
+  static const Color darkTextPrimary = Color(0xFFF0F6FC);
   static const Color textSecondaryDark = Color(0xFFB0B0B0);
+  static const Color darkTextSecondary = Color(0xFFC9D1D9);
   static const Color textTertiaryDark = Color(0xFF808080);
+  static const Color darkTextTertiary = Color(0xFF8B949E);
   static const Color textInverseDark = Color(0xFF121212);
+  static const Color darkTextQuaternary = Color(0xFF6E7681);
+  static const Color darkTextDisabled = Color(0xFF484F58);
   
   // 边框和分割线（暗黑模式）
   static const Color borderDark = Color(0xFF404040);
+  static const Color darkBorder = Color(0xFF30363D);
+  static const Color darkBorderHover = Color(0xFF3D444D);
+  static const Color darkBorderFocus = Color(0xFF58A6FF);
   static const Color dividerDark = Color(0xFF333333);
   
-  // 功能色（暗黑模式 - 保持相同或微调亮度）
+  // 功能色（暗黑模式 - M4 规范）
   static const Color successDark = Color(0xFF66BB6A);
+  static const Color darkSuccess = Color(0xFF66BB6A);
   static const Color warningDark = Color(0xFFFFD54F);
+  static const Color darkWarning = Color(0xFFFFD54F);
   static const Color errorDark = Color(0xFFE57373);
+  static const Color darkError = Color(0xFFF87171);
   static const Color infoDark = Color(0xFF64B5F6);
+  static const Color darkInfo = Color(0xFF60A5FA);
 
   // ==================== 动态颜色获取 ====================
   
@@ -174,6 +209,17 @@ class DesignSystem {
   static const double fontSmall = 12;
   static const double fontLarge = 20;
   static const double fontXLarge = 24;
+  
+  // 字体层级 - 基于 1.25 倍率
+  static const double fontOverline = 11;
+  static const double fontCaption = 12;
+  static const double fontBodySmall = 13;
+  static const double fontH4 = 16;
+  static const double fontBodyLarge = 16;
+  static const double fontH3 = 18;
+  static const double fontH2 = 20;
+  static const double fontH1 = 24;
+  static const double fontDisplay = 32;
 
   // ==================== 字体层级 (M2 Design System) ====================
   /// Display - 大标题，用于品牌展示
@@ -338,12 +384,15 @@ class DesignSystem {
   }
 
   // ==================== 间距 ====================
+  static const double spacingXSmall = 4;
   static const double spacingSmall = 8;
   static const double spacingMedium = 16;
   static const double spacingLarge = 24;
   static const double spacingXLarge = 32;
+  static const double spacingXXLarge = 48;
 
   // ==================== 圆角 ====================
+  static const double radiusSmall = 4;
   static const double radius = 8;
   static const double radiusLarge = 12;
   static const double radiusXLarge = 16;

@@ -1,0 +1,41 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景山形 -->
+  <path d="M0 150 L30 110 L70 140 L110 100 L150 130 L200 120 L200 200 L0 200 Z" fill="#E5E7EB" opacity="0.25"/>
+  
+  <!-- 信封 -->
+  <g transform="translate(100, 95)">
+    <!-- 信封主体 -->
+    <rect x="-40" y="-28" width="80" height="56" rx="4" fill="#FFFFFF" stroke="#2D968A" stroke-width="2"/>
+    
+    <!-- 信封封口 -->
+    <path d="M-40 -28 L0 5 L40 -28" fill="#E8F6F4" stroke="#2D968A" stroke-width="2"/>
+    
+    <!-- 信封底部三角 -->
+    <path d="M-40 28 L0 0 L40 28" fill="#D4F0EB" opacity="0.5"/>
+    
+    <!-- 信封侧边线条 -->
+    <line x1="-40" y1="-28" x2="-40" y2="28" stroke="#2D968A" stroke-width="1"/>
+    <line x1="40" y1="-28" x2="40" y2="28" stroke="#2D968A" stroke-width="1"/>
+    
+    <!-- 安静状态标记 - Zzz -->
+    <text x="50" y="-35" font-family="Arial" font-size="14" fill="#9DD6CE" font-weight="bold">Z</text>
+    <text x="60" y="-42" font-family="Arial" font-size="10" fill="#72C0B5" font-weight="bold">z</text>
+    <text x="68" y="-48" font-family="Arial" font-size="7" fill="#9DD6CE">z</text>
+  </g>
+  
+  <!-- 飘落的叶子 - 表示静谧 -->
+  <g transform="translate(45, 145) rotate(-30)">
+    <ellipse cx="0" cy="0" rx="10" ry="6" fill="#FFC107" opacity="0.7"/>
+    <line x1="-7" y1="0" x2="7" y2="0" stroke="#E6A700" stroke-width="1"/>
+  </g>
+  <g transform="translate(155, 140) rotate(25)">
+    <ellipse cx="0" cy="0" rx="7" ry="4" fill="#72C0B5" opacity="0.5"/>
+  </g>
+  <g transform="translate(140, 160) rotate(-10)">
+    <ellipse cx="0" cy="0" rx="5" ry="3" fill="#9DD6CE" opacity="0.4"/>
+  </g>
+  
+  <!-- 小装饰 -->
+  <circle cx="55" cy="60" r="2" fill="#FFC107" opacity="0.5"/>
+  <circle cx="150" cy="55" r="3" fill="#9DD6CE" opacity="0.4"/>
+</svg>

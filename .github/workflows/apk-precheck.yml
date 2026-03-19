@@ -1,0 +1,52 @@
+name: APK Pre-check
+
+on:
+  workflow_run:
+    workflows: ["Build APK", "Build APK with Debug", "Debug Build"]
+    types:
+      - completed
+
+jobs:
+  precheck:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-debug
+          path: ./apk/
+        continue-on-error: true
+
+      - name: Install APK tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq aapt
+
+      - name: Run APK Pre-check
+        run: |
+          APK=$(find ./apk -name "*.apk" | head -1)
+          if [ -n "$APK" ]; then
+            echo "Checking: $APK"
+            # 基础检查
+            echo "=== APK Structure ==="
+            unzip -l "$APK" | head -20
+            
+            echo ""
+            echo "=== File Size ==="
+            ls -lh "$APK"
+            
+            echo ""
+            echo "=== Manifest Check ==="
+            aapt list -a "$APK" 2>/dev/null | grep -E "package|version" | head -5 || echo "aapt failed"
+          else
+            echo "APK not found"
+            exit 1
+          fi
+
+      - name: Upload Check Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-precheck-report
+          path: ./apk/

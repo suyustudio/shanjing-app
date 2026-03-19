@@ -1,0 +1,38 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#9DD6CE;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#9DD6CE;stop-opacity:0.2" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景山形 -->
+  <path d="M40 140 L70 100 L100 130 L130 90 L160 140 Z" fill="#E5E7EB" opacity="0.5"/>
+  
+  <!-- 上方云雾 -->
+  <ellipse cx="100" cy="45" rx="70" ry="18" fill="url(#cloudGrad)"/>
+  <ellipse cx="60" cy="55" rx="40" ry="12" fill="url(#cloudGrad)" opacity="0.7"/>
+  <ellipse cx="140" cy="52" rx="35" ry="10" fill="url(#cloudGrad)" opacity="0.7"/>
+  
+  <!-- WiFi 图标 - 三层弧线 -->
+  <g transform="translate(100, 105)">
+    <!-- 最外层 -->
+    <path d="M-50 20 Q0 -40 50 20" stroke="#2D968A" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- 中间层 -->
+    <path d="M-35 20 Q0 -20 35 20" stroke="#2D968A" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- 内层 -->
+    <path d="M-20 20 Q0 -5 20 20" stroke="#2D968A" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- 断开标记 -->
+    <line x1="-15" y1="25" x2="15" y2="45" stroke="#EF5350" stroke-width="4" stroke-linecap="round"/>
+    <line x1="15" y1="25" x2="-15" y2="45" stroke="#EF5350" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  
+  <!-- 下方云雾 -->
+  <ellipse cx="100" cy="165" rx="60" ry="15" fill="url(#cloudGrad)"/>
+  <ellipse cx="50" cy="158" rx="30" ry="10" fill="url(#cloudGrad)" opacity="0.6"/>
+  <ellipse cx="150" cy="160" rx="25" ry="8" fill="url(#cloudGrad)" opacity="0.6"/>
+  
+  <!-- 装饰小点 -->
+  <circle cx="30" cy="80" r="3" fill="#FFC107" opacity="0.6"/>
+  <circle cx="170" cy="70" r="2" fill="#FFC107" opacity="0.4"/>
+</svg>

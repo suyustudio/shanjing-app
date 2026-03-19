@@ -1,0 +1,40 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 卷起的地图 -->
+  <g transform="translate(100, 100)">
+    <!-- 地图主体 -->
+    <rect x="-45" y="-35" width="90" height="70" rx="3" fill="#F5F5DC" stroke="#D4C4A8" stroke-width="1"/>
+    
+    <!-- 地图纹理 - 简化的路径 -->
+    <path d="M-35 -20 Q-20 -25 -10 -15 T10 -20 T30 -10" stroke="#9DD6CE" stroke-width="2" fill="none"/>
+    <path d="M-30 0 Q-15 5 0 -5 T25 0" stroke="#72C0B5" stroke-width="1.5" fill="none"/>
+    <path d="M-25 15 Q-10 10 5 20 T20 15" stroke="#2D968A" stroke-width="1.5" fill="none"/>
+    
+    <!-- 地图标记点 -->
+    <circle cx="-10" cy="-15" r="3" fill="#EF5350"/>
+    <circle cx="15" cy="-5" r="2" fill="#FFC107"/>
+    
+    <!-- 左侧卷起部分 -->
+    <ellipse cx="-45" cy="0" rx="8" ry="35" fill="#E8E4D9" stroke="#D4C4A8" stroke-width="1"/>
+    <ellipse cx="-45" cy="0" rx="5" ry="32" fill="#F5F5DC"/>
+    
+    <!-- 右侧卷起部分 -->
+    <ellipse cx="45" cy="0" rx="8" ry="35" fill="#E8E4D9" stroke="#D4C4A8" stroke-width="1"/>
+    <ellipse cx="45" cy="0" rx="5" ry="32" fill="#F5F5DC"/>
+    
+    <!-- 下载图标叠加 -->
+    <g transform="translate(0, 0)">
+      <circle cx="0" cy="0" r="18" fill="#2D968A" opacity="0.9"/>
+      <path d="M-6 -2 L0 6 L6 -2" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="0" y1="6" x2="0" y2="-6" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+  </g>
+  
+  <!-- 装饰云朵 -->
+  <ellipse cx="50" cy="50" rx="20" ry="10" fill="#E5E7EB" opacity="0.5"/>
+  <ellipse cx="150" cy="150" rx="15" ry="8" fill="#E5E7EB" opacity="0.4"/>
+  
+  <!-- 小叶子 -->
+  <g transform="translate(160, 60) rotate(20)">
+    <ellipse cx="0" cy="0" rx="6" ry="4" fill="#9DD6CE" opacity="0.6"/>
+  </g>
+</svg>

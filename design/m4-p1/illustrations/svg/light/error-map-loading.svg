@@ -1,0 +1,40 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 断裂的路径 -->
+  <g transform="translate(100, 140)">
+    <!-- 左侧路径段 -->
+    <path d="M-70 0 Q-40 -15 -20 -5" stroke="#9DD6CE" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <!-- 断裂间隙 -->
+    <line x1="-15" y1="-3" x2="5" y2="8" stroke="#EF5350" stroke-width="4" stroke-linecap="round"/>
+    <line x1="5" y1="-3" x2="-15" y2="8" stroke="#EF5350" stroke-width="4" stroke-linecap="round"/>
+    <!-- 右侧路径段 -->
+    <path d="M15 0 Q40 -10 70 -5" stroke="#9DD6CE" stroke-width="6" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- 路标1 -->
+  <g transform="translate(65, 90)">
+    <rect x="-3" y="0" width="6" height="50" fill="#2D968A" rx="2"/>
+    <rect x="-20" y="-5" width="40" height="25" rx="4" fill="#2D968A"/>
+    <!-- 警告图标 -->
+    <path d="M0 5 L-8 18 L8 18 Z" fill="#FFC107"/>
+    <text x="0" y="16" text-anchor="middle" font-size="10" fill="#333">!</text>
+  </g>
+  
+  <!-- 路标2 -->
+  <g transform="translate(135, 100)">
+    <rect x="-2" y="0" width="4" height="40" fill="#72C0B5" rx="2"/>
+    <rect x="-15" y="-3" width="30" height="20" rx="3" fill="#72C0B5"/>
+    <text x="0" y="12" text-anchor="middle" font-family="Arial" font-size="10" fill="#FFF">?</text>
+  </g>
+  
+  <!-- 远山背景 -->
+  <path d="M30 70 L50 45 L70 70" stroke="#E5E7EB" stroke-width="2" fill="none"/>
+  <path d="M150 60 L170 35 L190 60" stroke="#E5E7EB" stroke-width="2" fill="none"/>
+  
+  <!-- 飘散的叶子 -->
+  <g transform="translate(45, 55) rotate(25)">
+    <ellipse cx="0" cy="0" rx="6" ry="4" fill="#FFC107" opacity="0.6"/>
+  </g>
+  <g transform="translate(160, 80) rotate(-15)">
+    <ellipse cx="0" cy="0" rx="5" ry="3" fill="#9DD6CE" opacity="0.5"/>
+  </g>
+</svg>

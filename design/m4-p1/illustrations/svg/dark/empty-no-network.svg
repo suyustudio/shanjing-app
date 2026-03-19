@@ -1,0 +1,34 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cloudGradDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4DB6AC;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#4DB6AC;stop-opacity:0.1"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景山形 - 暗黑模式更暗 -->
+  <path d="M40 140 L70 100 L100 130 L130 90 L160 140 Z" fill="#30363D" opacity="0.6"/>
+  
+  <!-- 上方云雾 -->
+  <ellipse cx="100" cy="45" rx="70" ry="18" fill="url(#cloudGradDark)"/>
+  <ellipse cx="60" cy="55" rx="40" ry="12" fill="url(#cloudGradDark)" opacity="0.6"/>
+  <ellipse cx="140" cy="52" rx="35" ry="10" fill="url(#cloudGradDark)" opacity="0.6"/>
+  
+  <!-- WiFi 图标 - 亮青色 -->
+  <g transform="translate(100, 105)">
+    <path d="M-50 20 Q0 -40 50 20" stroke="#4DB6AC" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M-35 20 Q0 -20 35 20" stroke="#4DB6AC" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M-20 20 Q0 -5 20 20" stroke="#4DB6AC" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <line x1="-15" y1="25" x2="15" y2="45" stroke="#F87171" stroke-width="4" stroke-linecap="round"/>
+    <line x1="15" y1="25" x2="-15" y2="45" stroke="#F87171" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  
+  <!-- 下方云雾 -->
+  <ellipse cx="100" cy="165" rx="60" ry="15" fill="url(#cloudGradDark)"/>
+  <ellipse cx="50" cy="158" rx="30" ry="10" fill="url(#cloudGradDark)" opacity="0.5"/>
+  <ellipse cx="150" cy="160" rx="25" ry="8" fill="url(#cloudGradDark)" opacity="0.5"/>
+  
+  <!-- 装饰小点 - 亮色点缀 -->
+  <circle cx="30" cy="80" r="3" fill="#FFD54F" opacity="0.8"/>
+  <circle cx="170" cy="70" r="2" fill="#FFD54F" opacity="0.5"/>
+</svg>

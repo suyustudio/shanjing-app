@@ -1,0 +1,206 @@
+00-00 00:00:00.000 0 0 ? (none) : --------- beginning of system
+03-16 04:50:57.240 1582 3806 D ConnectivityService: NetReassign [no changes]
+03-16 04:50:57.359 1582 3950 I RescueParty: Starting to observe: [android], updated namespace: storage_native_boot
+03-16 04:50:57.360 1582 3950 I PackageWatchdog: Updated health check state for package android: INACTIVE -> INACTIVE
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Syncing state, reason: observing new packages
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Removing 63666ms from all packages on all observers
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.361 1582 1662 D PackageWatchdog: rescue-party-observer added the following packages to monitor [android]
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Syncing state, reason: updated observers
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Not pruning observers, elapsed time: 0ms
+03-16 04:50:57.361 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724726ms
+03-16 04:50:57.362 1582 1662 I PackageWatchdog: Saving observer state to file
+03-16 04:50:57.367 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.367 1582 1582 I PackageWatchdog: Syncing health check requests for packages: {}
+03-16 04:50:57.367 1582 1582 I ExplicitHealthCheckController: Service not ready to get health check supported packages. Binding...
+03-16 04:50:57.371 1582 1582 I ExplicitHealthCheckController: Explicit health check service is bound
+03-16 04:50:57.371 1582 1582 D StorageManagerService: Isolated storage local flag 0 and remote flag 0 resolved to true
+03-16 04:50:57.381 1582 1582 D StorageManagerService: Device Config flag for FUSE is enabled, turn Settings fuse flag on
+03-16 04:50:57.395 1582 1582 I ExplicitHealthCheckController: Explicit health check service is connected ComponentInfo{com.google.android.ext.services/android.ext.services.watchdog.ExplicitHealthCheckServiceImpl}
+03-16 04:50:57.395 1582 1582 I ExplicitHealthCheckController: Service initialized, syncing requests
+03-16 04:50:57.395 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.395 1582 1582 I PackageWatchdog: Syncing health check requests for packages: {}
+03-16 04:50:57.395 1582 1582 D ExplicitHealthCheckController: Getting health check supported packages
+03-16 04:50:57.399 1582 3950 I ExplicitHealthCheckController: Explicit health check supported packages [PackageConfig{com.google.android.networkstack, 86400000}]
+03-16 04:50:57.399 1582 3950 D PackageWatchdog: Received supported packages [PackageConfig{com.google.android.networkstack, 86400000}]
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.399 1582 3950 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.400 1582 3950 D ExplicitHealthCheckController: Getting health check requested packages
+03-16 04:50:57.400 1582 3950 I ExplicitHealthCheckController: Explicit health check requested packages []
+03-16 04:50:57.400 1582 3950 I ExplicitHealthCheckController: No more health check requests, unbinding...
+03-16 04:50:57.403 1582 3950 I ExplicitHealthCheckController: Explicit health check service is unbound
+03-16 04:50:57.420 1582 5242 I RescueParty: Starting to observe: [android], updated namespace: runtime_native_boot
+03-16 04:50:57.421 1582 3950 I PackageWatchdog: Updated health check state for package android: INACTIVE -> INACTIVE
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Syncing state, reason: observing new packages
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Removing 59ms from all packages on all observers
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.421 1582 1662 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.422 1582 1662 D PackageWatchdog: rescue-party-observer added the following packages to monitor [android]
+03-16 04:50:57.422 1582 1662 I PackageWatchdog: Syncing state, reason: updated observers
+03-16 04:50:57.422 1582 1662 I PackageWatchdog: Not pruning observers, elapsed time: 0ms
+03-16 04:50:57.422 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724667ms
+03-16 04:50:57.422 1582 1662 I PackageWatchdog: Saving observer state to file
+03-16 04:50:57.424 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.424 1582 1582 I PackageWatchdog: Syncing health check requests for packages: {}
+03-16 04:50:57.425 1582 1582 I ExplicitHealthCheckController: Service not ready to get health check supported packages. Binding...
+03-16 04:50:57.427 1582 1582 I ExplicitHealthCheckController: Explicit health check service is bound
+03-16 04:50:57.430 1582 1582 I ExplicitHealthCheckController: Explicit health check service is connected ComponentInfo{com.google.android.ext.services/android.ext.services.watchdog.ExplicitHealthCheckServiceImpl}
+00-00 00:00:00.000 0 0 ? (none) : --------- beginning of main
+03-16 04:50:57.430 15552 21280 I PlatformConfigurator: updateFromConfigurations using legacy put method [CONTEXT service_id=204 ]
+03-16 04:50:57.430 1582 1582 I ExplicitHealthCheckController: Service initialized, syncing requests
+03-16 04:50:57.431 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.431 1582 1582 I PackageWatchdog: Syncing health check requests for packages: {}
+03-16 04:50:57.431 1582 1582 D ExplicitHealthCheckController: Getting health check supported packages
+03-16 04:50:57.433 1582 5242 I ExplicitHealthCheckController: Explicit health check supported packages [PackageConfig{com.google.android.networkstack, 86400000}]
+03-16 04:50:57.433 1582 5242 D PackageWatchdog: Received supported packages [PackageConfig{com.google.android.networkstack, 86400000}]
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.433 1582 5242 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.434 1582 5242 D ExplicitHealthCheckController: Getting health check requested packages
+03-16 04:50:57.434 1582 5242 I ExplicitHealthCheckController: Explicit health check requested packages []
+03-16 04:50:57.434 1582 5242 I ExplicitHealthCheckController: No more health check requests, unbinding...
+03-16 04:50:57.436 1582 5242 I ExplicitHealthCheckController: Explicit health check service is unbound
+03-16 04:50:57.518 1582 3950 I RescueParty: Starting to observe: [android], updated namespace: netd_native
+03-16 04:50:57.518 1582 3950 I PackageWatchdog: Updated health check state for package android: INACTIVE -> INACTIVE
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Syncing state, reason: observing new packages
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Removing 96ms from all packages on all observers
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.518 1582 1662 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.519 1582 1662 D PackageWatchdog: rescue-party-observer added the following packages to monitor [android]
+03-16 04:50:57.519 1582 1662 I PackageWatchdog: Syncing state, reason: updated observers
+03-16 04:50:57.519 1582 1662 I PackageWatchdog: Not pruning observers, elapsed time: 0ms
+03-16 04:50:57.519 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724571ms
+03-16 04:50:57.519 1582 1662 I PackageWatchdog: Saving observer state to file
+03-16 04:50:57.521 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.521 1582 1582 I PackageWatchdog: Syncing health check requests for packages: {}
+03-16 04:50:57.521 1582 1582 I ExplicitHealthCheckController: Service not ready to get health check supported packages. Binding...
+03-16 04:50:57.524 1582 1582 I ExplicitHealthCheckController: Explicit health check service is bound
+03-16 04:50:57.526 1582 1582 I ExplicitHealthCheckController: Explicit health check service is connected ComponentInfo{com.google.android.ext.services/android.ext.services.watchdog.ExplicitHealthCheckServiceImpl}
+03-16 04:50:57.526 1582 1582 I ExplicitHealthCheckController: Service initialized, syncing requests
+03-16 04:50:57.526 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.526 1582 1582 I PackageWatchdog: Syncing health check requests for packages: {}
+03-16 04:50:57.526 1582 1582 D ExplicitHealthCheckController: Getting health check supported packages
+03-16 04:50:57.529 1582 3950 I ExplicitHealthCheckController: Explicit health check supported packages [PackageConfig{com.google.android.networkstack, 86400000}]
+03-16 04:50:57.529 1582 3950 D PackageWatchdog: Received supported packages [PackageConfig{com.google.android.networkstack, 86400000}]
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.529 1582 3950 D ExplicitHealthCheckController: Getting health check requested packages
+03-16 04:50:57.529 1582 3950 I ExplicitHealthCheckController: Explicit health check requested packages []
+03-16 04:50:57.529 1582 3950 I ExplicitHealthCheckController: No more health check requests, unbinding...
+03-16 04:50:57.532 1582 3950 I ExplicitHealthCheckController: Explicit health check service is unbound
+03-16 04:50:57.604 1582 6407 I RescueParty: Starting to observe: [com.google.android.networkstack], updated namespace: connectivity
+03-16 04:50:57.604 1582 6407 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: INACTIVE -> INACTIVE
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Syncing state, reason: observing new packages
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Removing 86ms from all packages on all observers
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 D PackageWatchdog: rescue-party-observer added the following packages to monitor [android]
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Syncing state, reason: updated observers
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Not pruning observers, elapsed time: 0ms
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724485ms
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Saving observer state to file
+03-16 04:50:57.608 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.608 1582 1582 I PackageWatchdog: Syncing health check requests for packages: {}
+03-16 04:50:57.608 1582 1582 I ExplicitHealthCheckController: Service not ready to get health check supported packages. Binding...
+03-16 04:50:57.610 1582 1582 I ExplicitHealthCheckController: Explicit health check service is bound
+03-16 04:50:57.612 1582 1582 I ExplicitHealthCheckController: Explicit health check service is connected ComponentInfo{com.google.android.ext.services/android.ext.services.watchdog.ExplicitHealthCheckServiceImpl}
+03-16 04:50:57.613 1582 1582 I ExplicitHealthCheckController: Service initialized, syncing requests
+03-16 04:50:57.613 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.613 1582 1582 I PackageWatchdog: Syncing health check requests for packages: {}
+03-16 04:50:57.613 1582 1582 D ExplicitHealthCheckController: Getting health check supported packages
+03-16 04:50:57.614 1582 3950 I ExplicitHealthCheckController: Explicit health check supported packages [PackageConfig{com.google.android.networkstack, 86400000}]
+03-16 04:50:57.615 1582 3950 D PackageWatchdog: Received supported packages [PackageConfig{com.google.android.networkstack, 86400000}]
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 D ExplicitHealthCheckController: Getting health check requested packages
+03-16 04:50:57.615 1582 3950 I ExplicitHealthCheckController: Explicit health check requested packages []
+03-16 04:50:57.615 1582 3950 I ExplicitHealthCheckController: No more health check requests, unbinding...
+03-16 04:50:57.616 1582 3950 I ExplicitHealthCheckController: Explicit health check service is unbound
+03-16 04:50:57.604 1582 6407 I RescueParty: Starting to observe: [com.google.android.networkstack], updated namespace: connectivity
+03-16 04:50:57.604 1582 6407 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: INACTIVE -> INACTIVE
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Syncing state, reason: observing new packages
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Removing 86ms from all packages on all observers
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.605 1582 1662 D PackageWatchdog: rescue-party-observer added the following packages to monitor [android]
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Syncing state, reason: updated observers
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Not pruning observers, elapsed time: 0ms
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Scheduling next state sync in 172724485ms
+03-16 04:50:57.605 1582 1662 I PackageWatchdog: Saving observer state to file
+03-16 04:50:57.608 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.608 1582 1582 I PackageWatchdog: Syncing health check requests for packages: {}
+03-16 04:50:57.608 1582 1582 I ExplicitHealthCheckController: Service not ready to get health check supported packages. Binding...
+03-16 04:50:57.610 1582 1582 I ExplicitHealthCheckController: Explicit health check service is bound
+03-16 04:50:57.612 1582 1582 I ExplicitHealthCheckController: Explicit health check service is connected ComponentInfo{com.google.android.ext.services/android.ext.services.watchdog.ExplicitHealthCheckServiceImpl}
+03-16 04:50:57.613 1582 1582 I ExplicitHealthCheckController: Service initialized, syncing requests
+03-16 04:50:57.613 1582 1582 D PackageWatchdog: Getting all observed packages pending health checks
+03-16 04:50:57.613 1582 1582 I PackageWatchdog: Syncing health check requests for packages: {}
+03-16 04:50:57.613 1582 1582 D ExplicitHealthCheckController: Getting health check supported packages
+03-16 04:50:57.614 1582 3950 I ExplicitHealthCheckController: Explicit health check supported packages [PackageConfig{com.google.android.networkstack, 86400000}]
+03-16 04:50:57.615 1582 3950 D PackageWatchdog: Received supported packages [PackageConfig{com.google.android.networkstack, 86400000}]
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.ext.services: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.flipendo: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package android: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.as: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.networkstack: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.apps.nexuslauncher: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.google.android.connectivitythermalpowermanager: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 I PackageWatchdog: Updated health check state for package com.android.systemui: PASSED -> PASSED
+03-16 04:50:57.615 1582 3950 D ExplicitHealthCheckController: Getting health check requested packages
+03-16 04:50:57.615 1582 3950 I ExplicitHealthCheckController: Explicit health check requested packages []
+03-16 04:50:57.615 1582 3950 I ExplicitHealthCheckController: No more health check requests, unbinding...
+03-16 04:50:57.616 1582 3950 I ExplicitHealthCheckController: Explicit health check service is unbound

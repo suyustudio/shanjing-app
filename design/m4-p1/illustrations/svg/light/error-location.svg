@@ -1,0 +1,39 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 指南针 -->
+  <g transform="translate(100, 100)">
+    <!-- 外圈 -->
+    <circle cx="0" cy="0" r="55" stroke="#2D968A" stroke-width="3" fill="none"/>
+    <circle cx="0" cy="0" r="48" stroke="#72C0B5" stroke-width="1" fill="none" opacity="0.5"/>
+    
+    <!-- 指南针刻度 -->
+    <g stroke="#9DD6CE" stroke-width="2">
+      <line x1="0" y1="-52" x2="0" y2="-45"/>
+      <line x1="0" y1="52" x2="0" y2="45"/>
+      <line x1="-52" y1="0" x2="-45" y2="0"/>
+      <line x1="52" y1="0" x2="45" y2="0"/>
+    </g>
+    
+    <!-- 指针 - 失灵的倾斜状态 -->
+    <g transform="rotate(35)">
+      <polygon points="0,-35 -8,15 0,5 8,15" fill="#EF5350"/>
+      <polygon points="0,35 -8,-15 0,-5 8,-15" fill="#E5E7EB"/>
+    </g>
+    
+    <!-- 中心点 -->
+    <circle cx="0" cy="0" r="5" fill="#FFC107"/>
+    
+    <!-- 禁止符号叠加 -->
+    <circle cx="0" cy="0" r="25" stroke="#EF5350" stroke-width="3" fill="none" opacity="0.7"/>
+    <line x1="-18" y1="-18" x2="18" y2="18" stroke="#EF5350" stroke-width="3" opacity="0.7"/>
+  </g>
+  
+  <!-- 装饰性定位波纹 - 停止状态 -->
+  <circle cx="100" cy="100" r="70" stroke="#9DD6CE" stroke-width="1" fill="none" opacity="0.2"/>
+  
+  <!-- 方向标记 -->
+  <text x="100" y="38" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#2D968A">N</text>
+  
+  <!-- 小装饰 -->
+  <circle cx="40" cy="50" r="3" fill="#FFC107" opacity="0.5"/>
+  <circle cx="160" cy="150" r="2" fill="#9DD6CE" opacity="0.4"/>
+</svg>

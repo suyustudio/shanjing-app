@@ -1,0 +1,45 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="200" height="200" fill="#FAFBFC"/>
+  
+  <!-- 远山轮廓 -->
+  <path d="M0 160 L30 125 L60 145 L90 115 L130 140 L170 120 L200 135 L200 200 L0 200 Z" fill="#E5E7EB" opacity="0.3"/>
+  
+  <!-- 帐篷 -->
+  <g transform="translate(100, 110)">
+    <!-- 帐篷底部 -->
+    <path d="M-45 40 L0 -30 L45 40 Z" fill="#2D968A"/>
+    <!-- 帐篷门 -->
+    <path d="M-20 40 L0 -5 L20 40 Z" fill="#1F7A70"/>
+    <!-- 帐篷门帘 - 卷起效果 -->
+    <path d="M-15 40 L0 0 L15 40" stroke="#238B7F" stroke-width="2" fill="none"/>
+    <!-- 帐篷顶部装饰 -->
+    <line x1="0" y1="-30" x2="0" y2="-38" stroke="#FFC107" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="0" cy="-38" r="4" fill="#FFC107"/>
+  </g>
+  
+  <!-- 小篝火 -->
+  <g transform="translate(100, 165)">
+    <!-- 木柴 -->
+    <line x1="-12" y1="5" x2="12" y2="5" stroke="#8D6E63" stroke-width="3" stroke-linecap="round"/>
+    <line x1="-8" y1="8" x2="8" y2="2" stroke="#8D6E63" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="8" y1="8" x2="-8" y2="2" stroke="#8D6E63" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- 火焰 -->
+    <path d="M0 5 Q-6 -5 0 -15 Q6 -5 0 5" fill="#FFC107" opacity="0.9"/>
+    <path d="M0 2 Q-3 -4 0 -10 Q3 -4 0 2" fill="#FF9800" opacity="0.8"/>
+  </g>
+  
+  <!-- 工具箱图标 - 表示开发中 -->
+  <g transform="translate(145, 75)">
+    <rect x="-15" y="-10" width="30" height="20" rx="2" fill="#72C0B5"/>
+    <rect x="-3" y="-14" width="6" height="4" fill="#5CB8AC"/>
+    <circle cx="0" cy="0" r="4" fill="white"/>
+    <circle cx="0" cy="0" r="2" fill="#FFC107"/>
+  </g>
+  
+  <!-- 星星点缀 - 夜空氛围 -->
+  <circle cx="40" cy="50" r="2" fill="#9DD6CE" opacity="0.6"/>
+  <circle cx="160" cy="45" r="3" fill="#FFC107" opacity="0.5"/>
+  <circle cx="30" cy="80" r="1.5" fill="#9DD6CE" opacity="0.4"/>
+  <circle cx="170" cy="75" r="2" fill="#9DD6CE" opacity="0.5"/>
+</svg>

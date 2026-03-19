@@ -1,0 +1,28 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#141C24"/>
+      <stop offset="100%" style="stop-color:#1A2332"/>
+    </linearGradient>
+  </defs>
+  
+  <rect width="200" height="200" fill="url(#bgGradDark)"/>
+  <path d="M0 140 L40 100 L80 130 L120 90 L160 120 L200 100 L200 200 L0 200 Z" fill="#30363D" opacity="0.5"/>
+  
+  <g transform="translate(85, 75)">
+    <circle cx="0" cy="0" r="35" stroke="#4DB6AC" stroke-width="5" fill="none"/>
+    <circle cx="0" cy="0" r="28" stroke="#6BC4BC" stroke-width="2" fill="none" opacity="0.5"/>
+    <line x1="25" y1="25" x2="45" y2="45" stroke="#4DB6AC" stroke-width="6" stroke-linecap="round"/>
+    <text x="0" y="8" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#FFD54F">?</text>
+  </g>
+  
+  <g transform="translate(40, 140) rotate(-30)">
+    <ellipse cx="0" cy="0" rx="10" ry="6" fill="#FFD54F" opacity="0.8"/>
+    <line x1="-8" y1="0" x2="8" y2="0" stroke="#E6A700" stroke-width="1"/>
+  </g>
+  <g transform="translate(160, 130) rotate(20)">
+    <ellipse cx="0" cy="0" rx="8" ry="5" fill="#6BC4BC" opacity="0.6"/>
+  </g>
+  
+  <path d="M50 60 L52 65 L57 65 L53 69 L54 74 L50 71 L46 74 L47 69 L43 65 L48 65 Z" fill="#FFD54F" opacity="0.6"/>
+</svg>
