@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <!-- 钻石水晶渐变 -->
+    <radialGradient id="diamondBg" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#E0FFFF" />
+      <stop offset="20%" stop-color="#B0F4F5" />
+      <stop offset="45%" stop-color="#00CED1" />
+      <stop offset="70%" stop-color="#00A8A8" />
+      <stop offset="100%" stop-color="#008B8B" />
+    </radialGradient>
+    
+    <!-- 高光渐变 -->
+    <linearGradient id="diamondHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.9)" />
+      <stop offset="30%" stop-color="rgba(255,255,255,0.5)" />
+      <stop offset="60%" stop-color="rgba(255,255,255,0.1)" />
+      <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+    </linearGradient>
+    
+    <!-- 水晶切面渐变 -->
+    <linearGradient id="diamondFacet1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.6)" />
+      <stop offset="100%" stop-color="rgba(0,206,209,0.3)" />
+    </linearGradient>
+    
+    <!-- 阴影滤镜 -->
+    <filter id="diamondShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#008B8B" flood-opacity="0.4"/>
+    </filter>
+    
+    
+    <!-- 发光滤镜 -->
+    <filter id="diamondGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      
+      <feFlood flood-color="#00FFFF" flood-opacity="0.5"/>
+      
+      <feComposite in2="blur" operator="in"/>
+      
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    
+    <!-- 闪光滤镜 -->
+    <filter id="sparkle">
+      <feGaussianBlur stdDeviation="0.5"/>
+    </filter>
+  </defs>
+  
+  
+  <!-- 外发光效果 -->
+  <circle cx="64" cy="64" r="60" fill="none" stroke="#00FFFF" stroke-width="2" stroke-opacity="0.2" filter="url(#diamondGlow)"/>
+  
+  
+  <!-- 主钻石徽章 -->
+  <circle cx="64" cy="64" r="56" fill="url(#diamondBg)" filter="url(#diamondShadow)"/>
+  
+  
+  <!-- 水晶切面效果 -->
+  <g opacity="0.4">
+    <polygon points="64,12 100,30 100,64 64,64" fill="url(#diamondFacet1)"/>
+    
+    <polygon points="64,12 28,30 28,64 64,64" fill="url(#diamondFacet1)"/>
+    
+    <polygon points="100,64 100,98 64,116 64,64" fill="#008B8B" opacity="0.3"/>
+    
+    <polygon points="28,64 28,98 64,116 64,64" fill="#008B8B" opacity="0.2"/>
+  </g>
+  
+  
+  <!-- 高光覆盖 -->
+  <ellipse cx="64" cy="42" rx="40" ry="28" fill="url(#diamondHighlight)"/>
+  
+  
+  <!-- 华丽指南针图标 -->
+  <g transform="translate(64, 64)" filter="url(#diamondGlow)">
+    <!-- 外环 -->
+    <circle cx="0" cy="0" r="38" fill="none" stroke="#FFF" stroke-width="2" stroke-opacity="0.6"/>
+    
+    <!-- 内环 -->
+    <circle cx="0" cy="0" r="32" fill="none" stroke="#FFF" stroke-width="1" stroke-opacity="0.4"/>
+    
+    
+    <!-- 方向标记 -->
+    <g fill="#FFF">
+      <text x="0" y="-42" text-anchor="middle" font-size="9" font-family="system-ui" font-weight="bold">N</text>
+      
+      <text x="0" y="48" text-anchor="middle" font-size="8" font-family="system-ui">S</text>
+      
+      <text x="46" y="4" text-anchor="middle" font-size="8" font-family="system-ui">E</text>
+      
+      <text x="-46" y="4" text-anchor="middle" font-size="8" font-family="system-ui">W</text>
+    </g>
+    
+    
+    <!-- 发光指针 -->
+    <polygon points="0,-32 -10,12 0,8 10,12" fill="#FFF" fill-opacity="0.95" filter="url(#diamondGlow)"/>
+    
+    <polygon points="0,32 -10,-12 0,-8 10,-12" fill="#008B8B" fill-opacity="0.9"/>
+    
+    
+    <!-- 中心钻石 -->
+    <polygon points="0,-8 6,0 0,8 -6,0" fill="#FFF" filter="url(#diamondGlow)"/>
+    
+    
+    <!-- 地图完整轮廓 -->
+    <path d="M-50,-50 L-40,-30 L-20,-40 L0,-35 L20,-42 L40,-30 L50,-50" 
+          fill="none" stroke="#FFF" stroke-width="1" stroke-opacity="0.3" stroke-linecap="round"/>
+    
+    <path d="M-50,50 L-40,30 L-20,40 L0,35 L20,42 L40,30 L50,50" 
+          fill="none" stroke="#FFF" stroke-width="1" stroke-opacity="0.3" stroke-linecap="round"/>
+    
+    
+    <path d="M-50,-20 L-35,-10 L-20,-15 L0,-10 L20,-18 L35,-8 L50,-15" 
+          fill="none" stroke="#FFF" stroke-width="0.8" stroke-opacity="0.2" stroke-dasharray="3,3"/>
+  </g>
+  
+  
+  <!-- 星星点缀 -->
+  <g fill="#FFF" filter="url(#sparkle)">
+    <polygon points="25,25 26,28 29,29 26,30 25,33 24,30 21,29 24,28" opacity="0.8"/>
+    
+    <polygon points="103,28 104,31 107,32 104,33 103,36 102,33 99,32 102,31" opacity="0.6"/>
+    
+    <polygon points="30,95 31,98 34,99 31,100 30,103 29,100 26,99 29,98" opacity="0.7"/>
+    
+    <polygon points="98,98 99,101 102,102 99,103 98,106 97,103 94,102 97,101" opacity="0.5"/>
+    
+    <polygon points="64,18 65,21 68,22 65,23 64,26 63,23 60,22 63,21" opacity="0.9"/>
+    
+    <polygon points="64,108 65,111 68,112 65,113 64,116 63,113 60,112 63,111" opacity="0.6"/>
+  </g>
+  
+  
+  <!-- 边缘光晕装饰 -->
+  <g stroke="#00FFFF" stroke-width="1" stroke-opacity="0.3" fill="none">
+    <circle cx="64" cy="64" r="50"/>
+    
+    <circle cx="64" cy="64" r="44"/>
+  </g>
+</svg>

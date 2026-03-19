@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <radialGradient id="diamondBg" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#E0FFFF" />
+      <stop offset="20%" stop-color="#B0F4F5" />
+      <stop offset="45%" stop-color="#00CED1" />
+      <stop offset="100%" stop-color="#008B8B" />
+    </radialGradient>
+    
+    <linearGradient id="diamondHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.9)" />
+      <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+    </linearGradient>
+    
+    <filter id="diamondShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#008B8B" flood-opacity="0.4"/>
+    </filter>
+    
+    <filter id="diamondGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+  
+  
+  <circle cx="64" cy="64" r="56" fill="url(#diamondBg)" filter="url(#diamondShadow)"/>
+  
+  
+  <g opacity="0.4">
+    <polygon points="64,12 100,30 100,64 64,64" fill="url(#diamondHighlight)"/>
+    
+    <polygon points="64,12 28,30 28,64 64,64" fill="url(#diamondHighlight)"/>
+  </g>
+  
+  
+  <ellipse cx="64" cy="42" rx="40" ry="28" fill="url(#diamondHighlight)"/>
+  
+  
+  <g transform="translate(64, 64)" filter="url(#diamondGlow)">
+    <circle cx="0" cy="0" r="38" fill="none" stroke="#FFF" stroke-width="2" stroke-opacity="0.6"/>
+    
+    
+    <circle cx="0" cy="0" r="32" fill="none" stroke="#FFF" stroke-width="1" stroke-opacity="0.4"/>
+    
+    
+    <g fill="#FFF">
+      <text x="0" y="-42" text-anchor="middle" font-size="9" font-family="system-ui" font-weight="bold">N</text>
+      
+      <text x="0" y="48" text-anchor="middle" font-size="8" font-family="system-ui">S</text>
+      
+      <text x="46" y="4" text-anchor="middle" font-size="8" font-family="system-ui">E</text>
+      
+      <text x="-46" y="4" text-anchor="middle" font-size="8" font-family="system-ui">W</text>
+    </g>
+    
+    
+    <polygon points="0,-32 -10,12 0,8 10,12" fill="#FFF" fill-opacity="0.95"/>
+    
+    <polygon points="0,32 -10,-12 0,-8 10,-12" fill="#008B8B" fill-opacity="0.9"/>
+    
+    
+    <polygon points="0,-8 6,0 0,8 -6,0" fill="#FFF"/>
+    
+    
+    <path d="M-50,-50 Q-30,-55 -15,-45 T15,-45 Q30,-55 50,-50" 
+          fill="none" stroke="#FFF" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4,2"/>
+  </g>
+  
+  
+  <g fill="#FFF">
+    <polygon points="25,25 26,28 29,29 26,30 25,33 24,30 21,29 24,28" opacity="0.8"/>
+    
+    <polygon points="103,28 104,31 107,32 104,33 103,36 102,33 99,32 102,31" opacity="0.6"/>
+    
+    <polygon points="64,18 65,21 68,22 65,23 64,26 63,23 60,22 63,21" opacity="0.9"/>
+  </g>
+  
+  
+  <g stroke="#00FFFF" stroke-width="1" stroke-opacity="0.3" fill="none">
+    <circle cx="64" cy="64" r="50"/>
+  </g>
+</svg>
