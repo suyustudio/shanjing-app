@@ -338,7 +338,7 @@ class AuthService {
           UserEvents.paramPhone: phone,
           UserEvents.paramMethod: 'password',
           UserEvents.paramErrorCode: apiResponse.errorCode,
-          UserEvents.paramErrorMessage: apiResponse.errorMessage,
+          UserEvents.paramError: apiResponse.errorMessage,
         });
       }
       
@@ -354,7 +354,7 @@ class AuthService {
         UserEvents.paramPhone: phone,
         UserEvents.paramMethod: 'password',
         UserEvents.paramErrorCode: 'NETWORK_ERROR',
-        UserEvents.paramErrorMessage: '网络请求失败: $e',
+        UserEvents.paramError: '网络请求失败: $e',
       });
       return ApiResponse(
         success: false,
@@ -514,7 +514,7 @@ class AuthService {
           UserEvents.paramPhone: phone,
           UserEvents.paramMethod: 'phone_code',
           UserEvents.paramErrorCode: apiResponse.errorCode,
-          UserEvents.paramErrorMessage: apiResponse.errorMessage,
+          UserEvents.paramError: apiResponse.errorMessage,
         });
       }
       
@@ -530,7 +530,7 @@ class AuthService {
         UserEvents.paramPhone: phone,
         UserEvents.paramMethod: 'phone_code',
         UserEvents.paramErrorCode: 'NETWORK_ERROR',
-        UserEvents.paramErrorMessage: '网络请求失败: $e',
+        UserEvents.paramError: '网络请求失败: $e',
       });
       return ApiResponse(
         success: false,
