@@ -141,6 +141,8 @@ class SafetyTip {
         return isDark ? const Color(0xFFFFA726) : const Color(0xFFFFA726);
       case TipSeverity.high:
         return isDark ? const Color(0xFFEF5350) : const Color(0xFFEF5350);
+      default:
+        return const Color(0xFF4CAF50);
     }
   }
 }
