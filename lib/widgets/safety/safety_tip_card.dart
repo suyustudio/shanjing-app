@@ -136,6 +136,8 @@ class SafetyTip {
         return DesignSystem.getWarning(context);
       case TipSeverity.high:
         return DesignSystem.getError(context);
+      default:
+        return DesignSystem.getInfo(context);
     }
   }
 }
