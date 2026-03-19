@@ -371,104 +371,107 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
   }
 
-  // ========== Step 1: 欢迎页（带依次入场动画） ==========
+  // ========== Step 1: 欢迎页（带依次入场动画 + 滚动支持） ==========
   Widget _buildWelcomePage(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Logo 和品牌名 - 第一个元素
-          FadeTransition(
-            opacity: _welcomeAnimations[0],
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.3),
-                end: Offset.zero,
-              ).animate(_welcomeControllers[0]),
-              child: _buildLogoSection(isDark),
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo 和品牌名 - 第一个元素
+            FadeTransition(
+              opacity: _welcomeAnimations[0],
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.3),
+                  end: Offset.zero,
+                ).animate(_welcomeControllers[0]),
+                child: _buildLogoSection(isDark),
+              ),
             ),
-          ),
 
-          const SizedBox(height: 48),
+            const SizedBox(height: 32),
 
-          // 主视觉插图 - 第二个元素
-          FadeTransition(
-            opacity: _welcomeAnimations[1],
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.2),
-                end: Offset.zero,
-              ).animate(_welcomeControllers[1]),
-              child: _buildWelcomeIllustration(),
+            // 主视觉插图 - 第二个元素
+            FadeTransition(
+              opacity: _welcomeAnimations[1],
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.2),
+                  end: Offset.zero,
+                ).animate(_welcomeControllers[1]),
+                child: _buildWelcomeIllustration(),
+              ),
             ),
-          ),
 
-          const SizedBox(height: 48),
+            const SizedBox(height: 32),
 
-          // 标题 - 第三个元素
-          FadeTransition(
-            opacity: _welcomeAnimations[2],
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.2),
-                end: Offset.zero,
-              ).animate(_welcomeControllers[2]),
-              child: Text(
-                '发现城市中的自然',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : DesignSystem.textPrimary,
+            // 标题 - 第三个元素
+            FadeTransition(
+              opacity: _welcomeAnimations[2],
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.2),
+                  end: Offset.zero,
+                ).animate(_welcomeControllers[2]),
+                child: Text(
+                  '发现城市中的自然',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : DesignSystem.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
-          ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          // 副标题 - 第四个元素
-          FadeTransition(
-            opacity: _welcomeAnimations[3],
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.2),
-                end: Offset.zero,
-              ).animate(_welcomeControllers[3]),
-              child: Text(
-                '探索身边的徒步路线，享受自然，保持安全',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: DesignSystem.getTextSecondary(context),
+            // 副标题 - 第四个元素
+            FadeTransition(
+              opacity: _welcomeAnimations[3],
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.2),
+                  end: Offset.zero,
+                ).animate(_welcomeControllers[3]),
+                child: Text(
+                  '探索身边的徒步路线，享受自然，保持安全',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: DesignSystem.getTextSecondary(context),
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
-          ),
 
-          const SizedBox(height: 48),
+            const SizedBox(height: 32),
 
-          // 开始按钮 - 第五个元素
-          FadeTransition(
-            opacity: _welcomeAnimations[4],
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.2),
-                end: Offset.zero,
-              ).animate(_welcomeControllers[4]),
-              child: _buildPrimaryButton(
-                '开始探索',
-                _nextPage,
+            // 开始按钮 - 第五个元素
+            FadeTransition(
+              opacity: _welcomeAnimations[4],
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.2),
+                  end: Offset.zero,
+                ).animate(_welcomeControllers[4]),
+                child: _buildPrimaryButton(
+                  '开始探索',
+                  _nextPage,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // ========== Step 2: 权限说明页（带错开显示动画） ==========
+  // ========== Step 2: 权限说明页（带错开显示动画 + 滚动支持） ==========
   Widget _buildPermissionPage(bool isDark) {
     return AnimatedBuilder(
       animation: _fadeController,
@@ -478,110 +481,113 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           child: child,
         );
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              '为了更好体验',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : DesignSystem.textPrimary,
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // 权限说明插图
-            SvgPicture.asset(
-              'assets/onboarding/permission_location.svg',
-              width: 160,
-              height: 160,
-            ),
-
-            const SizedBox(height: 32),
-
-            // 权限卡片列表（带错开动画）
-            FadeTransition(
-              opacity: _permissionAnimations[0],
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.3, 0),
-                  end: Offset.zero,
-                ).animate(_permissionControllers[0]),
-                child: _buildPermissionCard(
-                  PermissionType.location,
-                  'assets/onboarding/permission_location.svg',
-                  const Color(0xFFE8F5F3),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '为了更好体验',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : DesignSystem.textPrimary,
                 ),
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 24),
 
-            FadeTransition(
-              opacity: _permissionAnimations[1],
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.3, 0),
-                  end: Offset.zero,
-                ).animate(_permissionControllers[1]),
-                child: _buildPermissionCard(
-                  PermissionType.storage,
-                  'assets/onboarding/permission_storage.svg',
-                  const Color(0xFFFFF8E7),
+              // 权限说明插图
+              SvgPicture.asset(
+                'assets/onboarding/permission_location.svg',
+                width: 140,
+                height: 140,
+              ),
+
+              const SizedBox(height: 24),
+
+              // 权限卡片列表（带错开动画）
+              FadeTransition(
+                opacity: _permissionAnimations[0],
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.3, 0),
+                    end: Offset.zero,
+                  ).animate(_permissionControllers[0]),
+                  child: _buildPermissionCard(
+                    PermissionType.location,
+                    'assets/onboarding/permission_location.svg',
+                    DesignSystem.primary.withOpacity(0.1),
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            FadeTransition(
-              opacity: _permissionAnimations[2],
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.3, 0),
-                  end: Offset.zero,
-                ).animate(_permissionControllers[2]),
-                child: _buildPermissionCard(
-                  PermissionType.notification,
-                  'assets/onboarding/permission_notification.svg',
-                  const Color(0xFFEEF7FF),
+              FadeTransition(
+                opacity: _permissionAnimations[1],
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.3, 0),
+                    end: Offset.zero,
+                  ).animate(_permissionControllers[1]),
+                  child: _buildPermissionCard(
+                    PermissionType.storage,
+                    'assets/onboarding/permission_storage.svg',
+                    const Color(0xFFFFF8E7),
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 12),
 
-            // 按钮组
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildSecondaryButton(
-                  '稍后设置',
-                  _nextPage,
+              FadeTransition(
+                opacity: _permissionAnimations[2],
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.3, 0),
+                    end: Offset.zero,
+                  ).animate(_permissionControllers[2]),
+                  child: _buildPermissionCard(
+                    PermissionType.notification,
+                    'assets/onboarding/permission_notification.svg',
+                    const Color(0xFFEEF7FF),
+                  ),
                 ),
-                const SizedBox(width: 16),
-                _buildPrimaryButton(
-                  '允许权限',
-                  _requestAllPermissions,
-                  width: 160,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            Text(
-              '你可以在设置中随时更改权限',
-              style: TextStyle(
-                fontSize: 12,
-                color: DesignSystem.getTextTertiary(context),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 24),
+
+              // 按钮组
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildSecondaryButton(
+                    '稍后设置',
+                    _nextPage,
+                  ),
+                  const SizedBox(width: 16),
+                  _buildPrimaryButton(
+                    '允许权限',
+                    _requestAllPermissions,
+                    width: 160,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              Text(
+                '你可以在设置中随时更改权限',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: DesignSystem.getTextTertiary(context),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -649,7 +655,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
   }
 
-  // ========== Step 4: 完成页 ==========
+  // ========== Step 4: 完成页（+ 滚动支持） ==========
   Widget _buildCompletePage(bool isDark) {
     return AnimatedBuilder(
       animation: _fadeController,
@@ -667,60 +673,63 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
         );
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // 庆祝插图
-            SvgPicture.asset(
-              'assets/onboarding/celebration_illustration.svg',
-              width: 160,
-              height: 160,
-            ),
-
-            const SizedBox(height: 32),
-
-            Text(
-              '🎉 欢迎加入山径！',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : DesignSystem.textPrimary,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // 庆祝插图
+              SvgPicture.asset(
+                'assets/onboarding/celebration_illustration.svg',
+                width: 140,
+                height: 140,
               ),
-              textAlign: TextAlign.center,
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
-            Text(
-              '你的户外探索之旅即将开始',
-              style: TextStyle(
-                fontSize: 16,
-                color: DesignSystem.getTextSecondary(context),
+              Text(
+                '🎉 欢迎加入山径！',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : DesignSystem.textPrimary,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
 
-            const SizedBox(height: 48),
+              const SizedBox(height: 12),
 
-            // 开始使用按钮
-            _buildPrimaryButton(
-              '开始探索',
-              _completeOnboarding,
-            ),
+              Text(
+                '你的户外探索之旅即将开始',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: DesignSystem.getTextSecondary(context),
+                ),
+                textAlign: TextAlign.center,
+              ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 32),
 
-            // 查看使用指南链接
-            TextButton(
-              onPressed: () {
-                // TODO: 跳转到使用指南页面
-                _completeOnboarding();
-              },
-              child: const Text('查看使用指南'),
-            ),
-          ],
+              // 开始使用按钮
+              _buildPrimaryButton(
+                '开始探索',
+                _completeOnboarding,
+              ),
+
+              const SizedBox(height: 12),
+
+              // 查看使用指南链接
+              TextButton(
+                onPressed: () {
+                  // TODO: 跳转到使用指南页面
+                  _completeOnboarding();
+                },
+                child: const Text('查看使用指南'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -771,8 +780,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   Widget _buildWelcomeIllustration() {
     return SvgPicture.asset(
       'assets/onboarding/welcome_illustration.svg',
-      width: 200,
-      height: 200,
+      width: 180,
+      height: 180,
     );
   }
 
@@ -788,7 +797,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isGranted
-            ? const Color(0xFFE8F5F3)
+            ? DesignSystem.primary.withOpacity(0.1)
             : (Theme.of(context).brightness == Brightness.dark
                 ? DesignSystem.darkSurfaceSecondary
                 : Colors.white),
