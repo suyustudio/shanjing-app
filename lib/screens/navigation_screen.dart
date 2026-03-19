@@ -195,6 +195,10 @@ class _NavigationScreenState extends State<NavigationScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
+    
+    // 检查是否已 dispose
+    if (!mounted) return;
+    
     // 监听应用前后台切换
     if (state == AppLifecycleState.paused) {
       // 应用进入后台
