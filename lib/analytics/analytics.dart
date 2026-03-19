@@ -8,3 +8,5 @@ export 'events/trail_events.dart';
 export 'events/map_events.dart';
 export 'events/navigation_events.dart';
 export 'events/user_events.dart';
+export 'events/share_events.dart';
+export 'events/sos_events.dart';

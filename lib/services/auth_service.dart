@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
+import '../analytics/analytics.dart';
 
 /// API 响应包装类
 class ApiResponse<T> {
@@ -324,6 +325,21 @@ class AuthService {
         await _saveAuthState();
         _authStatus = AuthStatus.authenticated;
         _authStatusController.add(_authStatus);
+        
+        // 埋点：登录成功
+        AnalyticsService().trackEvent(AuthEvents.loginSuccess, params: {
+          AuthEvents.paramUserId: _currentUser?.id,
+          AuthEvents.paramPhone: phone,
+          AuthEvents.paramMethod: 'password',
+        });
+      } else {
+        // 埋点：登录失败
+        AnalyticsService().trackEvent(AuthEvents.loginFailed, params: {
+          AuthEvents.paramPhone: phone,
+          AuthEvents.paramMethod: 'password',
+          AuthEvents.paramErrorCode: apiResponse.errorCode,
+          AuthEvents.paramErrorMessage: apiResponse.errorMessage,
+        });
       }
       
       return ApiResponse(
@@ -333,6 +349,13 @@ class AuthService {
         errorMessage: apiResponse.errorMessage,
       );
     } catch (e) {
+      // 埋点：登录失败（网络错误）
+      AnalyticsService().trackEvent(AuthEvents.loginFailed, params: {
+        AuthEvents.paramPhone: phone,
+        AuthEvents.paramMethod: 'password',
+        AuthEvents.paramErrorCode: 'NETWORK_ERROR',
+        AuthEvents.paramErrorMessage: '网络请求失败: $e',
+      });
       return ApiResponse(
         success: false,
         errorCode: 'NETWORK_ERROR',
@@ -478,6 +501,21 @@ class AuthService {
         await _saveAuthState();
         _authStatus = AuthStatus.authenticated;
         _authStatusController.add(_authStatus);
+        
+        // 埋点：登录成功
+        AnalyticsService().trackEvent(AuthEvents.loginSuccess, params: {
+          AuthEvents.paramUserId: _currentUser?.id,
+          AuthEvents.paramPhone: phone,
+          AuthEvents.paramMethod: 'phone_code',
+        });
+      } else {
+        // 埋点：登录失败
+        AnalyticsService().trackEvent(AuthEvents.loginFailed, params: {
+          AuthEvents.paramPhone: phone,
+          AuthEvents.paramMethod: 'phone_code',
+          AuthEvents.paramErrorCode: apiResponse.errorCode,
+          AuthEvents.paramErrorMessage: apiResponse.errorMessage,
+        });
       }
       
       return ApiResponse(
@@ -487,6 +525,13 @@ class AuthService {
         errorMessage: apiResponse.errorMessage,
       );
     } catch (e) {
+      // 埋点：登录失败（网络错误）
+      AnalyticsService().trackEvent(AuthEvents.loginFailed, params: {
+        AuthEvents.paramPhone: phone,
+        AuthEvents.paramMethod: 'phone_code',
+        AuthEvents.paramErrorCode: 'NETWORK_ERROR',
+        AuthEvents.paramErrorMessage: '网络请求失败: $e',
+      });
       return ApiResponse(
         success: false,
         errorCode: 'NETWORK_ERROR',

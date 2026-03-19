@@ -6,6 +6,7 @@
 
 import 'api_client.dart';
 import 'api_config.dart';
+import '../analytics/analytics.dart';
 
 /// 分享响应数据
 class ShareResponse {
@@ -38,20 +39,48 @@ class ShareService {
   /// [trailId] 路线ID
   /// 返回分享链接
   Future<ShareResponse> shareTrail(String trailId) async {
-    final response = await _apiClient.post<Map<String, dynamic>>(
-      '/share/trail',
-      body: {'trailId': trailId},
-      parser: (data) => data as Map<String, dynamic>,
-    );
+    // 埋点：分享开始
+    AnalyticsService().trackEvent(ShareEvents.shareTrail, params: {
+      ShareEvents.paramTrailId: trailId,
+    });
 
-    if (response.success && response.data != null) {
-      return ShareResponse.fromJson(response.data!);
+    try {
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/share/trail',
+        body: {'trailId': trailId},
+        parser: (data) => data as Map<String, dynamic>,
+      );
+
+      if (response.success && response.data != null) {
+        final shareResponse = ShareResponse.fromJson(response.data!);
+        
+        // 埋点：分享成功
+        AnalyticsService().trackEvent(ShareEvents.shareTrailSuccess, params: {
+          ShareEvents.paramTrailId: trailId,
+          ShareEvents.paramShareCode: shareResponse.shareCode,
+        });
+        
+        return shareResponse;
+      }
+
+      // 埋点：分享失败
+      AnalyticsService().trackEvent(ShareEvents.shareTrailFailed, params: {
+        ShareEvents.paramTrailId: trailId,
+        ShareEvents.paramErrorCode: response.errorCode ?? 'SHARE_FAILED',
+      });
+
+      throw ApiException(
+        message: response.errorMessage ?? '分享失败，请稍后重试',
+        code: response.errorCode ?? 'SHARE_FAILED',
+      );
+    } catch (e) {
+      // 埋点：分享失败（异常）
+      AnalyticsService().trackEvent(ShareEvents.shareTrailFailed, params: {
+        ShareEvents.paramTrailId: trailId,
+        ShareEvents.paramErrorCode: e is ApiException ? e.code : 'UNKNOWN_ERROR',
+      });
+      rethrow;
     }
-
-    throw ApiException(
-      message: response.errorMessage ?? '分享失败，请稍后重试',
-      code: response.errorCode ?? 'SHARE_FAILED',
-    );
   }
 
   /// 获取分享信息

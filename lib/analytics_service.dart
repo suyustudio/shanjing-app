@@ -116,8 +116,73 @@ class TrailEvents {
   static const String trailFavorite = 'trail_favorite';
   static const String trailShare = 'trail_share';
   static const String trailNavigate = 'trail_navigate';
-  
+  static const String trailNavigateComplete = 'trail_navigate_complete';
+
   // 参数名
   static const String paramTrailId = 'trail_id';
   static const String paramTrailName = 'trail_name';
+  static const String paramCompletionTime = 'completion_time';
+}
+
+/// 认证相关事件常量
+class AuthEvents {
+  static const String loginSuccess = 'login_success';
+  static const String loginFailed = 'login_failed';
+  static const String registerSuccess = 'register_success';
+  static const String registerFailed = 'register_failed';
+  static const String logout = 'logout';
+
+  // 参数名
+  static const String paramUserId = 'user_id';
+  static const String paramPhone = 'phone';
+  static const String paramMethod = 'method'; // phone, password, wechat
+  static const String paramErrorCode = 'error_code';
+  static const String paramErrorMessage = 'error_message';
+}
+
+/// 分享相关事件常量
+class ShareEvents {
+  static const String shareTrail = 'share_trail';
+  static const String shareTrailSuccess = 'share_trail_success';
+  static const String shareTrailFailed = 'share_trail_failed';
+
+  // 参数名
+  static const String paramTrailId = 'trail_id';
+  static const String paramShareCode = 'share_code';
+  static const String paramErrorCode = 'error_code';
+}
+
+/// SOS 相关事件常量
+class SosEvents {
+  static const String sosTriggered = 'sos_triggered';
+  static const String sosSuccess = 'sos_success';
+  static const String sosFailed = 'sos_failed';
+
+  // 参数名
+  static const String paramLatitude = 'latitude';
+  static const String paramLongitude = 'longitude';
+  static const String paramAccuracy = 'accuracy';
+  static const String paramErrorCode = 'error_code';
+}
+
+/// 页面相关事件常量
+class PageEvents {
+  static const String pageDiscovery = 'page_discovery';
+  static const String pageTrailDetail = 'page_trail_detail';
+  static const String pageNavigation = 'page_navigation';
+  static const String pageProfile = 'page_profile';
+  static const String pageOfflineMap = 'page_offline_map';
+
+  // 页面名称
+  static const String nameDiscovery = '发现';
+  static const String nameTrailDetail = '路线详情';
+  static const String nameNavigation = '导航';
+  static const String nameProfile = '我的';
+  static const String nameOfflineMap = '离线地图';
+}
+
+/// 用户行为事件常量
+class UserEvents {
+  static const String appBackground = 'app_background';
+  static const String appForeground = 'app_foreground';
 }
