@@ -9,6 +9,8 @@ import '../widgets/safety/lifeline_status_card.dart';
 import 'lifeline_setup_screen.dart';
 import 'sos_screen_enhanced.dart';
 
+// 使用 SOSScreenEnhanced 替代 SOSScreen
+
 /// 安全中心页面（重构版）
 /// 新结构：
 /// - 顶部: Lifeline 状态卡片（激活/未激活）
@@ -368,7 +370,7 @@ class _SafetyCenterScreenState extends State<SafetyCenterScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const SOSScreen(),
+        builder: (context) => const SOSScreenEnhanced(),
       ),
     );
   }

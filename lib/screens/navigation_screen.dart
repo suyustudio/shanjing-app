@@ -13,6 +13,7 @@ import '../widgets/sos_button.dart';
 import '../constants/design_system.dart';
 import '../utils/permission_manager.dart';
 import '../services/sos_service.dart';
+import '../services/sos_service_enhanced.dart' show SOSSendResult;
 
 /// 导航状态枚举
 enum NavigationStatus {
@@ -757,7 +758,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       sendMethod: 'both',
     );
     
-    final success = result == SOSSendStatus.sent;
+    final success = result.result == SOSSendResult.success;
 
     if (mounted) {
       if (success) {
