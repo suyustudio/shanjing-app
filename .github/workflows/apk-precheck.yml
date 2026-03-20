@@ -14,7 +14,7 @@ jobs:
       - name: Download APK Artifact
         uses: actions/download-artifact@v4
         with:
-          name: apk
+          name: debug-apk
           path: ./apk/
         continue-on-error: true
 
