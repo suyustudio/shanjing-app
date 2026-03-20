@@ -41,6 +41,26 @@ class DesignSystem {
   static const Color error = Color(0xFFF44336);
   static const Color info = Color(0xFF2196F3);
 
+  // ==================== POI 类型颜色 ====================
+  static const Color poiStart = Color(0xFF4CAF50);        // 起点 - 绿色
+  static const Color poiEnd = Color(0xFF2D968A);          // 终点 - 主色
+  static const Color poiJunction = Color(0xFFFF9800);     // 路口 - 橙色
+  static const Color poiViewpoint = Color(0xFF3B9EFF);    // 观景点 - 蓝色
+  static const Color poiRestroom = Color(0xFF8B7355);     // 卫生间 - 棕色
+  static const Color poiSupply = Color(0xFFFFB800);       // 补给点 - 金黄色
+  static const Color poiDanger = Color(0xFFEF5350);       // 危险点 - 红色
+  static const Color poiRest = Color(0xFF9C27B0);         // 休息点 - 紫色
+
+  // POI 颜色（深色模式适配）
+  static const Color poiStartDark = Color(0xFF66BB6A);    // 起点
+  static const Color poiEndDark = Color(0xFF4DB6AC);      // 终点
+  static const Color poiJunctionDark = Color(0xFFFFB74D); // 路口
+  static const Color poiViewpointDark = Color(0xFF64B5F6);// 观景点
+  static const Color poiRestroomDark = Color(0xFFA1887F); // 卫生间
+  static const Color poiSupplyDark = Color(0xFFFFCA28);   // 补给点
+  static const Color poiDangerDark = Color(0xFFE57373);   // 危险点
+  static const Color poiRestDark = Color(0xFFBA68C8);     // 休息点
+
   // ==================== 骨架屏颜色 ====================
   static const Color skeletonBaseColor = Color(0xFFE5E7EB);
   static const Color skeletonHighlightColor = Color(0xFFF3F4F6);
@@ -205,6 +225,48 @@ class DesignSystem {
     return Theme.of(context).brightness == Brightness.dark 
         ? infoDark 
         : info;
+  }
+
+  // ==================== POI 类型颜色获取方法 ====================
+  
+  /// 获取起点颜色
+  static Color getPoiStart(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark ? poiStartDark : poiStart;
+  }
+  
+  /// 获取终点颜色
+  static Color getPoiEnd(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark ? poiEndDark : poiEnd;
+  }
+  
+  /// 获取路口颜色
+  static Color getPoiJunction(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark ? poiJunctionDark : poiJunction;
+  }
+  
+  /// 获取观景点颜色
+  static Color getPoiViewpoint(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark ? poiViewpointDark : poiViewpoint;
+  }
+  
+  /// 获取卫生间颜色
+  static Color getPoiRestroom(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark ? poiRestroomDark : poiRestroom;
+  }
+  
+  /// 获取补给点颜色
+  static Color getPoiSupply(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark ? poiSupplyDark : poiSupply;
+  }
+  
+  /// 获取危险点颜色
+  static Color getPoiDanger(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark ? poiDangerDark : poiDanger;
+  }
+  
+  /// 获取休息点颜色
+  static Color getPoiRest(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark ? poiRestDark : poiRest;
   }
 
   /// 根据当前主题获取卡片/表面颜色

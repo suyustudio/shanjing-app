@@ -553,21 +553,21 @@ class PoiMarkerCard extends StatelessWidget {
   Color _getTypeColor(PoiType type) {
     switch (type) {
       case PoiType.start:
-        return Colors.green;
+        return DesignSystem.getPoiStart(context);
       case PoiType.end:
-        return Colors.red;
+        return DesignSystem.getPoiEnd(context);
       case PoiType.junction:
-        return Colors.blue;
+        return DesignSystem.getPoiJunction(context);
       case PoiType.viewpoint:
-        return Colors.purple;
+        return DesignSystem.getPoiViewpoint(context);
       case PoiType.restroom:
-        return Colors.cyan;
+        return DesignSystem.getPoiRestroom(context);
       case PoiType.supply:
-        return Colors.orange;
+        return DesignSystem.getPoiSupply(context);
       case PoiType.danger:
-        return Colors.red.shade700;
+        return DesignSystem.getPoiDanger(context);
       case PoiType.rest:
-        return Colors.teal;
+        return DesignSystem.getPoiRest(context);
     }
   }
 
