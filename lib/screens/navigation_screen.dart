@@ -1010,6 +1010,20 @@ class _NavigationScreenState extends State<NavigationScreen>
           ],
         ),
       );
+      
+      if (shouldPop == true) {
+        // 用户确认结束导航，先停止定位
+        try {
+          _locationPlugin?.stopLocation();
+          _locationSubscription?.cancel();
+          if (_isTtsInitialized && _flutterTts != null) {
+            _flutterTts!.stop();
+          }
+        } catch (e) {
+          debugPrint('停止导航资源时出错: $e');
+        }
+      }
+      
       return shouldPop ?? false;
     }
     return true;
@@ -1230,7 +1244,18 @@ class _NavigationScreenState extends State<NavigationScreen>
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () async {
+                      // 停止定位后再返回
+                      try {
+                        _locationPlugin?.stopLocation();
+                        _locationSubscription?.cancel();
+                      } catch (e) {
+                        debugPrint('停止定位时出错: $e');
+                      }
+                      if (mounted) {
+                        Navigator.pop(context);
+                      }
+                    },
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('返回'),
                     style: OutlinedButton.styleFrom(
