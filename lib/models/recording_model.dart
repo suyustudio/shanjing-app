@@ -758,8 +758,6 @@ class CollectorQualification {
       'reviewedAt': reviewedAt?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
-      // P1新增字段
-      'trailPhotos': trailPhotos,
     };
   }
 

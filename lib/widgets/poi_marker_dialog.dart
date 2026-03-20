@@ -487,12 +487,12 @@ class PoiMarkerCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: _getTypeColor(poi.type).withOpacity(0.1),
+                  color: _getTypeColor(poi.type, context).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   _getIconData(poi.type),
-                  color: _getTypeColor(poi.type),
+                  color: _getTypeColor(poi.type, context),
                   size: 24,
                 ),
               ),
@@ -550,7 +550,7 @@ class PoiMarkerCard extends StatelessWidget {
     );
   }
 
-  Color _getTypeColor(PoiType type) {
+  Color _getTypeColor(PoiType type, BuildContext context) {
     switch (type) {
       case PoiType.start:
         return DesignSystem.getPoiStart(context);
