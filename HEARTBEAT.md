@@ -33,33 +33,30 @@
 
 ---
 
-## 当前状态（2026-03-21 凌晨 01:21）
+## 当前状态（2026-03-21 凌晨 01:37）
 
-### ✅ 推送成功，新构建进行中
+### ✅ 无需推送，本地与远程同步
 
 **Git 状态：**
 - 本地分支：与 origin/main 同步 ✅
 - 工作树：干净，无需提交
-- 推送状态：✅ 已推送（commit 96b1e41f）
+- 推送状态：无需推送
 
 **GitHub Actions：**
 | Build | 工作流 | 状态 | 说明 |
 |-------|--------|------|------|
-| #198 | Build APK | 🔄 in_progress | 内存更新推送后触发 |
-| #197 | Build APK | ❌ failure | 历史失败 |
-| #196 | Build APK | ❌ failure | recording_service.dart 修复 |
-
-**本次提交内容（commit 96b1e41f）：**
-- 更新 memory 和 HEARTBEAT 状态记录
+| #200 | Build APK | 🔄 in_progress | 最新构建进行中 |
+| #198 | Build APK | ✅ success | memory 更新构建成功 |
+| #40 | Build APK | 🔄 in_progress | 另一工作流运行中 |
 
 **⚠️ 注意：**
-- Build #198 正在运行，等待结果
-- Build #196/#197 失败原因待排查
+- Build #200 正在进行中，等待结果
+- Build #198 已成功完成
+- Build #40 是另一个工作流（feishu 相关的）
 
 ---
 
 ## 历史状态存档
+- 2026-03-21 01:37: 无需推送，Build #200 进行中
 - 2026-03-21 01:21: 推送 memory 更新（96b1e41f），Build #198 进行中
-- 2026-03-21 01:17: Git正常，Build #196/#197 失败，待排查
-- 2026-03-21 01:02: 推送 recording_service.dart 修复（c1589b77），Build #196/#39 进行中
 - 详细历史见 `memory/2026-03-21.md`
