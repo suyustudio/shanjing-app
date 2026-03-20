@@ -419,6 +419,9 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   /// 处理定位更新
   void _onLocationUpdate(Map<String, Object> location) {
+    // 检查 mounted 状态，避免页面关闭后更新状态
+    if (!mounted) return;
+    
     final double? latitude = location['latitude'] as double?;
     final double? longitude = location['longitude'] as double?;
     final double? accuracy = location['accuracy'] as double?;
@@ -439,10 +442,12 @@ class _NavigationScreenState extends State<NavigationScreen>
     // GPS 精度过滤
     if (!_filterGPSPoint(point)) {
       debugPrint('GPS 精度不足，过滤: accuracy=${point.accuracy}m');
+      if (!mounted) return;
       setState(() => _status = NavigationStatus.weakSignal);
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _currentPosition = point;
       _currentLatLng = LatLng(latitude, longitude);
@@ -495,6 +500,8 @@ class _NavigationScreenState extends State<NavigationScreen>
   /// 更新导航进度
   void _updateNavigationProgress() {
     if (_currentPosition == null || _routePoints.isEmpty) return;
+    // 检查 mounted 状态，避免页面关闭后更新状态
+    if (!mounted) return;
 
     // 找到当前位置在路线上的最近点
     double minDistance = double.infinity;
@@ -524,6 +531,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     final estimatedMinutes = (remainingDistance / walkingSpeed / 60).ceil();
 
     // 更新状态
+    if (!mounted) return;
     setState(() {
       _remainingDistance = remainingDistance;
       _estimatedArrivalMinutes = estimatedMinutes;
@@ -531,6 +539,7 @@ class _NavigationScreenState extends State<NavigationScreen>
 
     // 检查是否到达终点
     if (nearestIndex >= _routePoints.length - 1) {
+      if (!mounted) return;
       setState(() => _status = NavigationStatus.arrived);
       _navigationCompleted = true;
       
@@ -577,6 +586,8 @@ class _NavigationScreenState extends State<NavigationScreen>
   /// 偏航检测
   void _checkOffRoute() {
     if (_currentPosition == null) return;
+    // 检查 mounted 状态，避免页面关闭后更新状态
+    if (!mounted) return;
 
     // 计算当前位置到路线最近点的距离
     double minDistance = double.infinity;
@@ -594,6 +605,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     if (minDistance > _offRouteThreshold) {
       _offRouteCount++;
       if (_offRouteCount >= _offRouteConfirmCount) {
+        if (!mounted) return;
         setState(() => _status = NavigationStatus.offRoute);
         _totalDeviationCount++; // 统计总偏航次数
         _speak('您已偏离路线，请返回');
@@ -610,6 +622,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     } else {
       _offRouteCount = 0;
       if (_status == NavigationStatus.offRoute) {
+        if (!mounted) return;
         setState(() => _status = NavigationStatus.navigating);
         _speak('已回到正确路线');
         
@@ -706,6 +719,9 @@ class _NavigationScreenState extends State<NavigationScreen>
     if (_routePoints.isNotEmpty) {
       final destination = _routePoints.last;
       
+      // 检查 mounted 状态，避免页面关闭后调用 setState
+      if (!mounted) return;
+      
       setState(() {
         // 简化的重新规划：直接从当前位置到终点
         // 实际项目中应该调用地图 API 进行路径规划
@@ -725,6 +741,9 @@ class _NavigationScreenState extends State<NavigationScreen>
       });
 
       _speak('路线已重新规划');
+      
+      // 检查 mounted 状态，避免页面关闭后操作地图
+      if (!mounted) return;
       
       // 移动地图视角到新路线
       _mapController?.moveCamera(
