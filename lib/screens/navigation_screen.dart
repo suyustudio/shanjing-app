@@ -783,6 +783,7 @@ class _NavigationScreenState extends State<NavigationScreen>
   /// 语音播报
   Future<void> _speak(String text) async {
     if (!_isTtsInitialized || !_isTtsAvailable || _flutterTts == null) return;
+    if (!mounted || _isDisposing) return; // 添加 mounted 检查
     try {
       await _flutterTts!.speak(text);
     } catch (e) {
@@ -1415,9 +1416,11 @@ class _NavigationScreenState extends State<NavigationScreen>
 
                 // 结束导航按钮
                 ElevatedButton.icon(
-                  onPressed: () {
-                    _speak('导航结束');
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    await _speak('导航结束');
+                    if (mounted) {
+                      Navigator.pop(context);
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: DesignSystem.getError(context),
