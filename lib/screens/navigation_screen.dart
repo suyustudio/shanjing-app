@@ -159,6 +159,9 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   // 地图控制器
   AMapController? _mapController;
+  
+  // 地图 Widget 的 key，用于正确管理生命周期
+  final GlobalKey _mapKey = GlobalKey();
 
   @override
   void initState() {
@@ -196,19 +199,24 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   @override
   void dispose() {
-    // 先移除生命周期观察器，避免回调中访问已 dispose 的状态
+    // 先标记导航完成，防止后续事件上报
+    _navigationCompleted = true;
+    
+    // 移除生命周期观察器
     WidgetsBinding.instance.removeObserver(this);
     
-    // 取消定位订阅（最先取消，避免收到新位置更新）
+    // 取消定位订阅
     _locationSubscription?.cancel();
     _locationSubscription = null;
     
-    // 停止定位
+    // 停止定位并销毁插件
     try {
       _locationPlugin?.stopLocation();
+      _locationPlugin?.destroy();
     } catch (e) {
       debugPrint('停止定位时出错: $e');
     }
+    _locationPlugin = null;
     
     // 停止 TTS
     try {
@@ -219,25 +227,8 @@ class _NavigationScreenState extends State<NavigationScreen>
       debugPrint('停止 TTS 时出错: $e');
     }
     
-    // 释放地图控制器（设为 null 让 Widget 知道已释放）
+    // 释放地图控制器
     _mapController = null;
-    
-    // 上报导航退出事件（在 super.dispose 之前）
-    if (!_navigationCompleted && _navigationStartTime != null) {
-      final duration = DateTime.now().difference(_navigationStartTime!).inSeconds;
-      try {
-        AnalyticsService().trackEvent(
-          NavigationEvents.navigationPause,
-          params: {
-            NavigationEvents.paramRouteName: widget.routeName,
-            NavigationEvents.paramDuration: duration,
-            'reason': 'page_closed',
-          },
-        );
-      } catch (e) {
-        debugPrint('上报导航退出事件时出错: $e');
-      }
-    }
     
     super.dispose();
   }
@@ -813,6 +804,7 @@ class _NavigationScreenState extends State<NavigationScreen>
         children: [
           // 高德地图
           AMapWidget(
+            key: _mapKey,
             apiKey: AMapApiKey(
               iosKey: dotenv.env['AMAP_KEY'] ?? '',
               androidKey: dotenv.env['AMAP_KEY'] ?? '',
