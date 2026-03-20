@@ -33,33 +33,29 @@
 
 ---
 
-## 当前状态（2026-03-20 下午 2:30）
+## 当前状态（2026-03-20 下午 2:37）
 
-### ✅ Build #150 构建成功！
+### ✅ Build #151 构建成功！
 
 **Git 状态：**
-- 本地分支：ahead of origin/main by 1 commit
-- 待推送：HEARTBEAT.md 更新（简化版）
+- 本地分支：up to date with origin/main
+- 无未推送的提交
+- 未跟踪文件：shanjing-test/repo/（无需提交）
 
 **构建状态：**
-| Build | 工作流 | 状态 | 提交信息 | 时间 |
-|-------|--------|------|----------|------|
-| **#150** | **Build APK** | **✅ 成功** | fix(navigation): 移除 Polyline 不支持的 dashed 参数 | 14:15 |
-| **#149** | **Build APK** | **❌ 失败** | fix(navigation): 简化 AMapLocationOption 参数 | 13:58 |
-| #28 | APK Pre-check | ⏭️ skipped | - | - |
+| Build | 工作流 | 状态 | 提交信息 |
+|-------|--------|------|----------|
+| **#151** | **Build APK** | **✅ 成功** | docs(heartbeat): update build status |
+| #30 | APK Pre-check | ❌ 失败 | docs(heartbeat): update build status |
+| #29 | APK Pre-check | ❌ 失败 | fix(navigation): 移除 Polyline 不支持的 dashed 参数 |
 
-**关键修复：**
-- Build #150 修复了 Polyline 的 dashed 参数问题
-- Build #149 因 AMapLocationOption 参数简化而失败
-
-**修复内容：**
-1. 移除 `Polyline` 不支持的 `dashed` 参数
-2. 使用纯色线条替代虚线效果
-3. 代码提交：`fca6c995`
+**关键信息：**
+- Build #151 是最新的成功构建
+- Git 本地与远程同步，无需推送
+- 今日 memory 文件已存在（2026-03-20.md）
 
 **下一步：**
-- [ ] 推送 HEARTBEAT.md 更新
-- [ ] 等待用户测试 Build #150
+- [ ] 等待用户测试 Build #151 生成的 APK
 - [ ] 如测试通过，继续修复其他导航问题
 
 ---
