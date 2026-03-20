@@ -196,27 +196,21 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   @override
   void dispose() {
+    // 先移除生命周期观察器，避免回调中访问已 dispose 的状态
     WidgetsBinding.instance.removeObserver(this);
-    // 如果导航未完成，上报导航退出事件
-    if (!_navigationCompleted && _navigationStartTime != null) {
-      final duration = DateTime.now().difference(_navigationStartTime!).inSeconds;
-      AnalyticsService().trackEvent(
-        NavigationEvents.navigationPause,
-        params: {
-          NavigationEvents.paramRouteName: widget.routeName,
-          NavigationEvents.paramDuration: duration,
-          'reason': 'page_closed',
-        },
-      );
-    }
+    
+    // 取消定位订阅（最先取消，避免收到新位置更新）
     _locationSubscription?.cancel();
-    // 安全释放定位资源 - 检查是否已初始化
+    _locationSubscription = null;
+    
+    // 停止定位
     try {
       _locationPlugin?.stopLocation();
     } catch (e) {
-      debugPrint('释放定位资源时出错: $e');
+      debugPrint('停止定位时出错: $e');
     }
-    // 安全停止 TTS
+    
+    // 停止 TTS
     try {
       if (_isTtsInitialized) {
         _flutterTts.stop();
@@ -224,17 +218,36 @@ class _NavigationScreenState extends State<NavigationScreen>
     } catch (e) {
       debugPrint('停止 TTS 时出错: $e');
     }
-    // 释放地图控制器
+    
+    // 释放地图控制器（设为 null 让 Widget 知道已释放）
     _mapController = null;
+    
+    // 上报导航退出事件（在 super.dispose 之前）
+    if (!_navigationCompleted && _navigationStartTime != null) {
+      final duration = DateTime.now().difference(_navigationStartTime!).inSeconds;
+      try {
+        AnalyticsService().trackEvent(
+          NavigationEvents.navigationPause,
+          params: {
+            NavigationEvents.paramRouteName: widget.routeName,
+            NavigationEvents.paramDuration: duration,
+            'reason': 'page_closed',
+          },
+        );
+      } catch (e) {
+        debugPrint('上报导航退出事件时出错: $e');
+      }
+    }
+    
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    
-    // 检查是否已 dispose
+    // 先检查 mounted，避免页面关闭后执行
     if (!mounted) return;
+    
+    super.didChangeAppLifecycleState(state);
     
     // 监听应用前后台切换
     if (state == AppLifecycleState.paused) {
@@ -369,6 +382,7 @@ class _NavigationScreenState extends State<NavigationScreen>
   
   /// 使用默认位置
   void _useDefaultLocation() {
+    if (!mounted) return;
     setState(() {
       _currentPosition = GPSPoint(
         latitude: 30.25,
@@ -816,6 +830,11 @@ class _NavigationScreenState extends State<NavigationScreen>
             // myLocationEnabled 参数在 amap_flutter_map 3.0+ 中已移除
             // 使用定位插件单独控制
             onMapCreated: (controller) {
+              // 检查 mounted 状态，避免页面关闭后设置控制器
+              if (!mounted) {
+                // 如果页面已关闭，直接释放控制器
+                return;
+              }
               _mapController = controller;
             },
             polylines: {
