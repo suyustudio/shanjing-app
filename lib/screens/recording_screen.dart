@@ -446,6 +446,10 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
         );
       
       case RecordingStatus.finished:
+      case RecordingStatus.submitted:
+      case RecordingStatus.reviewing:
+      case RecordingStatus.approved:
+      case RecordingStatus.rejected:
         return _buildLargeButton(
           icon: Icons.check,
           label: '已完成',
@@ -1002,6 +1006,10 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
       case RecordingStatus.paused:
         return '已暂停';
       case RecordingStatus.finished:
+      case RecordingStatus.submitted:
+      case RecordingStatus.reviewing:
+      case RecordingStatus.approved:
+      case RecordingStatus.rejected:
         return '已完成';
     }
   }
