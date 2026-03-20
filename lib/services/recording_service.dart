@@ -95,10 +95,8 @@ class RecordingService extends ChangeNotifier {
       _locationPlugin = AMapFlutterLocation();
       
       // 设置定位选项
-      await _locationPlugin?.setLocationOption(AMapLocationOption(
-        locationMode: AMapLocationMode.highAccuracy,
+      _locationPlugin?.setLocationOption(AMapLocationOption(
         needAddress: true,
-        interval: 1000,
       ));
 
       // 监听定位结果
@@ -803,12 +801,12 @@ class RecordingService extends ChangeNotifier {
 
   /// 生成会话ID
   String _generateSessionId() {
-    return 'rec_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
+    return 'rec_${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(10000)}';
   }
 
   /// 生成POI ID
   String _generatePoiId() {
-    return 'poi_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
+    return 'poi_${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(10000)}';
   }
 
   /// 计算两点间距离（米）
@@ -821,16 +819,16 @@ class RecordingService extends ChangeNotifier {
     const double earthRadius = 6371000; // 地球半径（米）
     final double dLat = _toRadians(lat2 - lat1);
     final double dLng = _toRadians(lng2 - lng1);
-    final double a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_toRadians(lat1)) *
-            cos(_toRadians(lat2)) *
-            sin(dLng / 2) *
-            sin(dLng / 2);
-    final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    final double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(_toRadians(lat1)) *
+            math.cos(_toRadians(lat2)) *
+            math.sin(dLng / 2) *
+            math.sin(dLng / 2);
+    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
     return earthRadius * c;
   }
 
-  static double _toRadians(double degree) => degree * pi / 180;
+  static double _toRadians(double degree) => degree * math.pi / 180;
 
   @override
   void dispose() {
