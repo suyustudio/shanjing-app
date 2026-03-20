@@ -33,38 +33,35 @@
 
 ---
 
-## 当前状态（2026-03-20 下午 2:52）
+## 当前状态（2026-03-20 下午 3:27）
 
-### 🔄 Build #153 构建中！
+### ✅ Build #156 构建成功！
 
 **Git 状态：**
-- 本地分支：up to date with origin/main ✅ **刚刚推送最新提交**
+- 本地分支：up to date with origin/main ✅
 - 未跟踪文件：shanjing-test/repo/（无需提交）
-
-**推送记录：**
-```
-[main 4ce00159] docs(heartbeat): update build status
- 1 file changed, 10 insertions(+), 3 deletions(-)
-To https://github.com/suyustudio/shanjing-app.git
-   56451cce..4ce00159  main -> main
-```
+- 无需推送，本地与远程同步
 
 **构建状态：**
 | Build | 工作流 | 状态 | 说明 |
 |-------|--------|------|------|
-| **#153** | - | **🔄 进行中** | 刚刚推送触发的新构建 |
-| #31 | - | ❌ 失败 | 历史失败构建 |
-| #23 | - | ❌ 失败 | 历史失败构建 |
+| **#156** | Build APK | ✅ 成功 | 最新构建，包含 memory 更新 |
+| #35 | APK Pre-check | ❌ 失败 | workflow_run 触发 |
+| #34 | APK Pre-check | ❌ 失败 | workflow_run 触发 |
 
 **关键信息：**
-- 成功推送 HEARTBEAT.md 更新（commit 4ce00159）
-- Build #153 正在运行中
-- Git 本地与远程同步
+- Git 本地与远程同步，无需推送
+- Build #156 构建成功（commit 75fae332）
+- commit: "docs(memory): update 2026-03-20 daily log with final build status"
+
+**APK Pre-check 失败说明：**
+- 这是 workflow_run 触发的工作流（在 Build APK 完成后自动运行）
+- 失败原因需要查看详细日志
+- 不影响 Build APK 的成功状态
 
 **下一步：**
-- [ ] 等待 Build #153 完成
-- [ ] 检查构建结果
-- [ ] 如成功，通知用户测试
+- [ ] 关注 APK Pre-check #35 失败原因
+- [ ] 如有必要，修复 pre-check 问题
 
 ---
 
