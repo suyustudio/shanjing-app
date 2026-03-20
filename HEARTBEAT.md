@@ -33,37 +33,38 @@
 
 ---
 
-## 当前状态（2026-03-20 下午 2:47）
+## 当前状态（2026-03-20 下午 2:52）
 
-### ✅ Build #151 构建成功！
+### 🔄 Build #153 构建中！
 
 **Git 状态：**
-- 本地分支：up to date with origin/main ✅ **刚刚推送2个提交**
+- 本地分支：up to date with origin/main ✅ **刚刚推送最新提交**
 - 未跟踪文件：shanjing-test/repo/（无需提交）
 
 **推送记录：**
 ```
+[main 4ce00159] docs(heartbeat): update build status
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 To https://github.com/suyustudio/shanjing-app.git
-   954c3b16..56451cce  main -> main
+   56451cce..4ce00159  main -> main
 ```
 
 **构建状态：**
-| Build | 工作流 | 状态 | 提交信息 |
-|-------|--------|------|----------|
-| **#151** | **Build APK** | **✅ 成功** | docs(heartbeat): update build status |
-| #30 | APK Pre-check | ❌ 失败 | docs(heartbeat): update build status |
-| #29 | APK Pre-check | ❌ 失败 | fix(navigation): 移除 Polyline 不支持的 dashed 参数 |
+| Build | 工作流 | 状态 | 说明 |
+|-------|--------|------|------|
+| **#153** | - | **🔄 进行中** | 刚刚推送触发的新构建 |
+| #31 | - | ❌ 失败 | 历史失败构建 |
+| #23 | - | ❌ 失败 | 历史失败构建 |
 
 **关键信息：**
-- Build #151 是最新的成功构建
-- Git 本地与远程同步，无需推送
-- 今日 memory 文件已存在（2026-03-20.md）
-- 刚刚推送的2个提交将触发新的构建
+- 成功推送 HEARTBEAT.md 更新（commit 4ce00159）
+- Build #153 正在运行中
+- Git 本地与远程同步
 
 **下一步：**
-- [ ] 等待新构建完成
-- [ ] 等待用户测试 Build #151 生成的 APK
-- [ ] 如测试通过，继续修复其他导航问题
+- [ ] 等待 Build #153 完成
+- [ ] 检查构建结果
+- [ ] 如成功，通知用户测试
 
 ---
 
