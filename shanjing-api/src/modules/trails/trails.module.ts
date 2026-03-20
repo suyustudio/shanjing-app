@@ -7,12 +7,14 @@
 import { Module } from '@nestjs/common';
 import { TrailsController } from './trails.controller';
 import { TrailsService } from './trails.service';
+import { RecordingController } from './recording.controller';
+import { RecordingService } from './recording.service';
 import { PrismaModule } from '../../database/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [TrailsController],
-  providers: [TrailsService],
-  exports: [TrailsService],
+  controllers: [TrailsController, RecordingController],
+  providers: [TrailsService, RecordingService],
+  exports: [TrailsService, RecordingService],
 })
 export class TrailsModule {}

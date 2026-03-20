@@ -12,6 +12,7 @@ import '../widgets/app_error.dart';
 import '../widgets/app_empty.dart';
 import '../constants/design_system.dart';
 import 'trail_detail_screen.dart';
+import 'recordings_list_screen.dart';
 
 /// 页面切换动画 - FadeTransition
 class FadePageRoute<T> extends PageRouteBuilder<T> {
@@ -336,6 +337,19 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                           ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const RecordingsListScreen(),
+            ),
+          );
+        },
+        icon: const Icon(Icons.videocam),
+        label: const Text('录制'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }

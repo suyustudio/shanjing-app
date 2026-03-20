@@ -1,0 +1,6 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="24" cy="24" r="24" fill="#4CAF50" fill-opacity="0.2"/>
+  <path d="M24 8L12 16V40L24 32L36 40V16L24 8Z" fill="#4CAF50"/>
+  <circle cx="24" cy="22" r="6" fill="white"/>
+  <text x="24" y="25" text-anchor="middle" fill="#4CAF50" font-size="8" font-weight="bold" font-family="PingFang SC, sans-serif">起</text>
+</svg>

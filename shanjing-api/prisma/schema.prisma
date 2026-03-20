@@ -116,6 +116,7 @@ model Trail {
   
   pois              TrailPoi[]
   favorites         Favorite[]
+  recordings        TrailRecording[]
 }
 
 model TrailPoi {
@@ -608,4 +609,55 @@ model CollectionTrail {
   @@unique([collectionId, trailId])
   @@index([collectionId, sortOrder])
   @@map("collection_trails")
+}
+
+// ==================== 轨迹录制系统 ====================
+
+enum RecordingStatus {
+  PENDING   // 待审核
+  APPROVED  // 已通过
+  REJECTED  // 已拒绝
+}
+
+model TrailRecording {
+  id                String          @id @default(uuid())
+  userId            String          @map("user_id")
+  sessionId         String          @map("session_id") @db.VarChar(64)
+  
+  // 路线基本信息
+  trailName         String          @map("trail_name") @db.VarChar(100)
+  description       String?         @db.Text
+  city              String          @db.VarChar(50)
+  district          String          @db.VarChar(50)
+  difficulty        TrailDifficulty
+  tags              String[]        @default([])
+  
+  // 审核状态
+  status            RecordingStatus @default(PENDING)
+  trailId           String?         @map("trail_id")
+  reviewComment     String?         @map("review_comment") @db.Text
+  reviewedAt        DateTime?       @map("reviewed_at")
+  
+  // 轨迹统计
+  distanceMeters    Float           @map("distance_meters")
+  durationSeconds   Int             @map("duration_seconds")
+  elevationGain     Float           @map("elevation_gain")
+  elevationLoss     Float           @map("elevation_loss")
+  pointCount        Int             @map("point_count")
+  poiCount          Int             @map("poi_count")
+  
+  // 原始数据（JSON格式）
+  trackData         Json            @map("track_data")
+  
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+  
+  // 关联
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trail             Trail?          @relation(fields: [trailId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([trailId])
+  @@map("trail_recordings")
 }

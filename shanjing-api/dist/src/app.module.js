@@ -17,6 +17,10 @@ const map_module_1 = require("./modules/map/map.module");
 const trails_module_1 = require("./modules/trails/trails.module");
 const favorites_module_1 = require("./modules/favorites/favorites.module");
 const recommendation_module_1 = require("./modules/recommendation/recommendation.module");
+const reviews_module_1 = require("./modules/reviews/reviews.module");
+const photos_module_1 = require("./modules/photos/photos.module");
+const follows_module_1 = require("./modules/follows/follows.module");
+const collections_module_1 = require("./modules/collections/collections.module");
 const prisma_module_1 = require("./database/prisma.module");
 const redis_module_1 = require("./shared/redis/redis.module");
 const all_exceptions_filter_1 = require("./common/filters/all-exceptions.filter");
@@ -40,6 +44,10 @@ exports.AppModule = AppModule = __decorate([
             trails_module_1.TrailsModule,
             favorites_module_1.FavoritesModule,
             recommendation_module_1.RecommendationModule,
+            reviews_module_1.ReviewsModule,
+            photos_module_1.PhotosModule,
+            follows_module_1.FollowsModule,
+            collections_module_1.CollectionsModule,
         ],
         providers: [
             {

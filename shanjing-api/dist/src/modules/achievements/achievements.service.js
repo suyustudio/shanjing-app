@@ -16,27 +16,27 @@ const prisma_service_1 = require("../../database/prisma.service");
 const redis_service_1 = require("../../shared/redis/redis.service");
 const client_1 = require("@prisma/client");
 const errors_1 = require("./errors");
-const ACHIEVEMENT_CACHE_TTL = 300;
-const USER_ACHIEVEMENT_CACHE_TTL = 180;
-const CACHE_TAGS = {
-    ALL_ACHIEVEMENTS: 'achievements:all',
-    USER_ACHIEVEMENTS: 'achievements:user',
-    USER_STATS: 'achievements:stats',
-};
+const achievement_constants_1 = require("./constants/achievement.constants");
+const structured_logger_util_1 = require("../../shared/logger/structured-logger.util");
 let AchievementsService = AchievementsService_1 = class AchievementsService {
     constructor(prisma, redis) {
         this.prisma = prisma;
         this.redis = redis;
-        this.logger = new common_1.Logger(AchievementsService_1.name);
+        this.logger = (0, structured_logger_util_1.createStructuredLogger)(new common_1.Logger(AchievementsService_1.name), achievement_constants_1.LOG_CONTEXT.ACHIEVEMENTS_SERVICE);
     }
     async getAllAchievements() {
-        const cacheKey = 'achievements:all';
+        const timer = this.logger.startTimer('getAllAchievements');
+        const cacheKey = achievement_constants_1.ACHIEVEMENT_CONSTANTS.ACHIEVEMENT_LIST_CACHE_KEY;
         const cached = await this.redis.get(cacheKey);
         if (cached) {
             try {
-                return JSON.parse(cached);
+                const parsed = JSON.parse(cached);
+                timer.end({ source: 'cache', count: parsed.length });
+                this.logger.debug('Achievement list cache hit', { count: parsed.length });
+                return parsed;
             }
             catch {
+                this.logger.warn('Failed to parse achievement list cache');
             }
         }
         const achievements = await this.prisma.achievement.findMany({
@@ -52,10 +52,13 @@ let AchievementsService = AchievementsService_1 = class AchievementsService {
             },
         });
         const result = achievements.map((achievement) => this.mapToAchievementDto(achievement));
-        await this.redis.setexWithTags(cacheKey, ACHIEVEMENT_CACHE_TTL, JSON.stringify(result), [CACHE_TAGS.ALL_ACHIEVEMENTS]);
+        await this.redis.setex(cacheKey, achievement_constants_1.ACHIEVEMENT_CONSTANTS.ACHIEVEMENT_CACHE_TTL, JSON.stringify(result));
+        timer.end({ source: 'database', count: result.length });
+        this.logger.info('Fetched all achievements', { count: result.length });
         return result;
     }
     async getAchievementById(id) {
+        const timer = this.logger.startTimer('getAchievementById', { achievementId: id });
         const achievement = await this.prisma.achievement.findUnique({
             where: { id },
             include: {
@@ -67,18 +70,25 @@ let AchievementsService = AchievementsService_1 = class AchievementsService {
             },
         });
         if (!achievement) {
+            timer.end({ found: false });
             throw new errors_1.AchievementNotFoundError(id);
         }
+        timer.end({ found: true, name: achievement.name });
         return this.mapToAchievementDto(achievement);
     }
     async getUserAchievements(userId) {
-        const cacheKey = `achievements:user:${userId}`;
+        const timer = this.logger.startTimer('getUserAchievements', { userId });
+        const cacheKey = `${achievement_constants_1.ACHIEVEMENT_CONSTANTS.USER_ACHIEVEMENT_CACHE_PREFIX}:${userId}`;
         const cached = await this.redis.get(cacheKey);
         if (cached) {
             try {
-                return JSON.parse(cached);
+                const parsed = JSON.parse(cached);
+                timer.end({ source: 'cache', totalCount: parsed.totalCount, unlockedCount: parsed.unlockedCount });
+                this.logger.debug('User achievement cache hit', { userId, unlockedCount: parsed.unlockedCount });
+                return parsed;
             }
             catch {
+                this.logger.warn('Failed to parse user achievement cache', undefined, { userId });
             }
         }
         const allAchievements = await this.prisma.achievement.findMany({
@@ -113,10 +123,22 @@ let AchievementsService = AchievementsService_1 = class AchievementsService {
             newUnlockedCount,
             achievements,
         };
-        await this.redis.setexWithTags(cacheKey, USER_ACHIEVEMENT_CACHE_TTL, JSON.stringify(result), [CACHE_TAGS.USER_ACHIEVEMENTS, `${CACHE_TAGS.USER_ACHIEVEMENTS}:${userId}`]);
+        await this.redis.setex(cacheKey, achievement_constants_1.ACHIEVEMENT_CONSTANTS.USER_ACHIEVEMENT_CACHE_TTL, JSON.stringify(result));
+        timer.end({
+            source: 'database',
+            totalCount: result.totalCount,
+            unlockedCount: result.unlockedCount,
+            newUnlockedCount: result.newUnlockedCount,
+        });
+        this.logger.info('Fetched user achievements', {
+            userId,
+            totalCount: result.totalCount,
+            unlockedCount: result.unlockedCount,
+        });
         return result;
     }
     async markAchievementViewed(userId, achievementId) {
+        const timer = this.logger.startTimer('markAchievementViewed', { userId, achievementId });
         await this.prisma.userAchievement.updateMany({
             where: {
                 userId,
@@ -127,9 +149,12 @@ let AchievementsService = AchievementsService_1 = class AchievementsService {
             },
         });
         await this.clearUserAchievementCache(userId);
+        timer.end({ userId, achievementId });
+        this.logger.info('Marked achievement as viewed', { userId, achievementId });
     }
     async markAllAchievementsViewed(userId) {
-        await this.prisma.userAchievement.updateMany({
+        const timer = this.logger.startTimer('markAllAchievementsViewed', { userId });
+        const result = await this.prisma.userAchievement.updateMany({
             where: {
                 userId,
                 isNew: true,
@@ -139,14 +164,20 @@ let AchievementsService = AchievementsService_1 = class AchievementsService {
             },
         });
         await this.clearUserAchievementCache(userId);
+        timer.end({ userId, updatedCount: result.count });
+        this.logger.info('Marked all achievements as viewed', { userId, updatedCount: result.count });
     }
     async checkAchievements(userId, dto) {
-        const validTriggerTypes = ['trail_completed', 'share', 'manual'];
-        if (!validTriggerTypes.includes(dto.triggerType)) {
+        const timer = this.logger.startTimer('checkAchievements', {
+            userId,
+            triggerType: dto.triggerType,
+            trailId: dto.trailId,
+        });
+        if (!achievement_constants_1.ACHIEVEMENT_CONSTANTS.VALID_TRIGGER_TYPES.includes(dto.triggerType)) {
             throw new errors_1.InvalidTriggerTypeError(dto.triggerType);
         }
         try {
-            return await this.prisma.$transaction(async (tx) => {
+            const result = await this.prisma.$transaction(async (tx) => {
                 const newlyUnlocked = [];
                 const progressUpdated = [];
                 if (dto.triggerType === 'trail_completed' && dto.stats) {
@@ -225,7 +256,7 @@ let AchievementsService = AchievementsService_1 = class AchievementsService {
                             });
                         }
                         catch (error) {
-                            this.logger.warn(`Achievement upsert conflict for user ${userId}, achievement ${achievement.id}`, error);
+                            this.logger.warn('Achievement upsert conflict', error, { userId, achievementId: achievement.id });
                         }
                     }
                     else if (targetLevel.id !== userAchievement.levelId) {
@@ -277,15 +308,32 @@ let AchievementsService = AchievementsService_1 = class AchievementsService {
                 };
             }, {
                 isolationLevel: client_1.Prisma.TransactionIsolationLevel.Serializable,
-                maxWait: 5000,
-                timeout: 10000,
+                maxWait: achievement_constants_1.TRANSACTION_CONFIG.MAX_WAIT_MS,
+                timeout: achievement_constants_1.TRANSACTION_CONFIG.TIMEOUT_MS,
             });
+            timer.end({
+                userId,
+                newlyUnlockedCount: result.newlyUnlocked.length,
+                progressUpdatedCount: result.progressUpdated.length,
+            });
+            if (result.newlyUnlocked.length > 0) {
+                this.logger.info('Achievements unlocked', {
+                    userId,
+                    newlyUnlocked: result.newlyUnlocked.map((a) => ({
+                        achievementId: a.achievementId,
+                        level: a.level,
+                        name: a.name,
+                    })),
+                });
+            }
+            return result;
         }
         catch (error) {
+            timer.fail(error instanceof Error ? error : undefined, { userId });
             if (error instanceof errors_1.AchievementError) {
                 throw error;
             }
-            this.logger.error(`Transaction failed for user ${userId}`, error);
+            this.logger.error('Transaction failed', error, { userId, triggerType: dto.triggerType });
             if (error instanceof client_1.Prisma.PrismaClientKnownRequestError) {
                 if (error.code === 'P2002') {
                     throw new errors_1.ConcurrentModificationError('user_achievement', userId);
@@ -310,6 +358,7 @@ let AchievementsService = AchievementsService_1 = class AchievementsService {
                     userId,
                 },
             });
+            this.logger.info('Created user stats', { userId });
         }
         return stats;
     }
@@ -376,7 +425,7 @@ let AchievementsService = AchievementsService_1 = class AchievementsService {
         if (userStats.lastTrailDate) {
             const lastDate = new Date(userStats.lastTrailDate);
             lastDate.setHours(0, 0, 0, 0);
-            const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+            const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / achievement_constants_1.TIME_CONSTANTS.ONE_DAY);
             if (diffDays === 1) {
                 updateData.currentWeeklyStreak = userStats.currentWeeklyStreak + 1;
                 if (updateData.currentWeeklyStreak > userStats.longestWeeklyStreak) {
@@ -391,7 +440,8 @@ let AchievementsService = AchievementsService_1 = class AchievementsService {
             updateData.currentWeeklyStreak = 1;
         }
         updateData.lastTrailDate = today;
-        const totalTrails = (userStats.uniqueTrailsCount || 0) + (trailId && !userStats.completedTrailIds?.includes(trailId) ? 1 : 0);
+        const totalTrails = (userStats.uniqueTrailsCount || 0) +
+            (trailId && !userStats.completedTrailIds?.includes(trailId) ? 1 : 0);
         if (totalTrails > 0) {
             const totalDistanceKm = (userStats.totalDistanceM + stats.distance) / 1000;
             const totalDurationMin = (userStats.totalDurationSec + stats.duration) / 60;
@@ -424,16 +474,13 @@ let AchievementsService = AchievementsService_1 = class AchievementsService {
         });
     }
     async clearUserAchievementCache(userId) {
-        const deleted = await this.redis.invalidateByTag(`${CACHE_TAGS.USER_ACHIEVEMENTS}:${userId}`);
-        this.logger.debug(`Cleared ${deleted} cache entries for user ${userId}`);
+        const cacheKey = `${achievement_constants_1.ACHIEVEMENT_CONSTANTS.USER_ACHIEVEMENT_CACHE_PREFIX}:${userId}`;
+        await this.redis.del(cacheKey);
+        this.logger.debug('Cleared user achievement cache', { userId });
     }
     async clearAllAchievementCache() {
-        await this.redis.invalidateByTag(CACHE_TAGS.ALL_ACHIEVEMENTS);
-        await this.redis.invalidateByTag(CACHE_TAGS.USER_ACHIEVEMENTS);
-        this.logger.debug('Cleared all achievement cache');
-    }
-    async invalidateCacheByTag(tag) {
-        return this.redis.invalidateByTag(tag);
+        await this.redis.del(achievement_constants_1.ACHIEVEMENT_CONSTANTS.ACHIEVEMENT_LIST_CACHE_KEY);
+        this.logger.info('Cleared all achievement cache');
     }
     mapToAchievementDto(achievement) {
         return {

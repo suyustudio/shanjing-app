@@ -10,6 +10,8 @@ exports.TrailsModule = void 0;
 const common_1 = require("@nestjs/common");
 const trails_controller_1 = require("./trails.controller");
 const trails_service_1 = require("./trails.service");
+const recording_controller_1 = require("./recording.controller");
+const recording_service_1 = require("./recording.service");
 const prisma_module_1 = require("../../database/prisma.module");
 let TrailsModule = class TrailsModule {
 };
@@ -17,9 +19,9 @@ exports.TrailsModule = TrailsModule;
 exports.TrailsModule = TrailsModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule],
-        controllers: [trails_controller_1.TrailsController],
-        providers: [trails_service_1.TrailsService],
-        exports: [trails_service_1.TrailsService],
+        controllers: [trails_controller_1.TrailsController, recording_controller_1.RecordingController],
+        providers: [trails_service_1.TrailsService, recording_service_1.RecordingService],
+        exports: [trails_service_1.TrailsService, recording_service_1.RecordingService],
     })
 ], TrailsModule);
 //# sourceMappingURL=trails.module.js.map
