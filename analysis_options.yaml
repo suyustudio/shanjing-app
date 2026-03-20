@@ -1,0 +1,24 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "M5-*/**"
+    - "M6-*/**"
+    - "M7-*/**"
+    - "M8-*/**"
+    - "test/**"
+    - "integration_test/**"
+    - "lib/generated_plugin_registrant.dart"
+  errors:
+    missing_required_param: error
+    missing_return: error
+    invalid_assignment: warning
+
+linter:
+  rules:
+    avoid_print: false
+    prefer_single_quotes: true
+    prefer_const_constructors: true
+    prefer_final_fields: true
+    avoid_unnecessary_containers: true
+    prefer_const_literals_to_create_immutables: true
