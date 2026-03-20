@@ -2,9 +2,11 @@
  * 评论输入组件
  * 
  * M6 评论系统 - 评论输入框
+ * 设计规范: 最小高度80px, 最大高度120px, 聚焦边框 #2D968A
  */
 
 import 'package:flutter/material.dart';
+import '../../constants/design_system.dart';
 
 /// 评论输入框
 class ReviewInput extends StatefulWidget {
@@ -29,12 +31,20 @@ class ReviewInput extends StatefulWidget {
 
 class _ReviewInputState extends State<ReviewInput> {
   late TextEditingController _controller;
+  late FocusNode _focusNode;
   bool _isComposing = false;
+  bool _isFocused = false;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController();
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      setState(() {
+        _isFocused = _focusNode.hasFocus;
+      });
+    });
     _controller.addListener(() {
       setState(() {
         _isComposing = _controller.text.isNotEmpty;
@@ -45,6 +55,7 @@ class _ReviewInputState extends State<ReviewInput> {
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -59,12 +70,12 @@ class _ReviewInputState extends State<ReviewInput> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: DesignSystem.getBackground(context),
         border: Border(
           top: BorderSide(
-            color: Color(0xFFE5E7EB),
+            color: DesignSystem.getBorder(context),
             width: 0.5,
           ),
         ),
@@ -76,19 +87,24 @@ class _ReviewInputState extends State<ReviewInput> {
           children: [
             // 输入框
             Container(
-              constraints: BoxConstraints(
+              constraints: const BoxConstraints(
                 minHeight: 80,
                 maxHeight: 120,
               ),
               decoration: BoxDecoration(
-                color: Color(0xFFF9FAFB),
-                borderRadius: BorderRadius.circular(8),
+                color: DesignSystem.getBackgroundSecondary(context),
+                borderRadius: BorderRadius.circular(DesignSystem.radius),
                 border: Border.all(
-                  color: Color(0xFFE5E7EB),
+                  // P1: 聚焦边框颜色 #2D968A
+                  color: _isFocused 
+                      ? DesignSystem.primary 
+                      : DesignSystem.border,
+                  width: _isFocused ? 1.5 : 1.0,
                 ),
               ),
               child: TextField(
                 controller: _controller,
+                focusNode: _focusNode,
                 autofocus: widget.autofocus,
                 maxLength: widget.maxLength,
                 maxLines: null,
@@ -97,16 +113,16 @@ class _ReviewInputState extends State<ReviewInput> {
                   hintText: widget.hintText ?? '说点什么...',
                   hintStyle: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF9CA3AF),
+                    color: DesignSystem.getTextTertiary(context),
                   ),
-                  contentPadding: EdgeInsets.all(12),
+                  contentPadding: const EdgeInsets.all(12),
                   border: InputBorder.none,
                   counterText: '',
                 ),
                 onSubmitted: (_) => _handleSubmit(),
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             
             // 底部工具栏
             Row(
@@ -116,10 +132,10 @@ class _ReviewInputState extends State<ReviewInput> {
                   '${_controller.text.length}/${widget.maxLength}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF9CA3AF),
+                    color: DesignSystem.getTextTertiary(context),
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 
                 // 取消按钮
                 if (widget.onCancel != null)
@@ -129,26 +145,19 @@ class _ReviewInputState extends State<ReviewInput> {
                       '取消',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF6B7280),
+                        color: DesignSystem.getTextSecondary(context),
                       ),
                     ),
                   ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 
                 // 发送按钮
                 ElevatedButton(
                   onPressed: _isComposing ? _handleSubmit : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF2D968A),
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: Color(0xFFE5E7EB),
-                    disabledForegroundColor: Color(0xFF9CA3AF),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
+                  style: DesignSystem.primaryButtonStyle(context, 
+                    isDisabled: !_isComposing,
                   ),
-                  child: Text(
+                  child: const Text(
                     '发送',
                     style: TextStyle(
                       fontSize: 14,
@@ -186,10 +195,10 @@ class ReplyInput extends StatelessWidget {
       children: [
         // 回复对象提示
         Container(
-          margin: EdgeInsets.only(bottom: 8),
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Color(0xFFE8F5F3),
+            color: const Color(0xFFE8F5F3),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Row(
@@ -197,15 +206,15 @@ class ReplyInput extends StatelessWidget {
             children: [
               Text(
                 '回复 @$replyToUser:',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 13,
                   color: Color(0xFF1D756B),
                 ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: onCancel,
-                child: Icon(
+                child: const Icon(
                   Icons.close,
                   size: 16,
                   color: Color(0xFF1D756B),
@@ -223,6 +232,114 @@ class ReplyInput extends StatelessWidget {
           autofocus: true,
         ),
       ],
+    );
+  }
+}
+
+/// 底部评论输入栏（用于页面底部固定显示）
+class ReviewInputBar extends StatelessWidget {
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
+  final String? hintText;
+  final VoidCallback? onTap;
+  final String? replyToUser;
+  final VoidCallback? onCancelReply;
+
+  const ReviewInputBar({
+    Key? key,
+    this.controller,
+    this.focusNode,
+    this.hintText,
+    this.onTap,
+    this.replyToUser,
+    this.onCancelReply,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: DesignSystem.getBackground(context),
+        boxShadow: DesignSystem.getShadowLight(context),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 回复提示
+            if (replyToUser != null)
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5F3),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      '回复 @$replyToUser',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF1D756B),
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: onCancelReply,
+                      child: const Icon(
+                        Icons.close,
+                        size: 14,
+                        color: Color(0xFF1D756B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            
+            // 输入框
+            GestureDetector(
+              onTap: onTap,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: DesignSystem.getBackgroundSecondary(context),
+                  borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
+                  border: Border.all(
+                    color: DesignSystem.getBorder(context),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.edit_note,
+                      size: 20,
+                      color: DesignSystem.getTextTertiary(context),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        hintText ?? '写评论...',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: DesignSystem.getTextTertiary(context),
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.send,
+                      size: 20,
+                      color: DesignSystem.getTextTertiary(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

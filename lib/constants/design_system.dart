@@ -41,6 +41,10 @@ class DesignSystem {
   static const Color error = Color(0xFFF44336);
   static const Color info = Color(0xFF2196F3);
 
+  // ==================== 骨架屏颜色 ====================
+  static const Color skeletonBaseColor = Color(0xFFE5E7EB);
+  static const Color skeletonHighlightColor = Color(0xFFF3F4F6);
+
   // ==================== 暗黑模式颜色 (M4 规范) ====================
   
   // 主色调（暗黑模式）

@@ -287,14 +287,40 @@ class _PhotoCard extends StatelessWidget {
   }
 }
 
-/// 照片加载骨架屏
-class PhotoSkeletonGrid extends StatelessWidget {
+/// 照片加载骨架屏 (Masonry 风格)
+class PhotoSkeletonGrid extends StatefulWidget {
   final int itemCount;
 
   const PhotoSkeletonGrid({
     Key? key,
     this.itemCount = 12,
   }) : super(key: key);
+
+  @override
+  State<PhotoSkeletonGrid> createState() => _PhotoSkeletonGridState();
+}
+
+class _PhotoSkeletonGridState extends State<PhotoSkeletonGrid>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _shimmerController;
+
+  // P1: 瀑布流骨架屏应模拟不同高度 (120px-280px)
+  final List<double> _heights = [120.0, 180.0, 150.0, 200.0, 160.0, 220.0, 140.0, 260.0];
+
+  @override
+  void initState() {
+    super.initState();
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _shimmerController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -306,23 +332,56 @@ class PhotoSkeletonGrid extends StatelessWidget {
                 ? 3
                 : 2;
 
-        return GridView.builder(
-          padding: const EdgeInsets.all(4),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 4,
-            crossAxisSpacing: 4,
-            childAspectRatio: 1,
-          ),
-          itemCount: itemCount,
-          itemBuilder: (context, index) {
-            return Container(
-              decoration: BoxDecoration(
-                color: DesignSystem.skeletonBaseColor,
-                borderRadius: BorderRadius.circular(4),
+        // 分配照片到各列
+        final columns = List.generate(crossAxisCount, (_) => <int>[]);
+        for (var i = 0; i < widget.itemCount; i++) {
+          columns[i % crossAxisCount].add(i);
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: columns.map((indices) {
+            return Expanded(
+              child: Column(
+                children: indices.map((index) {
+                  final height = _heights[index % _heights.length];
+                  return Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: _buildShimmerItem(height),
+                  );
+                }).toList(),
               ),
             );
-          },
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildShimmerItem(double height) {
+    return AnimatedBuilder(
+      animation: _shimmerController,
+      builder: (context, child) {
+        return Container(
+          height: height,
+          decoration: BoxDecoration(
+            color: DesignSystem.skeletonBaseColor,
+            borderRadius: BorderRadius.circular(4),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                DesignSystem.skeletonBaseColor,
+                DesignSystem.skeletonHighlightColor,
+                DesignSystem.skeletonBaseColor,
+              ],
+              stops: [
+                0.0,
+                _shimmerController.value,
+                1.0,
+              ],
+            ),
+          ),
         );
       },
     );

@@ -49,9 +49,10 @@ class _PhotoViewerState extends State<PhotoViewer>
 
   @override
   void dispose() {
-    _pageController.dispose();
-    // 恢复状态栏
+    // 恢复状态栏（在释放 controller 之前）
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // 先释放 PageController
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -394,8 +395,10 @@ class _PhotoPageState extends State<_PhotoPage>
 
   @override
   void dispose() {
-    _transformationController.dispose();
+    // 先停止动画，再释放 controller
+    _animationController.stop();
     _animationController.dispose();
+    _transformationController.dispose();
     super.dispose();
   }
 

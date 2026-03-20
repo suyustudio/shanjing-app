@@ -1,4 +1,4 @@
-: HEARTBEAT.md - 定期检查清单
+HEARTBEAT.md - 定期检查清单
 
 ## 检查频率
 每 10 分钟检查一次
@@ -33,39 +33,33 @@
 
 ---
 
-## 当前状态（2026-03-20 晚上 9:07）
+## 当前状态（2026-03-20 晚上 10:47）
 
-### ✅ 已推送 HEARTBEAT 更新
+### ✅ 已推送 API 响应格式更新
 
 **Git 状态：**
 - 本地分支：与 origin/main 同步 ✅
-- 提交：`67d6275c` - docs: 更新 HEARTBEAT 状态 - Build #173 成功 ✅
+- 提交：`82656bee` - fix(api): 统一关注系统响应格式为标准包装 ✅
 - 推送状态：成功推送到 origin/main ✅
-- 未跟踪文件：`: false,`（异常文件）、`shanjing-test/repo/`（测试目录）
+- 修改内容：添加 wrapResponse 统一响应包装，关注系统接口返回格式统一
 
 **GitHub Actions：**
 | Build | 工作流 | 状态 | 说明 |
 |-------|--------|------|------|
-| **#173** | Build APK | ✅ success | 最新构建成功 |
-| #52 | APK Build | ❌ failure | 失败（非阻塞）|
-| #51 | APK Build | ❌ failure | 失败（非阻塞）|
+| **#184** | Build APK | 🔄 in_progress | 新提交触发构建中 |
+| #183 | Build APK | ✅ success | 成功 |
+| #62 | APK Pre-check | ❌ failure | 失败（辅助工作流）|
 
 **关键信息：**
-- ✅ 已推送 HEARTBEAT 状态更新（commit 67d6275c）
-- ✅ Build #173 构建成功
-- ⚠️ Build #52 失败（辅助工作流，非阻塞）
-- ⚠️ 发现异常文件 `: false,` 需要清理
-
-**下一步：**
-- [ ] 清理异常文件 `: false,`
-- [ ] 关注 Build #52 结果
+- ✅ 已推送 API 响应格式更新（commit 82656bee）
+- ✅ 关注系统所有接口返回统一为 {success, data, meta} 格式
+- 🔄 Build #184 构建中（由本次提交触发）
 
 ---
 
 ## 历史状态存档
+- 2026-03-20 22:47: 已推送关注系统响应格式更新，Build #184 触发
 - 2026-03-20 22:07: 已推送 M6-FIX-SUMMARY.md，Build #176 成功
 - 2026-03-20 21:07: 已推送 HEARTBEAT 更新，Build #173 成功
 - 2026-03-20 20:57: 无未推送提交，Build #173 成功，#52 进行中
-- 2026-03-20 20:42: 无未推送提交，Build #171 成功
-- 2026-03-20 19:57: 无未推送提交，Build #170/#169 进行中
 - 详细历史见 `memory/2026-03-20.md`

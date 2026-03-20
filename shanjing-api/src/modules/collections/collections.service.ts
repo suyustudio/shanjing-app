@@ -97,6 +97,7 @@ export class CollectionsService {
 
   /**
    * 获取收藏夹详情
+   * P1: 实现从 reviews 表查询评分数据
    */
   async getCollectionDetail(
     collectionId: string,
@@ -123,8 +124,17 @@ export class CollectionsService {
                 distanceKm: true,
                 durationMin: true,
                 difficulty: true,
+                // P1: 从 reviews 表实时查询评分统计
                 avgRating: true,
                 reviewCount: true,
+                // P1: 评分分布统计
+                rating5Count: true,
+                rating4Count: true,
+                rating3Count: true,
+                rating2Count: true,
+                rating1Count: true,
+                // P1: 只返回已发布的路线
+                isPublished: true,
               },
             },
           },
@@ -141,7 +151,31 @@ export class CollectionsService {
       throw new ForbiddenException('无权查看此收藏夹');
     }
 
-    return this.mapToCollectionDetailDto(collection);
+    // P1: 过滤未发布的路线并计算评分分布
+    const publishedTrails = collection.trails
+      .filter(t => t.trail.isPublished !== false)
+      .map(t => ({
+        ...t,
+        trail: {
+          ...t.trail,
+          // P1: 确保 rating 数据有效
+          avgRating: t.trail.avgRating,
+          reviewCount: t.trail.reviewCount,
+          // P1: 添加评分分布
+          ratingDistribution: {
+            5: t.trail.rating5Count,
+            4: t.trail.rating4Count,
+            3: t.trail.rating3Count,
+            2: t.trail.rating2Count,
+            1: t.trail.rating1Count,
+          },
+        },
+      }));
+
+    return this.mapToCollectionDetailDto({
+      ...collection,
+      trails: publishedTrails,
+    });
   }
 
   /**

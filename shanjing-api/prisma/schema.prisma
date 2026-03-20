@@ -31,7 +31,7 @@ enum AchievementLevelEnum {
   DIAMOND     // 钻石
 }
 
-// ==================== 用户表 ====================
+// ==================== 用户表 (M6 统一版本) ====================
 
 model User {
   id            String    @id @default(uuid())
@@ -42,6 +42,12 @@ model User {
   nickname      String?
   avatarUrl     String?   @map("avatar_url")
   settings      Json      @default("{}")
+  
+  // M6 新增社交统计字段
+  followersCount Int      @default(0) @map("followers_count")
+  followingCount Int      @default(0) @map("following_count")
+  photosCount    Int      @default(0) @map("photos_count")
+  
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -51,6 +57,17 @@ model User {
   trailInteractions UserTrailInteraction[]
   achievements  UserAchievement[]
   stats         UserStats?
+  
+  // M6 新增关联
+  reviews           Review[]
+  reviewReplies     ReviewReply[]
+  reviewLikes       ReviewLike[]
+  photos            Photo[]
+  photoLikes        PhotoLike[]
+  followers         Follow[] @relation("Following")
+  following         Follow[] @relation("Follower")
+  activities        UserActivity[]
+  collections       Collection[]
 
   @@index([phone])
   @@index([wxOpenid])
@@ -81,8 +98,17 @@ model Trail {
   boundsEast        Float?
   boundsWest        Float?
   isActive          Boolean         @default(true)
+  // P1: 添加 isPublished 字段
+  isPublished       Boolean         @default(true) @map("is_published")
+  // P1: 评分字段
   avgRating         Float?          @map("avg_rating")
   reviewCount       Int             @default(0) @map("review_count")
+  // P1: 评分分布统计
+  rating5Count      Int             @default(0) @map("rating_5_count")
+  rating4Count      Int             @default(0) @map("rating_4_count")
+  rating3Count      Int             @default(0) @map("rating_3_count")
+  rating2Count      Int             @default(0) @map("rating_2_count")
+  rating1Count      Int             @default(0) @map("rating_1_count")
   createdBy         String
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
@@ -582,95 +608,4 @@ model CollectionTrail {
   @@unique([collectionId, trailId])
   @@index([collectionId, sortOrder])
   @@map("collection_trails")
-}
-
-// ==================== M6: 扩展现有模型 ====================
-
-model User {
-  id            String    @id @default(uuid())
-  phone         String?   @unique
-  passwordHash  String?   @map("password_hash")
-  wxOpenid      String?   @unique @map("wx_openid")
-  wxUnionid     String?   @unique @map("wx_unionid")
-  nickname      String?
-  avatarUrl     String?   @map("avatar_url")
-  settings      Json      @default("{}")
-  
-  // M6 新增社交统计字段
-  followersCount Int      @default(0) @map("followers_count")
-  followingCount Int      @default(0) @map("following_count")
-  photosCount    Int      @default(0) @map("photos_count")
-  
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  favorites     Favorite[]
-  profile       UserProfile?
-  recommendationLogs RecommendationLog[]
-  trailInteractions UserTrailInteraction[]
-  achievements  UserAchievement[]
-  stats         UserStats?
-  
-  // M6 新增关联
-  reviews           Review[]
-  reviewReplies     ReviewReply[]
-  reviewLikes       ReviewLike[]  // 新增
-  photos            Photo[]
-  photoLikes        PhotoLike[]
-  followers         Follow[] @relation("Following")
-  following         Follow[] @relation("Follower")
-  activities        UserActivity[]
-  collections       Collection[]
-
-  @@index([phone])
-  @@index([wxOpenid])
-  @@map("users")
-}
-
-model Trail {
-  id                String          @id @default(uuid())
-  name              String
-  description       String?
-  distanceKm        Float
-  durationMin       Int
-  elevationGainM    Int
-  difficulty        TrailDifficulty
-  tags              String[]
-  coverImages       String[]
-  gpxUrl            String?
-  city              String
-  district          String
-  startPointLat     Float
-  startPointLng     Float
-  startPointAddress String?
-  safetyInfo        Json?
-  boundsNorth       Float?
-  boundsSouth       Float?
-  boundsEast        Float?
-  boundsWest        Float?
-  isActive          Boolean         @default(true)
-  
-  // 原有评分字段
-  avgRating         Float?          @map("avg_rating")
-  reviewCount       Int             @default(0) @map("review_count")
-  
-  // M6 新增评分统计字段
-  rating5Count      Int             @default(0) @map("rating_5_count")
-  rating4Count      Int             @default(0) @map("rating_4_count")
-  rating3Count      Int             @default(0) @map("rating_3_count")
-  rating2Count      Int             @default(0) @map("rating_2_count")
-  rating1Count      Int             @default(0) @map("rating_1_count")
-  
-  createdBy         String
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  deletedAt         DateTime?
-  
-  pois              TrailPoi[]
-  favorites         Favorite[]
-  
-  // M6 新增关联
-  reviews           Review[]
-  photos            Photo[]
-  collectionTrails  CollectionTrail[]
 }

@@ -128,13 +128,17 @@ class FollowListResult {
   });
 
   factory FollowListResult.fromJson(Map<String, dynamic> json) {
+    // 处理统一响应格式 {success, data, meta}
+    final data = json['data'] ?? json;
+    final list = (data is List) 
+        ? data 
+        : (data['list'] as List<dynamic>? ?? []);
+    
     return FollowListResult(
-      list: (json['list'] as List<dynamic>?)
-          ?.map((e) => FollowUser.fromJson(e))
-          .toList() ?? [],
-      nextCursor: json['nextCursor'],
-      hasMore: json['hasMore'] ?? false,
-      total: json['total'] ?? 0,
+      list: list.map((e) => FollowUser.fromJson(e)).toList(),
+      nextCursor: json['meta']?['cursor'] ?? data['nextCursor'],
+      hasMore: json['meta']?['hasMore'] ?? data['hasMore'] ?? false,
+      total: json['meta']?['total'] ?? data['total'] ?? 0,
     );
   }
 }
@@ -150,9 +154,11 @@ class FollowStatus {
   });
 
   factory FollowStatus.fromJson(Map<String, dynamic> json) {
+    // 处理统一响应格式 {success, data}
+    final data = json['data'] ?? json;
     return FollowStatus(
-      isFollowing: json['isFollowing'] ?? false,
-      isMutual: json['isMutual'] ?? false,
+      isFollowing: data['isFollowing'] ?? false,
+      isMutual: data['isMutual'] ?? false,
     );
   }
 }
@@ -172,11 +178,14 @@ class FollowService {
   Future<FollowActionResult> followUser(String userId) async {
     final response = await _apiClient.post(
       '/v1/users/$userId/follow',
-      parser: (data) => FollowActionResult.fromJson(data),
+      parser: (data) => FollowActionResult.fromJson(data['data'] ?? data),
     );
 
     if (!response.success) {
-      throw Exception(response.errorMessage ?? '关注失败');
+      throw ApiException(
+        message: response.errorMessage ?? '关注失败',
+        code: response.errorCode ?? 'FOLLOW_ERROR',
+      );
     }
 
     return response.data!;
@@ -186,11 +195,14 @@ class FollowService {
   Future<FollowActionResult> unfollowUser(String userId) async {
     final response = await _apiClient.delete(
       '/v1/users/$userId/follow',
-      parser: (data) => FollowActionResult.fromJson(data),
+      parser: (data) => FollowActionResult.fromJson(data['data'] ?? data),
     );
 
     if (!response.success) {
-      throw Exception(response.errorMessage ?? '取消关注失败');
+      throw ApiException(
+        message: response.errorMessage ?? '取消关注失败',
+        code: response.errorCode ?? 'UNFOLLOW_ERROR',
+      );
     }
 
     return response.data!;
@@ -227,7 +239,10 @@ class FollowService {
     );
 
     if (!response.success) {
-      throw Exception(response.errorMessage ?? '获取关注列表失败');
+      throw ApiException(
+        message: response.errorMessage ?? '获取关注列表失败',
+        code: response.errorCode ?? 'GET_FOLLOWING_ERROR',
+      );
     }
 
     return response.data!;
@@ -253,7 +268,10 @@ class FollowService {
     );
 
     if (!response.success) {
-      throw Exception(response.errorMessage ?? '获取粉丝列表失败');
+      throw ApiException(
+        message: response.errorMessage ?? '获取粉丝列表失败',
+        code: response.errorCode ?? 'GET_FOLLOWERS_ERROR',
+      );
     }
 
     return response.data!;
@@ -285,7 +303,10 @@ class FollowService {
     );
 
     if (!response.success) {
-      throw Exception(response.errorMessage ?? '获取推荐关注失败');
+      throw ApiException(
+        message: response.errorMessage ?? '获取推荐关注失败',
+        code: response.errorCode ?? 'GET_SUGGESTIONS_ERROR',
+      );
     }
 
     return response.data!;
@@ -301,7 +322,10 @@ class FollowService {
     );
 
     if (!response.success) {
-      throw Exception(response.errorMessage ?? '获取关注状态失败');
+      throw ApiException(
+        message: response.errorMessage ?? '获取关注状态失败',
+        code: response.errorCode ?? 'GET_STATUS_ERROR',
+      );
     }
 
     return response.data!;
@@ -311,11 +335,14 @@ class FollowService {
   Future<FollowStats> getFollowStats(String userId) async {
     final response = await _apiClient.get(
       '/v1/users/$userId/follow-stats',
-      parser: (data) => FollowStats.fromJson(data),
+      parser: (data) => FollowStats.fromJson(data['data'] ?? data),
     );
 
     if (!response.success) {
-      throw Exception(response.errorMessage ?? '获取关注统计失败');
+      throw ApiException(
+        message: response.errorMessage ?? '获取关注统计失败',
+        code: response.errorCode ?? 'GET_STATS_ERROR',
+      );
     }
 
     return response.data!;
