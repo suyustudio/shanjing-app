@@ -1,10 +1,13 @@
 // recordings_list_screen.dart
-// 山径APP - 轨迹录制列表页面
+// 山径APP - 轨迹录制列表页面（P0修复版）
 
 import 'package:flutter/material.dart';
+import '../constants/design_system.dart';
 import '../models/recording_model.dart';
 import '../services/recording_service.dart';
 import 'recording_screen.dart';
+import 'recording_edit_screen.dart';
+import 'recording_preparation_screen.dart';
 
 /// 录制列表页面
 class RecordingsListScreen extends StatefulWidget {
@@ -14,21 +17,55 @@ class RecordingsListScreen extends StatefulWidget {
   State<RecordingsListScreen> createState() => _RecordingsListScreenState();
 }
 
-class _RecordingsListScreenState extends State<RecordingsListScreen> {
+class _RecordingsListScreenState extends State<RecordingsListScreen>
+    with SingleTickerProviderStateMixin {
   final RecordingService _recordingService = RecordingService();
   List<RecordingSession> _recordings = [];
   bool _isLoading = true;
+  
+  late TabController _tabController;
+  SubmissionStatus _selectedFilter = SubmissionStatus.draft;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(_onTabChanged);
     _loadRecordings();
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      setState(() {
+        switch (_tabController.index) {
+          case 0:
+            _selectedFilter = SubmissionStatus.draft;
+            break;
+          case 1:
+            _selectedFilter = SubmissionStatus.reviewing;
+            break;
+          case 2:
+            _selectedFilter = SubmissionStatus.approved;
+            break;
+          case 3:
+            _selectedFilter = SubmissionStatus.rejected;
+            break;
+        }
+      });
+    }
   }
 
   Future<void> _loadRecordings() async {
     setState(() => _isLoading = true);
     
-    final recordings = await _recordingService.getPendingSessions();
+    final recordings = await _recordingService.getAllSessions();
     
     setState(() {
       _recordings = recordings;
@@ -36,27 +73,78 @@ class _RecordingsListScreenState extends State<RecordingsListScreen> {
     });
   }
 
+  List<RecordingSession> get _filteredRecordings {
+    return _recordings.where((r) => r.submissionStatus == _selectedFilter).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: DesignSystem.getBackground(context),
       appBar: AppBar(
-        title: const Text('我的轨迹'),
+        backgroundColor: DesignSystem.getBackground(context),
+        foregroundColor: DesignSystem.getTextPrimary(context),
+        elevation: 0,
+        title: Text('我的采集', style: DesignSystem.getTitleLarge(context)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: DesignSystem.getPrimary(context)),
             onPressed: _loadRecordings,
           ),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: DesignSystem.getPrimary(context),
+          unselectedLabelColor: DesignSystem.getTextSecondary(context),
+          indicatorColor: DesignSystem.getPrimary(context),
+          tabs: [
+            _buildTab('草稿', SubmissionStatus.draft),
+            _buildTab('审核中', SubmissionStatus.reviewing),
+            _buildTab('已通过', SubmissionStatus.approved),
+            _buildTab('已拒绝', SubmissionStatus.rejected),
+          ],
+        ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _recordings.isEmpty
+          ? Center(child: CircularProgressIndicator(color: DesignSystem.getPrimary(context)))
+          : _filteredRecordings.isEmpty
               ? _buildEmptyState()
               : _buildRecordingsList(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _startNewRecording(),
-        icon: const Icon(Icons.fiber_manual_record),
-        label: const Text('开始录制'),
+        icon: const Icon(Icons.add),
+        label: const Text('新建采集'),
+        backgroundColor: DesignSystem.getPrimary(context),
+      ),
+    );
+  }
+
+  Widget _buildTab(String label, SubmissionStatus status) {
+    final count = _recordings.where((r) => r.submissionStatus == status).length;
+    return Tab(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label),
+          if (count > 0) ...[
+            const SizedBox(width: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: DesignSystem.getPrimary(context).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: DesignSystem.getPrimary(context),
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -69,58 +157,69 @@ class _RecordingsListScreenState extends State<RecordingsListScreen> {
           Icon(
             Icons.map_outlined,
             size: 80,
-            color: Colors.grey[400],
+            color: DesignSystem.getTextTertiary(context).withOpacity(0.5),
           ),
           const SizedBox(height: 16),
           Text(
-            '还没有录制轨迹',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.bold,
+            _getEmptyStateMessage(),
+            style: DesignSystem.getTitleMedium(context)?.copyWith(
+              color: DesignSystem.getTextSecondary(context),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            '点击下方的按钮开始录制你的第一条路线',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
+          if (_selectedFilter == SubmissionStatus.draft) ...[
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => _startNewRecording(),
+              icon: const Icon(Icons.add),
+              label: const Text('开始采集'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: DesignSystem.getPrimary(context),
+                foregroundColor: DesignSystem.textInverse,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => _startNewRecording(),
-            icon: const Icon(Icons.fiber_manual_record),
-            label: const Text('开始录制'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            ),
-          ),
+          ],
         ],
       ),
     );
   }
 
+  String _getEmptyStateMessage() {
+    switch (_selectedFilter) {
+      case SubmissionStatus.draft:
+        return '还没有草稿';
+      case SubmissionStatus.reviewing:
+        return '没有审核中的路线';
+      case SubmissionStatus.approved:
+        return '没有已通过的路线';
+      case SubmissionStatus.rejected:
+        return '没有已拒绝的路线';
+      default:
+        return '暂无数据';
+    }
+  }
+
   Widget _buildRecordingsList() {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: _recordings.length,
+      itemCount: _filteredRecordings.length,
       itemBuilder: (context, index) {
-        final recording = _recordings[index];
+        final recording = _filteredRecordings[index];
         return _buildRecordingCard(recording);
       },
     );
   }
 
   Widget _buildRecordingCard(RecordingSession recording) {
-    final theme = Theme.of(context);
-    
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      color: DesignSystem.getSurface(context),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () => _viewRecordingDetail(recording),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -131,45 +230,61 @@ class _RecordingsListScreenState extends State<RecordingsListScreen> {
                   Expanded(
                     child: Text(
                       recording.trailName ?? '未命名路线',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: DesignSystem.getTitleMedium(context, weight: FontWeight.bold),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  _buildStatusBadge(recording.status),
+                  _buildStatusBadge(recording.submissionStatus),
                 ],
               ),
+              if (recording.city != null || recording.district != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  '${recording.city ?? ''} ${recording.district ?? ''}',
+                  style: DesignSystem.getBodySmall(context),
+                ),
+              ],
               const SizedBox(height: 12),
               Row(
                 children: [
                   _buildInfoChip(Icons.timer, recording.formattedDuration),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   _buildInfoChip(Icons.straighten, recording.formattedDistance),
-                  const SizedBox(width: 12),
-                  _buildInfoChip(Icons.location_on, '${recording.pois.length}个标记'),
+                  const SizedBox(width: 16),
+                  _buildInfoChip(Icons.location_on, '${recording.pois.length}标记'),
                 ],
               ),
-              if (!recording.isUploaded) ...[
-                const Divider(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _uploadRecording(recording),
-                        icon: const Icon(Icons.cloud_upload),
-                        label: const Text('上传'),
+              if (recording.reviewComment != null && 
+                  recording.submissionStatus == SubmissionStatus.rejected) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: DesignSystem.getError(context).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, 
+                        size: 16, 
+                        color: DesignSystem.getError(context)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '拒绝原因: ${recording.reviewComment}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: DesignSystem.getError(context),
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    IconButton(
-                      onPressed: () => _deleteRecording(recording),
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
+              const Divider(height: 24),
+              _buildActionButtons(recording),
             ],
           ),
         ),
@@ -177,32 +292,34 @@ class _RecordingsListScreenState extends State<RecordingsListScreen> {
     );
   }
 
-  Widget _buildStatusBadge(RecordingStatus status) {
+  Widget _buildStatusBadge(SubmissionStatus status) {
     Color color;
     String text;
     
     switch (status) {
-      case RecordingStatus.recording:
-        color = Colors.red;
-        text = '录制中';
+      case SubmissionStatus.draft:
+        color = DesignSystem.getTextSecondary(context);
+        text = '草稿';
         break;
-      case RecordingStatus.paused:
-        color = Colors.orange;
-        text = '已暂停';
+      case SubmissionStatus.submitted:
+      case SubmissionStatus.reviewing:
+        color = DesignSystem.getWarning(context);
+        text = '审核中';
         break;
-      case RecordingStatus.finished:
-        color = Colors.green;
-        text = '已完成';
+      case SubmissionStatus.approved:
+        color = DesignSystem.getSuccess(context);
+        text = '已通过';
         break;
-      default:
-        color = Colors.grey;
-        text = '未知';
+      case SubmissionStatus.rejected:
+        color = DesignSystem.getError(context);
+        text = '已拒绝';
+        break;
     }
     
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -220,78 +337,174 @@ class _RecordingsListScreenState extends State<RecordingsListScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: Colors.grey[600]),
+        Icon(icon, size: 16, color: DesignSystem.getTextSecondary(context)),
         const SizedBox(width: 4),
         Text(
           text,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey[700],
-          ),
+          style: DesignSystem.getBodySmall(context),
         ),
       ],
     );
   }
 
-  void _startNewRecording() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const RecordingScreen(),
-      ),
-    );
-  }
-
-  void _viewRecordingDetail(RecordingSession recording) {
-    // TODO: 实现录制详情页面
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(recording.trailName ?? '路线详情'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildActionButtons(RecordingSession recording) {
+    switch (recording.submissionStatus) {
+      case SubmissionStatus.draft:
+        return Row(
           children: [
-            Text('时长: ${recording.formattedDuration}'),
-            Text('距离: ${recording.formattedDistance}'),
-            Text('轨迹点: ${recording.trackPoints.length}个'),
-            Text('POI标记: ${recording.pois.length}个'),
-            Text('海拔爬升: ${recording.elevationGain.toStringAsFixed(1)}米'),
-            Text('海拔下降: ${recording.elevationLoss.toStringAsFixed(1)}米'),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _editRecording(recording),
+                icon: Icon(Icons.edit, size: 18, color: DesignSystem.getPrimary(context)),
+                label: Text('编辑', style: TextStyle(color: DesignSystem.getPrimary(context))),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: DesignSystem.getBorder(context)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _submitForReview(recording),
+                icon: const Icon(Icons.send, size: 18),
+                label: const Text('提交审核'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: DesignSystem.getPrimary(context),
+                  foregroundColor: DesignSystem.textInverse,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
           ],
+        );
+      
+      case SubmissionStatus.submitted:
+      case SubmissionStatus.reviewing:
+        return Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _viewRecordingDetail(recording),
+                icon: Icon(Icons.visibility, size: 18, color: DesignSystem.getTextSecondary(context)),
+                label: Text('查看详情', style: TextStyle(color: DesignSystem.getTextSecondary(context))),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: DesignSystem.getBorder(context)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+          ],
+        );
+      
+      case SubmissionStatus.approved:
+        return Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _viewRecordingDetail(recording),
+                icon: Icon(Icons.visibility, size: 18, color: DesignSystem.getSuccess(context)),
+                label: Text('查看详情', style: TextStyle(color: DesignSystem.getSuccess(context))),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: DesignSystem.getSuccess(context)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+          ],
+        );
+      
+      case SubmissionStatus.rejected:
+        final canResubmit = recording.submissionCount < 3;
+        return Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _viewRecordingDetail(recording),
+                icon: Icon(Icons.visibility, size: 18, color: DesignSystem.getTextSecondary(context)),
+                label: Text('查看详情', style: TextStyle(color: DesignSystem.getTextSecondary(context))),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: DesignSystem.getBorder(context)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+            if (canResubmit) ...[
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _editRecording(recording),
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: Text('重新编辑(${3 - recording.submissionCount}次)'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: DesignSystem.getWarning(context),
+                    foregroundColor: DesignSystem.textInverse,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        );
+    }
+  }
+
+  Future<void> _startNewRecording() async {
+    // 显示准备页面
+    final preparationData = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const RecordingPreparationScreen(),
+      ),
+    );
+
+    if (preparationData != null && preparationData is RecordingPreparationData) {
+      // 进入录制页面
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const RecordingScreen(),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('关闭'),
-          ),
-        ],
-      ),
-    );
+      );
+
+      // 刷新列表
+      _loadRecordings();
+    }
   }
 
-  Future<void> _uploadRecording(RecordingSession recording) async {
-    // TODO: 实现上传对话框
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('上传轨迹'),
-        content: const Text('上传功能需要在录制页面完成。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('确定'),
-          ),
-        ],
+  Future<void> _editRecording(RecordingSession recording) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RecordingEditScreen(session: recording),
       ),
     );
+
+    if (result != null && result is RecordingSession) {
+      // 更新本地存储
+      await _recordingService.updateSession(result);
+      _loadRecordings();
+    }
   }
 
-  Future<void> _deleteRecording(RecordingSession recording) async {
+  Future<void> _submitForReview(RecordingSession recording) async {
+    if (recording.submissionCount >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('提交次数已达上限(3次)'),
+          backgroundColor: DesignSystem.getError(context),
+        ),
+      );
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('删除录制'),
-        content: const Text('确定要删除这条录制记录吗？此操作不可恢复。'),
+        backgroundColor: DesignSystem.getSurface(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('提交审核', style: DesignSystem.getTitleLarge(context)),
+        content: Text(
+          '提交后路线将进入审核流程，审核通过后会正式发布。\n\n剩余提交次数: ${3 - recording.submissionCount - 1}次',
+          style: DesignSystem.getBodyMedium(context),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -299,23 +512,130 @@ class _RecordingsListScreenState extends State<RecordingsListScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('删除'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DesignSystem.getPrimary(context),
+              foregroundColor: DesignSystem.textInverse,
+            ),
+            child: const Text('提交'),
           ),
         ],
       ),
     );
 
     if (confirmed == true) {
-      final success = await _recordingService.deleteSession(recording.id);
-      if (success) {
-        await _loadRecordings();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('已删除')),
-          );
-        }
-      }
+      final updated = recording.copyWith(
+        submissionStatus: SubmissionStatus.submitted,
+        submissionCount: recording.submissionCount + 1,
+        updatedAt: DateTime.now(),
+      );
+      
+      await _recordingService.updateSession(updated);
+      await _recordingService.submitForReview(updated);
+      
+      _loadRecordings();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('已提交审核'),
+          backgroundColor: DesignSystem.getSuccess(context),
+        ),
+      );
+    }
+  }
+
+  void _viewRecordingDetail(RecordingSession recording) {
+    // TODO: 实现详情页面
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        builder: (_, controller) => Container(
+          decoration: BoxDecoration(
+            color: DesignSystem.getSurface(context),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: ListView(
+            controller: controller,
+            padding: const EdgeInsets.all(24),
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: DesignSystem.getDivider(context),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                recording.trailName ?? '未命名路线',
+                style: DesignSystem.getHeadlineSmall(context)?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildDetailItem('状态', _getStatusText(recording.submissionStatus)),
+              _buildDetailItem('时长', recording.formattedDuration),
+              _buildDetailItem('距离', recording.formattedDistance),
+              _buildDetailItem('轨迹点', '${recording.trackPoints.length}个'),
+              _buildDetailItem('标记点', '${recording.pois.length}个'),
+              _buildDetailItem('海拔爬升', '${recording.elevationGain.toStringAsFixed(1)}米'),
+              _buildDetailItem('海拔下降', '${recording.elevationLoss.toStringAsFixed(1)}米'),
+              _buildDetailItem('提交次数', '${recording.submissionCount}/3'),
+              if (recording.reviewComment != null)
+                _buildDetailItem('审核备注', recording.reviewComment!),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: DesignSystem.getPrimary(context),
+                    foregroundColor: DesignSystem.textInverse,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('关闭'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: DesignSystem.getBodyMedium(context)),
+          Text(value, style: DesignSystem.getBodyMedium(context)?.copyWith(
+            fontWeight: FontWeight.w600,
+          )),
+        ],
+      ),
+    );
+  }
+
+  String _getStatusText(SubmissionStatus status) {
+    switch (status) {
+      case SubmissionStatus.draft:
+        return '草稿';
+      case SubmissionStatus.submitted:
+        return '已提交';
+      case SubmissionStatus.reviewing:
+        return '审核中';
+      case SubmissionStatus.approved:
+        return '已通过';
+      case SubmissionStatus.rejected:
+        return '已拒绝';
     }
   }
 }

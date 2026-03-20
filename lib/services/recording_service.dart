@@ -373,6 +373,93 @@ class RecordingService extends ChangeNotifier {
     }
   }
 
+  /// 获取所有录制会话
+  Future<List<RecordingSession>> getAllSessions() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_storageKey);
+      
+      if (jsonString == null) return [];
+
+      final data = LocalRecordingData.fromJsonString(jsonString);
+      return data.sessions;
+    } catch (e) {
+      onError?.call('读取录制记录失败: $e');
+      return [];
+    }
+  }
+
+  /// 更新录制会话
+  Future<bool> updateSession(RecordingSession session) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_storageKey);
+      
+      LocalRecordingData data;
+      if (jsonString != null) {
+        data = LocalRecordingData.fromJsonString(jsonString);
+      } else {
+        data = LocalRecordingData();
+      }
+
+      // 查找并替换现有会话
+      final existingIndex = data.sessions.indexWhere((s) => s.id == session.id);
+
+      List<RecordingSession> updatedSessions;
+      if (existingIndex >= 0) {
+        updatedSessions = [...data.sessions];
+        updatedSessions[existingIndex] = session;
+      } else {
+        updatedSessions = [...data.sessions, session];
+      }
+
+      final updatedData = LocalRecordingData(sessions: updatedSessions);
+      await prefs.setString(_storageKey, updatedData.toJsonString());
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      onError?.call('更新录制记录失败: $e');
+      return false;
+    }
+  }
+
+  /// 提交审核
+  Future<bool> submitForReview(RecordingSession session) async {
+    try {
+      // 调用API提交审核
+      final response = await _apiClient.post(
+        '/trails/recording/submit',
+        body: {
+          'sessionId': session.id,
+          'trailName': session.trailName,
+          'description': session.description,
+          'city': session.city,
+          'district': session.district,
+          'difficulty': session.difficulty?.name ?? 'EASY',
+          'tags': session.tags,
+          'trackData': session.toJson(),
+        },
+      );
+
+      if (response['success'] == true) {
+        // 更新本地状态为审核中
+        final updatedSession = session.copyWith(
+          submissionStatus: SubmissionStatus.reviewing,
+          updatedAt: DateTime.now(),
+        );
+        await updateSession(updatedSession);
+        return true;
+      } else {
+        onError?.call(response['error']?['message'] ?? '提交失败');
+        return false;
+      }
+    } catch (e) {
+      onError?.call('提交审核失败: $e');
+      return false;
+    }
+  }
+
   /// 上传轨迹到服务器
   Future<TrailUploadResponse?> uploadTrail({
     required String sessionId,
@@ -755,13 +842,3 @@ class RecordingService extends ChangeNotifier {
     super.dispose();
   }
 }
-
-  /// 生成会话ID
-  String _generateSessionId() {
-    return 'rec_${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(10000)}';
-  }
-
-  /// 生成POI ID
-  String _generatePoiId() {
-    return 'poi_${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(10000)}';
-  }

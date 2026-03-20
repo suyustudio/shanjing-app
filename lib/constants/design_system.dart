@@ -207,6 +207,13 @@ class DesignSystem {
         : info;
   }
 
+  /// 根据当前主题获取卡片/表面颜色
+  static Color getSurface(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark 
+        ? backgroundSecondaryDark 
+        : surfacePrimary;
+  }
+
   // ==================== 字体大小 (旧版，保留兼容) ====================
   static const double fontHeading = 18;
   static const double fontBody = 14;
