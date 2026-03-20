@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <!-- 金色渐变 -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DAA520"/>
+      <stop offset="25%" style="stop-color:#FFD700"/>
+      <stop offset="50%" style="stop-color:#FFF8DC"/>
+      <stop offset="75%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#DAA520"/>
+    </linearGradient>
+    <!-- 3D边框渐变 -->
+    <linearGradient id="goldBorder" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF8DC"/>
+      <stop offset="50%" style="stop-color:#B8860B"/>
+      <stop offset="100%" style="stop-color:#8B6914"/>
+    </linearGradient>
+    <!-- 光晕效果 -->
+    <filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-color="#FFD700" flood-opacity="0.5"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 外发光 -->
+  <circle cx="40" cy="40" r="38" fill="none" stroke="#FFD700" stroke-width="2" opacity="0.4" filter="url(#goldGlow)"/>
+  
+  <!-- 立体边框 -->
+  <circle cx="40" cy="40" r="36" fill="url(#goldGradient)" stroke="url(#goldBorder)" stroke-width="3"/>
+  <circle cx="40" cy="40" r="33" fill="none" stroke="#FFF8DC" stroke-width="1" opacity="0.6"/>
+  
+  <!-- 脚印路径+旗帜 -->
+  <g transform="translate(40, 40)">
+    <!-- 路径线 -->
+    <path d="M -15,10 Q -5,0 0,-10 T 15,-20" fill="none" stroke="#B8860B" stroke-width="2" stroke-dasharray="3,2"/>
+    
+    <!-- 脚印1 -->
+    <ellipse cx="-12" cy="8" rx="4" ry="6" fill="#8B6914"/>
+    <circle cx="-12" cy="2" r="2.5" fill="#8B6914"/>
+    
+    <!-- 脚印2 -->
+    <ellipse cx="-2" cy="-2" rx="4" ry="6" fill="#8B6914"/>
+    <circle cx="-2" cy="-8" r="2.5" fill="#8B6914"/>
+    
+    <!-- 脚印3 -->
+    <ellipse cx="8" cy="-12" rx="4" ry="6" fill="#8B6914"/>
+    <circle cx="8" cy="-18" r="2.5" fill="#8B6914"/>
+    
+    <!-- 飘扬旗帜 -->
+    <line x1="18" y1="-22" x2="18" y2="-5" stroke="#8B6914" stroke-width="2"/>
+    <path d="M 18,-22 Q 25,-25 30,-20 Q 25,-15 18,-18" fill="#B8860B"/>
+  </g>
+  
+  <!-- 闪烁星星 -->
+  <g fill="#FFF8DC">
+    <polygon points="15,15 16,18 19,18 16.5,20 17.5,23 15,21 12.5,23 13.5,20 11,18 14,18"/>
+    <polygon points="60,25 61,27 63,27 61.5,28.5 62,30.5 60,29.5 58,30.5 58.5,28.5 57,27 59,27"/>
+    <polygon points="55,55 56,57 58,57 56.5,58.5 57,60.5 55,59.5 53,60.5 53.5,58.5 52,57 54,57"/>
+  </g>
+  
+  <!-- 高光 -->
+  <ellipse cx="26" cy="20" rx="10" ry="6" fill="rgba(255,255,255,0.6)" transform="rotate(-30, 26, 20)"/>
+</svg>

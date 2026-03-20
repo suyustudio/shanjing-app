@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="120" height="120">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DAA520"/>
+      <stop offset="25%" style="stop-color:#FFD700"/>
+      <stop offset="50%" style="stop-color:#FFF8DC"/>
+      <stop offset="75%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#DAA520"/>
+    </linearGradient>
+    <linearGradient id="goldBorder" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF8DC"/>
+      <stop offset="50%" style="stop-color:#B8860B"/>
+      <stop offset="100%" style="stop-color:#8B6914"/>
+    </linearGradient>
+    <linearGradient id="goldFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#8B6914"/>
+      <stop offset="30%" style="stop-color:#DAA520"/>
+      <stop offset="60%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FFF8DC"/>
+    </linearGradient>
+    <filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-color="#FFD700" flood-opacity="0.5"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <circle cx="40" cy="40" r="38" fill="none" stroke="#FFD700" stroke-width="2" opacity="0.4" filter="url(#goldGlow)"/>
+  <circle cx="40" cy="40" r="36" fill="url(#goldGradient)" stroke="url(#goldBorder)" stroke-width="3"/>
+  <circle cx="40" cy="40" r="33" fill="none" stroke="#FFF8DC" stroke-width="1" opacity="0.6"/>
+  
+  <!-- 大火焰+30天 -->
+  <g transform="translate(40, 40)">
+    <!-- 外火焰 -->
+    <path d="M 0,14 C -12,8 -14,-6 -8,-16 C -5,-20 -2,-24 0,-28 C 2,-24 5,-20 8,-16 C 14,-6 12,8 0,14" fill="url(#goldFlame)"/>
+    
+    <!-- 中火焰 -->
+    <path d="M 0,10 C -8,5 -9,-3 -5,-10 C -3,-13 -1,-17 0,-20 C 1,-17 3,-13 5,-10 C 9,-3 8,5 0,10" fill="#FFD700" opacity="0.7"/>
+    
+    <!-- 内火焰 -->
+    <path d="M 0,6 C -5,2 -6,-3 -3,-7 C -1,-10 0,-13 0,-13 C 0,-13 1,-10 3,-7 C 6,-3 5,2 0,6" fill="#FFF8DC" opacity="0.6"/>
+    
+    <!-- 核心 -->
+    <path d="M 0,3 C -2,0 -3,-2 -1,-5 C 0,-7 0,-9 0,-9 C 0,-9 0,-7 1,-5 C 3,-2 2,0 0,3" fill="#FFFFFF" opacity="0.9"/>
+  </g>
+  
+  <!-- 30天 -->
+  <text x="40" y="70" text-anchor="middle" font-size="10" font-weight="bold" fill="#8B6914">30天</text>
+  
+  <!-- 闪烁星星 -->
+  <g fill="#FFF8DC">
+    <polygon points="15,15 16,18 19,18 16.5,20 17.5,23 15,21 12.5,23 13.5,20 11,18 14,18"/>
+    <polygon points="60,25 61,27 63,27 61.5,28.5 62,30.5 60,29.5 58,30.5 58.5,28.5 57,27 59,27"/>
+  </g>
+  
+  <ellipse cx="26" cy="20" rx="10" ry="6" fill="rgba(255,255,255,0.6)" transform="rotate(-30, 26, 20)"/>
+</svg>

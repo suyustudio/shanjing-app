@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <!-- 银色渐变 -->
+    <linearGradient id="silverGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A8A8A8"/>
+      <stop offset="30%" style="stop-color:#C0C0C0"/>
+      <stop offset="60%" style="stop-color:#E8E8E8"/>
+      <stop offset="100%" style="stop-color:#C0C0C0"/>
+    </linearGradient>
+    <!-- 光晕 -->
+    <filter id="silverGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 外光晕 -->
+  <circle cx="40" cy="40" r="38" fill="none" stroke="#C0C0C0" stroke-width="1" opacity="0.3" filter="url(#silverGlow)"/>
+  
+  <!-- 外圈 -->
+  <circle cx="40" cy="40" r="36" fill="url(#silverGradient)" stroke="#808080" stroke-width="2"/>
+  
+  <!-- 双线边框 -->
+  <circle cx="40" cy="40" r="32" fill="none" stroke="#808080" stroke-width="1"/>
+  <circle cx="40" cy="40" r="28" fill="none" stroke="#A0A0A0" stroke-width="0.5"/>
+  
+  <!-- 双脚印+旗帜 -->
+  <g transform="translate(40, 40)">
+    <!-- 左脚印 -->
+    <ellipse cx="-10" cy="-2" rx="5" ry="7" fill="#606060" opacity="0.7"/>
+    <circle cx="-10" cy="-9" r="3" fill="#606060" opacity="0.7"/>
+    <!-- 右脚印 -->
+    <ellipse cx="2" cy="2" rx="5" ry="7" fill="#606060" opacity="0.7"/>
+    <circle cx="2" cy="-5" r="3" fill="#606060" opacity="0.7"/>
+    
+    <!-- 小旗帜 -->
+    <line x1="12" y1="-15" x2="12" y2="10" stroke="#606060" stroke-width="2"/>
+    <path d="M 12,-15 L 22,-10 L 12,-5" fill="#808080"/>
+  </g>
+  
+  <!-- 光泽 -->
+  <ellipse cx="28" cy="22" rx="10" ry="6" fill="rgba(255,255,255,0.5)" transform="rotate(-30, 28, 22)"/>
+</svg>

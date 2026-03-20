@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <linearGradient id="silverGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A8A8A8"/>
+      <stop offset="30%" style="stop-color:#C0C0C0"/>
+      <stop offset="60%" style="stop-color:#E8E8E8"/>
+      <stop offset="100%" style="stop-color:#C0C0C0"/>
+    </linearGradient>
+    <filter id="silverGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <circle cx="40" cy="40" r="38" fill="none" stroke="#C0C0C0" stroke-width="1" opacity="0.3" filter="url(#silverGlow)"/>
+  <circle cx="40" cy="40" r="36" fill="url(#silverGradient)" stroke="#808080" stroke-width="2"/>
+  <circle cx="40" cy="40" r="32" fill="none" stroke="#808080" stroke-width="1"/>
+  <circle cx="40" cy="40" r="28" fill="none" stroke="#A0A0A0" stroke-width="0.5"/>
+  
+  <!-- 多标记+小地图 -->
+  <g transform="translate(40, 38)">
+    <!-- 地图 -->
+    <rect x="-20" y="-14" width="40" height="28" fill="#606060" opacity="0.2" rx="3"/>
+    <path d="M -16,-8 L -6,4 L 4,-4 L 14,6" fill="none" stroke="#606060" stroke-width="1.5"/>
+    
+    <!-- 标记1 -->
+    <path d="M -12,-18 C -15,-18 -17,-15 -17,-12 C -17,-7 -12,0 -12,0 C -12,0 -7,-7 -7,-12 C -7,-15 -9,-18 -12,-18" fill="#C0C0C0" stroke="#606060" stroke-width="1"/>
+    <circle cx="-12" cy="-12" r="2" fill="#606060"/>
+    
+    <!-- 标记2 -->
+    <path d="M 0,-22 C -3,-22 -5,-19 -5,-16 C -5,-11 0,-4 0,-4 C 0,-4 5,-11 5,-16 C 5,-19 3,-22 0,-22" fill="#C0C0C0" stroke="#606060" stroke-width="1"/>
+    <circle cx="0" cy="-16" r="2" fill="#606060"/>
+    
+    <!-- 标记3 -->
+    <path d="M 12,-18 C 9,-18 7,-15 7,-12 C 7,-7 12,0 12,0 C 12,0 17,-7 17,-12 C 17,-15 15,-18 12,-18" fill="#C0C0C0" stroke="#606060" stroke-width="1"/>
+    <circle cx="12" cy="-12" r="2" fill="#606060"/>
+  </g>
+  
+  <!-- 15 -->
+  <text x="40" y="70" text-anchor="middle" font-size="11" font-weight="bold" fill="#404040">15</text>
+  
+  <ellipse cx="28" cy="22" rx="10" ry="6" fill="rgba(255,255,255,0.5)" transform="rotate(-30, 28, 22)"/>
+</svg>

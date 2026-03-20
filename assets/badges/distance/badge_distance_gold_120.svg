@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="120" height="120">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DAA520"/>
+      <stop offset="25%" style="stop-color:#FFD700"/>
+      <stop offset="50%" style="stop-color:#FFF8DC"/>
+      <stop offset="75%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#DAA520"/>
+    </linearGradient>
+    <linearGradient id="goldBorder" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF8DC"/>
+      <stop offset="50%" style="stop-color:#B8860B"/>
+      <stop offset="100%" style="stop-color:#8B6914"/>
+    </linearGradient>
+    <filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-color="#FFD700" flood-opacity="0.5"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <circle cx="40" cy="40" r="38" fill="none" stroke="#FFD700" stroke-width="2" opacity="0.4" filter="url(#goldGlow)"/>
+  <circle cx="40" cy="40" r="36" fill="url(#goldGradient)" stroke="url(#goldBorder)" stroke-width="3"/>
+  <circle cx="40" cy="40" r="33" fill="none" stroke="#FFF8DC" stroke-width="1" opacity="0.6"/>
+  
+  <!-- 100km 路牌+山脉 -->
+  <g transform="translate(40, 42)">
+    <!-- 山脉背景 -->
+    <path d="M -30,18 L -20,0 L -10,8 L 0,-5 L 15,12 L 25,3 L 30,18 Z" fill="#8B6914" opacity="0.3"/>
+    
+    <!-- 路牌柱 -->
+    <rect x="-3" y="-5" width="6" height="28" fill="#8B6914" rx="1"/>
+    
+    <!-- 路牌板 -->
+    <rect x="-22" y="-22" width="44" height="24" fill="#FFD700" stroke="#B8860B" stroke-width="2" rx="3"/>
+    
+    <!-- 文字 100km -->
+    <text x="0" y="-7" text-anchor="middle" font-size="12" font-weight="bold" fill="#8B6914">100</text>
+    <text x="0" y="5" text-anchor="middle" font-size="8" fill="#8B6914">km</text>
+    
+    <!-- 装饰星星 -->
+    <polygon points="-18,-18 -17,-16 -15,-16 -16.5,-14.5 -16,-12.5 -18,-13.5 -20,-12.5 -19.5,-14.5 -21,-16 -19,-16" fill="#8B6914"/>
+  </g>
+  
+  <!-- 闪烁星星 -->
+  <g fill="#FFF8DC">
+    <polygon points="15,15 16,18 19,18 16.5,20 17.5,23 15,21 12.5,23 13.5,20 11,18 14,18"/>
+    <polygon points="60,25 61,27 63,27 61.5,28.5 62,30.5 60,29.5 58,30.5 58.5,28.5 57,27 59,27"/>
+  </g>
+  
+  <ellipse cx="26" cy="20" rx="10" ry="6" fill="rgba(255,255,255,0.6)" transform="rotate(-30, 26, 20)"/>
+</svg>
