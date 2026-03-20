@@ -33,6 +33,34 @@
 
 ---
 
+## 当前状态（2026-03-20 上午）
+
+### ✅ Build #139 成功！
+
+**修复内容：**
+- 添加 `_mapKey` 管理 AMapWidget 生命周期
+- `dispose` 中调用 `_locationPlugin?.destroy()`
+- 移除 `dispose` 中的 Analytics 上报
+- 设置 `_navigationCompleted = true` 防止后续事件
+
+**构建历史：**
+| Build | 工作流 | 状态 | 耗时 | 说明 |
+|-------|--------|------|------|------|
+| **#139** | **Build APK** | **✅ 成功** | 4m25s | 导航返回崩溃修复 v2 |
+| **#138** | Build APK | ✅ 成功 | - | mounted 检查 |
+| **#136** | Build APK | ✅ 成功 | 4m46s | 新手引导修复 |
+| E2E | E2E Tests | ❌ 失败 | - | 非阻塞 |
+| Pre-check | APK Pre-check | ❌ 失败 | - | 非阻塞 |
+
+**本地状态：**
+- 与 origin/main 同步 ✅
+- 今日 memory 文件已创建 ✅
+
+**下一步：**
+- 等待用户测试 Build #139 导航返回
+
+---
+
 ## 当前状态（2026-03-20 凌晨）
 
 ### ✅ Build #136 成功！
