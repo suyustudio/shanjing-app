@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { AchievementError } from '../../modules/achievements/errors/achievement.errors';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -26,7 +27,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       },
     };
 
-    if (exception instanceof HttpException) {
+    // 处理成就系统自定义错误
+    if (exception instanceof AchievementError) {
+      status = exception.statusCode;
+      errorResponse = exception.toJSON();
+    } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
