@@ -457,6 +457,13 @@ class _NavigationScreenState extends State<NavigationScreen>
       _status = NavigationStatus.navigating;
     });
 
+    // 移动地图相机到当前位置（跟随定位）
+    if (_mapController != null && _currentLatLng != null) {
+      _mapController!.moveCamera(
+        CameraUpdate.newLatLng(_currentLatLng!),
+      );
+    }
+
     // 更新导航进度
     _updateNavigationProgress();
 
