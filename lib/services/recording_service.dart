@@ -96,8 +96,7 @@ class RecordingService extends ChangeNotifier {
       
       // 设置定位选项
       await _locationPlugin?.setLocationOption(AMapLocationOption(
-        locationMode: AMapLocationMode.hightAccuracy,
-        gpsFirst: true,
+        locationMode: AMapLocationMode.highAccuracy,
         needAddress: true,
         interval: 1000,
       ));
@@ -442,7 +441,7 @@ class RecordingService extends ChangeNotifier {
         },
       );
 
-      if (response['success'] == true) {
+      if (response.success == true) {
         // 更新本地状态为审核中
         final updatedSession = session.copyWith(
           submissionStatus: SubmissionStatus.reviewing,
@@ -451,7 +450,7 @@ class RecordingService extends ChangeNotifier {
         await updateSession(updatedSession);
         return true;
       } else {
-        onError?.call(response['error']?['message'] ?? '提交失败');
+        onError?.call(response.errorMessage ?? '提交失败');
         return false;
       }
     } catch (e) {

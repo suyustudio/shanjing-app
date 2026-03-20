@@ -2,6 +2,7 @@
 // 山径APP - 轨迹录制数据模型
 
 import 'dart:convert';
+import 'package:flutter/material.dart';
 
 /// 录制状态枚举
 enum RecordingStatus {
