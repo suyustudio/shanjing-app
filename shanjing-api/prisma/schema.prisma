@@ -13,6 +13,7 @@ enum TrailDifficulty {
   EASY
   MODERATE
   HARD
+  EXPERT
 }
 
 enum AchievementCategory {
@@ -204,6 +205,26 @@ model RecommendationLog {
   @@map("recommendation_logs")
 }
 
+// ==================== 推荐曝光记录表 ====================
+
+model RecommendationImpression {
+  id              String    @id @default(uuid())
+  userId          String?   @map("user_id") // 可选，未登录用户也可能曝光
+  trailId         String    @map("trail_id")
+  scene           String    // 推荐场景：home, list, similar, nearby
+  logId           String?   @map("log_id") // 关联的推荐日志ID
+  viewedAt        DateTime  @default(now()) @map("viewed_at") // 曝光时间
+  
+  // 时间戳
+  createdAt       DateTime  @default(now()) @map("created_at")
+  
+  @@index([userId, viewedAt])
+  @@index([trailId])
+  @@index([scene])
+  @@index([logId])
+  @@map("recommendation_impressions")
+}
+
 // ==================== 用户路线交互记录（用于推荐）====================
 
 model UserTrailInteraction {
@@ -306,13 +327,14 @@ model UserStats {
   uniqueTrailsCount       Int      @default(0) @map("unique_trails_count")
   completedTrailIds       String[] @default([]) @map("completed_trail_ids")
 
-  // 频率统计
+  // 频率统计 (连续天数 - PRD要求)
+  currentStreak           Int      @default(0) @map("current_streak")
+  longestStreak           Int      @default(0) @map("longest_streak")
+  lastTrailDate           DateTime? @map("last_trail_date")
+  
+  // 保留周统计用于其他用途
   currentWeeklyStreak     Int      @default(0) @map("current_weekly_streak")
   longestWeeklyStreak     Int      @default(0) @map("longest_weekly_streak")
-  currentMonthlyStreak    Int      @default(0) @map("current_monthly_streak")
-  lastTrailDate           DateTime? @map("last_trail_date")
-  trailCountThisWeek      Int      @default(0) @map("trail_count_this_week")
-  trailCountThisMonth     Int      @default(0) @map("trail_count_this_month")
 
   // 挑战统计
   nightTrailCount         Int      @default(0) @map("night_trail_count")
@@ -321,6 +343,7 @@ model UserStats {
 
   // 社交统计
   shareCount              Int      @default(0) @map("share_count")
+  totalLikesReceived      Int      @default(0) @map("total_likes_received")
 
   // 用户画像（用于推荐）
   avgDistanceKm           Float?   @map("avg_distance_km")

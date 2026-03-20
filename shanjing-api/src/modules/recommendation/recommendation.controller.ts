@@ -19,6 +19,7 @@ import {
   GetRecommendationsDto,
   RecommendationsResponseDto,
   FeedbackDto,
+  ImpressionDto,
 } from './dto/recommendation.dto';
 
 @ApiTags('推荐')
@@ -56,6 +57,21 @@ export class RecommendationController {
   ): Promise<{ success: boolean }> {
     const userId = (req as any).user?.userId;
     const result = await this.recommendationService.recordFeedback(dto, userId);
+    return result;
+  }
+
+  @Post('impression')
+  @ApiOperation({ summary: '记录推荐曝光事件' })
+  @ApiResponse({
+    status: 200,
+    description: '曝光记录成功',
+  })
+  async recordImpression(
+    @Body() dto: ImpressionDto,
+    @Req() req: Request,
+  ): Promise<{ success: boolean; message: string }> {
+    const userId = (req as any).user?.userId;
+    const result = await this.recommendationService.recordImpression(dto, userId);
     return result;
   }
 }

@@ -36,6 +36,14 @@ export class RedisService {
     this.cache.set(key, { value, expires });
   }
 
+  /**
+   * 设置带过期时间的缓存
+   */
+  async setex(key: string, ttlSeconds: number, value: string): Promise<void> {
+    const expires = Date.now() + ttlSeconds * 1000;
+    this.cache.set(key, { value, expires });
+  }
+
   async del(...keys: string[]): Promise<void> {
     for (const key of keys) {
       this.cache.delete(key);
@@ -45,6 +53,26 @@ export class RedisService {
   async keys(pattern: string): Promise<string[]> {
     const regex = new RegExp(pattern.replace('*', '.*'));
     return Array.from(this.cache.keys()).filter(key => regex.test(key));
+  }
+
+  /**
+   * 删除匹配模式的所有键
+   */
+  async delPattern(pattern: string): Promise<number> {
+    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    const keysToDelete: string[] = [];
+    
+    for (const key of this.cache.keys()) {
+      if (regex.test(key)) {
+        keysToDelete.push(key);
+      }
+    }
+    
+    for (const key of keysToDelete) {
+      this.cache.delete(key);
+    }
+    
+    return keysToDelete.length;
   }
 
   private cleanExpired(): void {

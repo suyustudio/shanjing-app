@@ -13,11 +13,19 @@ import {
   RecommendedTrailDto,
   MatchFactorsDto,
   FeedbackDto,
+  ImpressionDto,
   RecommendationScene,
 } from '../dto/recommendation.dto';
 
 const CACHE_PREFIX = 'recommendation:';
-const CACHE_TTL_SECONDS = 300; // 5分钟缓存
+
+// 按场景配置缓存 TTL（秒）
+const CACHE_TTL_BY_SCENE: Record<RecommendationScene, number> = {
+  [RecommendationScene.HOME]: 300,      // 首页推荐: 5分钟
+  [RecommendationScene.LIST]: 600,      // 列表推荐: 10分钟
+  [RecommendationScene.SIMILAR]: 1800,  // 详情推荐(相似路线): 30分钟
+  [RecommendationScene.NEARBY]: 120,    // 附近推荐: 2分钟（位置敏感）
+};
 
 @Injectable()
 export class RecommendationService {
@@ -121,8 +129,14 @@ export class RecommendationService {
         results: recommendedTrails.map(t => ({
           trailId: t.id,
           score: t.matchScore,
-          factors: t.matchFactors,
-        })),
+          factors: {
+            difficultyMatch: t.matchFactors.difficultyMatch,
+            distance: t.matchFactors.distance,
+            rating: t.matchFactors.rating,
+            popularity: t.matchFactors.popularity,
+            freshness: t.matchFactors.freshness,
+          },
+        })) as any,
       },
     });
 
@@ -133,8 +147,8 @@ export class RecommendationService {
       trails: recommendedTrails,
     };
 
-    // 写入缓存
-    await this.setCache(cacheKey, response);
+    // 写入缓存（使用场景化TTL）
+    await this.setCache(cacheKey, response, scene);
 
     return response;
   }
@@ -172,6 +186,56 @@ export class RecommendationService {
     await this.clearUserCache(currentUserId);
 
     return { success: true };
+  }
+
+  /**
+   * 记录推荐曝光事件
+   */
+  async recordImpression(
+    dto: ImpressionDto,
+    currentUserId?: string,
+  ): Promise<{ success: boolean; message: string }> {
+    const { scene, trailIds, logId, timestamp } = dto;
+
+    if (!trailIds || trailIds.length === 0) {
+      return { success: false, message: 'trailIds cannot be empty' };
+    }
+
+    try {
+      // 批量记录曝光日志
+      const impressionData = trailIds.map(trailId => ({
+        userId: currentUserId,
+        trailId,
+        scene,
+        logId,
+        timestamp: timestamp ? new Date(timestamp) : new Date(),
+      }));
+
+      // 使用事务批量创建曝光记录
+      await this.prisma.$transaction(async (tx) => {
+        for (const data of impressionData) {
+          await tx.recommendationImpression.create({
+            data: {
+              userId: data.userId,
+              trailId: data.trailId,
+              scene: data.scene,
+              logId: data.logId,
+              viewedAt: data.timestamp,
+            },
+          });
+        }
+      });
+
+      this.logger.debug(`Recorded ${trailIds.length} impressions for user ${currentUserId}, scene: ${scene}`);
+
+      return { 
+        success: true, 
+        message: `Recorded ${trailIds.length} impressions successfully` 
+      };
+    } catch (error) {
+      this.logger.error(`Failed to record impression: ${error.message}`);
+      return { success: false, message: error.message };
+    }
   }
 
   /**
@@ -340,9 +404,11 @@ export class RecommendationService {
   private async setCache(
     key: string,
     value: RecommendationsResponseDto,
+    scene: RecommendationScene = RecommendationScene.HOME,
   ): Promise<void> {
     try {
-      await this.redis.set(key, JSON.stringify(value), CACHE_TTL_SECONDS);
+      const ttl = CACHE_TTL_BY_SCENE[scene] || CACHE_TTL_BY_SCENE[RecommendationScene.HOME];
+      await this.redis.set(key, JSON.stringify(value), ttl);
     } catch (error) {
       this.logger.warn(`Failed to cache recommendation: ${error.message}`);
     }

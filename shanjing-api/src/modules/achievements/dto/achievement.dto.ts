@@ -3,9 +3,48 @@
 // 成就系统数据传输对象
 // ================================================================
 
-import { IsString, IsNumber, IsBoolean, IsOptional, IsEnum, IsUUID } from 'class-validator';
+import { 
+  IsString, 
+  IsNumber, 
+  IsBoolean, 
+  IsOptional, 
+  IsEnum, 
+  IsUUID, 
+  ValidateNested,
+  Min,
+  Max,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { AchievementCategory, AchievementLevelEnum } from '@prisma/client';
+
+// ==================== 轨迹统计 DTO (新增嵌套验证) ====================
+
+export class TrailStatsDto {
+  @ApiProperty({ description: '距离（米）' })
+  @IsNumber()
+  @Min(0)
+  @Max(1000000) // 最大1000公里
+  distance: number;
+
+  @ApiProperty({ description: '时长（秒）' })
+  @IsNumber()
+  @Min(0)
+  @Max(86400) // 最大24小时
+  duration: number;
+
+  @ApiProperty({ description: '是否夜间' })
+  @IsBoolean()
+  isNight: boolean;
+
+  @ApiProperty({ description: '是否雨天' })
+  @IsBoolean()
+  isRain: boolean;
+
+  @ApiProperty({ description: '是否独自' })
+  @IsBoolean()
+  isSolo: boolean;
+}
 
 // ==================== 成就等级 DTO ====================
 
@@ -149,7 +188,7 @@ export class UserAchievementSummaryDto {
   achievements: UserAchievementDto[];
 }
 
-// ==================== 检查成就请求 DTO ====================
+// ==================== 检查成就请求 DTO (增强验证) ====================
 
 export class CheckAchievementsRequestDto {
   @ApiProperty({ description: '触发类型', enum: ['trail_completed', 'share', 'manual'] })
@@ -161,15 +200,11 @@ export class CheckAchievementsRequestDto {
   @IsString()
   trailId?: string;
 
-  @ApiProperty({ description: '轨迹统计数据', required: false })
+  @ApiProperty({ description: '轨迹统计数据', required: false, type: TrailStatsDto })
   @IsOptional()
-  stats?: {
-    distance: number;      // 距离（米）
-    duration: number;      // 时长（秒）
-    isNight: boolean;      // 是否夜间
-    isRain: boolean;       // 是否雨天
-    isSolo: boolean;       // 是否独自
-  };
+  @ValidateNested()
+  @Type(() => TrailStatsDto)
+  stats?: TrailStatsDto;
 }
 
 // ==================== 新解锁成就 DTO ====================
@@ -264,43 +299,4 @@ export class UserStatsDto {
   @ApiProperty({ description: '分享次数' })
   @IsNumber()
   shareCount: number;
-}
-
-// ==================== 更新用户统计 DTO ====================
-
-export class UpdateUserStatsDto {
-  @ApiProperty({ description: '距离（米）' })
-  @IsNumber()
-  @IsOptional()
-  distance?: number;
-
-  @ApiProperty({ description: '时长（秒）' })
-  @IsNumber()
-  @IsOptional()
-  duration?: number;
-
-  @ApiProperty({ description: '爬升（米）' })
-  @IsNumber()
-  @IsOptional()
-  elevationGain?: number;
-
-  @ApiProperty({ description: '路线ID' })
-  @IsString()
-  @IsOptional()
-  trailId?: string;
-
-  @ApiProperty({ description: '是否夜间' })
-  @IsBoolean()
-  @IsOptional()
-  isNight?: boolean;
-
-  @ApiProperty({ description: '是否雨天' })
-  @IsBoolean()
-  @IsOptional()
-  isRain?: boolean;
-
-  @ApiProperty({ description: '是否独自' })
-  @IsBoolean()
-  @IsOptional()
-  isSolo?: boolean;
 }

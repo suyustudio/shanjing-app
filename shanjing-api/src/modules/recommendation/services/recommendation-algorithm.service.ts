@@ -1,8 +1,8 @@
 // ============================================
-// 推荐算法服务 - 5因子排序引擎 V1
+// 推荐算法服务 - 5因子排序引擎 V2 (Performance Optimized)
 // ============================================
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { RedisService } from '../../../shared/redis/redis.service';
 import { TrailDifficulty } from '@prisma/client';
@@ -44,13 +44,20 @@ const DIFFICULTY_MAP: Record<TrailDifficulty, number> = {
   [TrailDifficulty.EASY]: 1,
   [TrailDifficulty.MODERATE]: 2,
   [TrailDifficulty.HARD]: 3,
+  [TrailDifficulty.EXPERT]: 4,
 };
 
 const MAX_REFERENCE_DISTANCE_KM = 100;
 const FRESHNESS_DECAY_DAYS = 90;
 
+// 缓存配置
+const POPULARITY_CACHE_TTL = 300; // 5分钟
+const RECOMMENDATION_CACHE_TTL = 600; // 10分钟
+
 @Injectable()
 export class RecommendationAlgorithmService {
+  private readonly logger = new Logger(RecommendationAlgorithmService.name);
+
   constructor(
     private prisma: PrismaService,
     private redis: RedisService,
@@ -78,16 +85,20 @@ export class RecommendationAlgorithmService {
       ? NEARBY_WEIGHTS 
       : DEFAULT_WEIGHTS;
 
+    // 批量获取所有路线的热度数据 - 修复 N+1 查询问题
+    const popularityData = await this.batchGetPopularityData(trails.map(t => t.id));
+
     const scoredTrails: ScoredTrail[] = [];
 
     for (const trail of trails) {
       const featureVector = this.extractTrailFeatures(trail);
+      const popularity = popularityData.get(trail.id) || { completionScore: 0, bookmarkScore: 0 };
       
       const factors = {
         difficultyMatch: this.calculateDifficultyMatch(featureVector, userPrefs),
         distance: this.calculateDistanceScore(featureVector, userLat, userLng, trail),
         rating: this.calculateRatingScore(trail),
-        popularity: await this.calculatePopularityScore(trail),
+        popularity: this.calculatePopularityScoreFromData(trail, popularity),
         freshness: this.calculateFreshnessScore(trail),
       };
 
@@ -120,6 +131,88 @@ export class RecommendationAlgorithmService {
       }
       return (a.userDistanceM || Infinity) - (b.userDistanceM || Infinity);
     });
+  }
+
+  // ============ 批量查询优化 (修复 N+1) ============
+
+  /**
+   * 批量获取热度数据 - 使用 groupBy 替代循环查询
+   * 将 N 次查询优化为 2 次查询
+   */
+  private async batchGetPopularityData(trailIds: string[]): Promise<Map<string, { completionScore: number; bookmarkScore: number }>> {
+    const result = new Map<string, { completionScore: number; bookmarkScore: number }>();
+    
+    if (trailIds.length === 0) {
+      return result;
+    }
+
+    // 检查缓存
+    const cacheKey = `popularity:batch:${trailIds.sort().join(',')}`;
+    const cached = await this.redis.get(cacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        return new Map(Object.entries(parsed));
+      } catch {
+        // 缓存解析失败，继续查询
+      }
+    }
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    try {
+      // 批量查询 - 2 次 groupBy 替代 N 次 count
+      const [completionCounts, bookmarkCounts] = await Promise.all([
+        this.prisma.userTrailInteraction.groupBy({
+          by: ['trailId'],
+          where: {
+            trailId: { in: trailIds },
+            interactionType: 'complete',
+            createdAt: { gte: thirtyDaysAgo },
+          },
+          _count: { trailId: true },
+        }),
+        this.prisma.userTrailInteraction.groupBy({
+          by: ['trailId'],
+          where: {
+            trailId: { in: trailIds },
+            interactionType: 'bookmark',
+          },
+          _count: { trailId: true },
+        }),
+      ]);
+
+      // 构建查询结果映射
+      const completionMap = new Map(completionCounts.map(c => [c.trailId, c._count.trailId]));
+      const bookmarkMap = new Map(bookmarkCounts.map(c => [c.trailId, c._count.trailId]));
+
+      for (const trailId of trailIds) {
+        const recentCompletions = completionMap.get(trailId) || 0;
+        const bookmarkCount = bookmarkMap.get(trailId) || 0;
+        
+        result.set(trailId, {
+          completionScore: recentCompletions,
+          bookmarkScore: bookmarkCount,
+        });
+      }
+
+      // 写入缓存
+      await this.redis.setex(
+        cacheKey,
+        POPULARITY_CACHE_TTL,
+        JSON.stringify(Object.fromEntries(result))
+      );
+
+    } catch (error) {
+      this.logger.error('Failed to batch get popularity data', error);
+      // 返回默认值，不阻断推荐流程
+      for (const trailId of trailIds) {
+        result.set(trailId, { completionScore: 0, bookmarkScore: 0 });
+      }
+    }
+
+    return result;
   }
 
   // ============ 因子计算 ============
@@ -208,32 +301,15 @@ export class RecommendationAlgorithmService {
 
   /**
    * 因子4: 热度
-   * 计算路线的热度分数
+   * 从批量查询数据计算热度分数
    */
-  private async calculatePopularityScore(trail: any): Promise<number> {
-    // 获取近期完成数（30天内）
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const recentCompletions = await this.prisma.userTrailInteraction.count({
-      where: {
-        trailId: trail.id,
-        interactionType: 'complete',
-        createdAt: { gte: thirtyDaysAgo },
-      },
-    });
-
-    // 获取收藏数
-    const bookmarkCount = await this.prisma.userTrailInteraction.count({
-      where: {
-        trailId: trail.id,
-        interactionType: 'bookmark',
-      },
-    });
-
+  private calculatePopularityScoreFromData(
+    trail: any,
+    data: { completionScore: number; bookmarkScore: number },
+  ): number {
     // 热度分 = min(1.0, 近30天完成人数 / 100 + 收藏数 / 50)
-    const completionScore = recentCompletions / 100;
-    const bookmarkScore = bookmarkCount / 50;
+    const completionScore = data.completionScore / 100;
+    const bookmarkScore = data.bookmarkScore / 50;
     let score = Math.min(1, completionScore * 0.6 + bookmarkScore * 0.4);
 
     // 新路线保护期（30天内）热度分保底 0.5
@@ -336,5 +412,13 @@ export class RecommendationAlgorithmService {
     }
 
     return '为你推荐';
+  }
+
+  /**
+   * 清除推荐缓存
+   */
+  async clearRecommendationCache(userId: string): Promise<void> {
+    const pattern = `recommendation:*:${userId}:*`;
+    await this.redis.delPattern(pattern);
   }
 }

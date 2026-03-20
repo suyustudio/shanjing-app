@@ -86,6 +86,29 @@ export class FeedbackDto {
   durationSec?: number;
 }
 
+// ============ 曝光追踪 DTO ============
+
+export class ImpressionDto {
+  @ApiProperty({ description: '推荐场景' })
+  @IsEnum(RecommendationScene)
+  scene: RecommendationScene;
+
+  @ApiProperty({ description: '曝光的路线ID列表' })
+  @IsArray()
+  @IsString({ each: true })
+  trailIds: string[];
+
+  @ApiPropertyOptional({ description: '推荐日志ID' })
+  @IsOptional()
+  @IsString()
+  logId?: string;
+
+  @ApiPropertyOptional({ description: '曝光时间戳' })
+  @IsOptional()
+  @IsString()
+  timestamp?: string;
+}
+
 // ============ 响应 DTO ============
 
 export class MatchFactorsDto {

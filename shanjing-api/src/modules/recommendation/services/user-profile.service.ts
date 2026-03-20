@@ -269,6 +269,7 @@ export class UserProfileService {
       [TrailDifficulty.EASY]: 1,
       [TrailDifficulty.MODERATE]: 2,
       [TrailDifficulty.HARD]: 3,
+      [TrailDifficulty.EXPERT]: 4,
     };
     return map[difficulty] || 2;
   }

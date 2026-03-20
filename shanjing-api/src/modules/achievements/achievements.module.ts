@@ -6,12 +6,14 @@
 import { Module } from '@nestjs/common';
 import { AchievementsController, UserStatsController } from './achievements.controller';
 import { AchievementsService } from './achievements.service';
+import { AchievementsCheckerService } from './achievements-checker.service';
 import { PrismaModule } from '../../database/prisma.module';
+import { RedisModule } from '../../shared/redis/redis.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, RedisModule],
   controllers: [AchievementsController, UserStatsController],
-  providers: [AchievementsService],
-  exports: [AchievementsService],
+  providers: [AchievementsService, AchievementsCheckerService],
+  exports: [AchievementsService, AchievementsCheckerService],
 })
 export class AchievementsModule {}
