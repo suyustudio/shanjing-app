@@ -5,6 +5,8 @@ import '../widgets/app_app_bar.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
 import 'safety_center_screen.dart';
+import 'recordings_list_screen.dart';
+import 'recording_qualification_screen.dart';
 
 /// 我的页面
 class ProfileScreen extends StatefulWidget {
@@ -57,6 +59,63 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const SafetyCenterScreen()),
+    );
+  }
+
+  /// 跳转到我的采集
+  void _goToMyRecordings() {
+    // 检查登录状态
+    if (!_isLoggedIn) {
+      _showLoginRequiredDialog();
+      return;
+    }
+    
+    // 检查采集资格（模拟）
+    final hasQualification = true; // 实际应该从服务获取
+    
+    if (!hasQualification) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const RecordingQualificationScreen()),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const RecordingsListScreen()),
+      );
+    }
+  }
+
+  /// 显示需要登录的对话框
+  void _showLoginRequiredDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: DesignSystem.getSurface(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('需要登录', style: DesignSystem.getTitleLarge(context)),
+        content: Text(
+          '请先登录后再使用采集功能',
+          style: DesignSystem.getBodyMedium(context),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _goToLogin();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DesignSystem.getPrimary(context),
+              foregroundColor: DesignSystem.textInverse,
+            ),
+            child: const Text('去登录'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -220,6 +279,33 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
   Widget _buildSettingsList(BuildContext context) {
     return Column(
       children: [
+        // 我的采集（新增）
+        ListTile(
+          leading: Icon(
+            Icons.videocam,
+            color: DesignSystem.getPrimary(context),
+          ),
+          title: Text(
+            '我的采集',
+            style: TextStyle(
+              color: DesignSystem.getTextPrimary(context),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          subtitle: Text(
+            '管理和提交录制的路线',
+            style: TextStyle(
+              fontSize: 12,
+              color: DesignSystem.getTextTertiary(context),
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: DesignSystem.getTextTertiary(context),
+          ),
+          onTap: _goToMyRecordings,
+        ),
+        Divider(color: DesignSystem.getDivider(context)),
         ListTile(
           leading: Icon(
             Icons.settings,

@@ -338,19 +338,6 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const RecordingsListScreen(),
-            ),
-          );
-        },
-        icon: const Icon(Icons.videocam),
-        label: const Text('录制'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-      ),
     );
   }
 }
