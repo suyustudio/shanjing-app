@@ -68,6 +68,7 @@ model User {
   
   // 关联关系
   favorites         Favorite[]
+  collections       Collection[]
   trackRecords      TrackRecord[]
   
   // 时间戳
@@ -116,6 +117,7 @@ model Trail {
   
   pois             Poi[]
   favorites        Favorite[]
+  collectionTrails CollectionTrail[]
   offlinePackages  OfflinePackage[]
   trackRecords     TrackRecord[]
   
@@ -194,6 +196,50 @@ model Favorite {
   @@index([userId, createdAt])
   @@index([trailId])
   @@map("favorites")
+}
+
+// ==================== 收藏夹模块 (M6新增) ====================
+
+// 收藏夹表
+model Collection {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  name         String   @db.VarChar(20)
+  description  String?  @db.VarChar(200)
+  coverUrl     String?  @map("cover_url")
+  trailCount   Int      @default(0) @map("trail_count")
+  isPublic     Boolean  @default(true) @map("is_public")
+  isDefault    Boolean  @default(false) @map("is_default")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trails       CollectionTrail[]
+  
+  @@unique([userId, name])
+  @@index([userId, sortOrder])
+  @@index([userId, isDefault])
+  @@index([isPublic, createdAt])
+  @@map("collections")
+}
+
+// 收藏夹-路线关联表
+model CollectionTrail {
+  id            String   @id @default(cuid())
+  collectionId  String   @map("collection_id")
+  trailId       String   @map("trail_id")
+  note          String?  @db.VarChar(200)
+  addedAt       DateTime @default(now()) @map("added_at")
+  sortOrder     Int      @default(0) @map("sort_order")
+  
+  collection    Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  trail         Trail      @relation(fields: [trailId], references: [id], onDelete: Cascade)
+  
+  @@unique([collectionId, trailId])
+  @@index([collectionId, sortOrder])
+  @@index([trailId])
+  @@map("collection_trails")
 }
 
 model TrackRecord {

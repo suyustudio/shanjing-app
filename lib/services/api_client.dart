@@ -152,6 +152,33 @@ class ApiClient {
     }
   }
 
+  /// PUT 请求
+  Future<ApiResponse<T>> put<T>(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    T Function(dynamic)? parser,
+  }) async {
+    try {
+      final uri = Uri.parse(_buildUrl(endpoint));
+
+      final response = await _client
+          .put(
+            uri,
+            headers: _getHeaders(),
+            body: body != null ? jsonEncode(body) : null,
+          )
+          .timeout(Duration(seconds: ApiConfig.timeoutSeconds));
+
+      return _handleResponse(response, parser);
+    } on SocketException catch (e) {
+      throw ApiException(message: '网络连接失败，请检查网络', code: 'NETWORK_ERROR');
+    } on TimeoutException catch (e) {
+      throw ApiException(message: '请求超时，请稍后重试', code: 'TIMEOUT');
+    } catch (e) {
+      throw ApiException(message: '请求失败: $e', code: 'UNKNOWN_ERROR');
+    }
+  }
+
   /// DELETE 请求
   Future<ApiResponse<T>> delete<T>(
     String endpoint, {

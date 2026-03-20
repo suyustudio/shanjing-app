@@ -9,6 +9,9 @@ import { TrailsModule } from './modules/trails/trails.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { RecommendationModule } from './modules/recommendation/recommendation.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
+import { PhotosModule } from './modules/photos/photos.module';
+import { FollowsModule } from './modules/follows/follows.module';
+import { CollectionsModule } from './modules/collections/collections.module';
 import { PrismaModule } from './database/prisma.module';
 import { RedisModule } from './shared/redis/redis.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -30,6 +33,9 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     FavoritesModule,
     RecommendationModule,
     ReviewsModule,
+    PhotosModule,
+    FollowsModule,
+    CollectionsModule,
   ],
   providers: [
     {

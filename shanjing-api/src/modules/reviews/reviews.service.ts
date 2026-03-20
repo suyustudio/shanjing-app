@@ -1,5 +1,5 @@
 // ================================================================
-// M6: 评论系统 Service
+// M6: 评论系统 Service - 修复版
 // ================================================================
 
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
@@ -14,11 +14,15 @@ import {
   ReviewListResponseDto,
   ReviewStatsDto,
   ReviewReplyDto,
+  LikeReviewResponseDto,
 } from './dto/review.dto';
 import { PREDEFINED_TAGS } from './dto/review.dto';
 
 @Injectable()
 export class ReviewsService {
+  // 24小时编辑限制（可配置）
+  private readonly EDIT_TIME_LIMIT_HOURS = 24;
+
   constructor(private prisma: PrismaService) {}
 
   // ==================== 评论 CRUD ====================
@@ -60,6 +64,9 @@ export class ReviewsService {
       }
     }
 
+    // P1: 检查用户是否"体验过"该路线
+    const isVerified = await this.checkUserCompletedTrail(userId, trailId);
+
     // 创建评论
     const review = await this.prisma.review.create({
       data: {
@@ -67,6 +74,7 @@ export class ReviewsService {
         trailId,
         rating: dto.rating,
         content: dto.content,
+        isVerified,
         tags: {
           create: dto.tags?.map(tag => ({ tag })) || [],
         },
@@ -89,6 +97,9 @@ export class ReviewsService {
         photos: {
           orderBy: { sortOrder: 'asc' },
         },
+        _count: {
+          select: { likes: true }
+        }
       },
     });
 
@@ -107,17 +118,24 @@ export class ReviewsService {
     currentUserId?: string,
   ): Promise<ReviewListResponseDto> {
     // 构建排序条件
-    const orderBy: any = {};
+    let orderBy: any = {};
     switch (query.sort) {
       case 'highest':
-        orderBy.rating = 'desc';
+        orderBy = { rating: 'desc' };
         break;
       case 'lowest':
-        orderBy.rating = 'asc';
+        orderBy = { rating: 'asc' };
+        break;
+      case 'hot':
+        orderBy = [
+          { likeCount: 'desc' },
+          { replyCount: 'desc' },
+          { createdAt: 'desc' }
+        ];
         break;
       case 'newest':
       default:
-        orderBy.createdAt = 'desc';
+        orderBy = { createdAt: 'desc' };
     }
 
     // 构建筛选条件
@@ -145,6 +163,13 @@ export class ReviewsService {
           photos: {
             orderBy: { sortOrder: 'asc' },
           },
+          likes: currentUserId ? {
+            where: { userId: currentUserId },
+            take: 1,
+          } : false,
+          _count: {
+            select: { likes: true }
+          }
         },
       }),
       this.prisma.review.count({ where }),
@@ -154,7 +179,7 @@ export class ReviewsService {
     const stats = await this.getReviewStats(trailId);
 
     return {
-      list: reviews.map(r => this.mapToReviewDto(r)),
+      list: reviews.map(r => this.mapToReviewDto(r, currentUserId)),
       total,
       page: query.page,
       limit: query.limit,
@@ -165,7 +190,7 @@ export class ReviewsService {
   /**
    * 获取评论详情
    */
-  async getReviewDetail(reviewId: string): Promise<ReviewDetailDto> {
+  async getReviewDetail(reviewId: string, currentUserId?: string): Promise<ReviewDetailDto> {
     const review = await this.prisma.review.findUnique({
       where: { id: reviewId },
       include: {
@@ -192,6 +217,13 @@ export class ReviewsService {
           },
           orderBy: { createdAt: 'asc' },
         },
+        likes: currentUserId ? {
+          where: { userId: currentUserId },
+          take: 1,
+        } : false,
+        _count: {
+          select: { likes: true }
+        }
       },
     });
 
@@ -199,7 +231,7 @@ export class ReviewsService {
       throw new NotFoundException('评论不存在');
     }
 
-    return this.mapToReviewDetailDto(review);
+    return this.mapToReviewDetailDto(review, currentUserId);
   }
 
   /**
@@ -224,8 +256,8 @@ export class ReviewsService {
 
     // 检查是否在24小时内
     const hoursSinceCreated = (Date.now() - review.createdAt.getTime()) / (1000 * 60 * 60);
-    if (hoursSinceCreated > 24) {
-      throw new ForbiddenException('评论超过24小时，无法编辑');
+    if (hoursSinceCreated > this.EDIT_TIME_LIMIT_HOURS) {
+      throw new ForbiddenException(`评论超过${this.EDIT_TIME_LIMIT_HOURS}小时，无法编辑`);
     }
 
     // 验证标签
@@ -236,18 +268,35 @@ export class ReviewsService {
       }
     }
 
-    // 更新评论
+    // 更新评论 - 包括照片更新
+    const updateData: any = {
+      rating: dto.rating,
+      content: dto.content,
+      isEdited: true,
+    };
+
+    // 更新标签
+    if (dto.tags) {
+      updateData.tags = {
+        deleteMany: {},
+        create: dto.tags.map(tag => ({ tag })),
+      };
+    }
+
+    // P1: 更新照片
+    if (dto.photos !== undefined) {
+      updateData.photos = {
+        deleteMany: {},
+        create: dto.photos?.map((url, index) => ({
+          url,
+          sortOrder: index,
+        })) || [],
+      };
+    }
+
     const updated = await this.prisma.review.update({
       where: { id: reviewId },
-      data: {
-        rating: dto.rating,
-        content: dto.content,
-        isEdited: true,
-        tags: dto.tags ? {
-          deleteMany: {},
-          create: dto.tags.map(tag => ({ tag })),
-        } : undefined,
-      },
+      data: updateData,
       include: {
         user: {
           select: {
@@ -260,6 +309,9 @@ export class ReviewsService {
         photos: {
           orderBy: { sortOrder: 'asc' },
         },
+        _count: {
+          select: { likes: true }
+        }
       },
     });
 
@@ -375,7 +427,88 @@ export class ReviewsService {
     return replies.map(r => this.mapToReplyDto(r));
   }
 
-  // ==================== 评分统计 ====================
+  // ==================== 点赞功能 (P0) ====================
+
+  /**
+   * 点赞评论
+   */
+  async likeReview(userId: string, reviewId: string): Promise<LikeReviewResponseDto> {
+    const review = await this.prisma.review.findUnique({
+      where: { id: reviewId },
+    });
+
+    if (!review) {
+      throw new NotFoundException('评论不存在');
+    }
+
+    // 检查是否已点赞
+    const existingLike = await this.prisma.reviewLike.findUnique({
+      where: {
+        reviewId_userId: {
+          reviewId,
+          userId,
+        },
+      },
+    });
+
+    if (existingLike) {
+      // 已点赞，取消点赞
+      await this.prisma.reviewLike.delete({
+        where: { id: existingLike.id },
+      });
+
+      // 更新点赞数
+      await this.prisma.review.update({
+        where: { id: reviewId },
+        data: { likeCount: { decrement: 1 } },
+      });
+
+      const updatedReview = await this.prisma.review.findUnique({
+        where: { id: reviewId },
+        select: { likeCount: true },
+      });
+
+      return { isLiked: false, likeCount: updatedReview?.likeCount || 0 };
+    } else {
+      // 未点赞，添加点赞
+      await this.prisma.reviewLike.create({
+        data: {
+          reviewId,
+          userId,
+        },
+      });
+
+      // 更新点赞数
+      await this.prisma.review.update({
+        where: { id: reviewId },
+        data: { likeCount: { increment: 1 } },
+      });
+
+      const updatedReview = await this.prisma.review.findUnique({
+        where: { id: reviewId },
+        select: { likeCount: true },
+      });
+
+      return { isLiked: true, likeCount: updatedReview?.likeCount || 0 };
+    }
+  }
+
+  /**
+   * 检查用户是否已点赞评论
+   */
+  async checkUserLikedReview(userId: string, reviewId: string): Promise<boolean> {
+    const like = await this.prisma.reviewLike.findUnique({
+      where: {
+        reviewId_userId: {
+          reviewId,
+          userId,
+        },
+      },
+    });
+    return !!like;
+  }
+
+  // ==================== 评分统计 (P1: 高级评分算法) ====================
 
   /**
    * 获取评论统计
@@ -412,12 +545,14 @@ export class ReviewsService {
   }
 
   /**
-   * 更新路线评分统计
+   * 更新路线评分统计 - P1: 高级评分算法
+   * - 去掉最高最低各5%
+   * - 最近30天评价权重×1.2
    */
   private async updateTrailRatingStats(trailId: string): Promise<void> {
     const reviews = await this.prisma.review.findMany({
       where: { trailId },
-      select: { rating: true },
+      select: { rating: true, createdAt: true },
     });
 
     const totalCount = reviews.length;
@@ -437,25 +572,75 @@ export class ReviewsService {
       return;
     }
 
-    const ratingSum = reviews.reduce((sum, r) => sum + Number(r.rating), 0);
-    const avgRating = ratingSum / totalCount;
+    // P1: 高级评分算法
+    const weightedRating = this.calculateWeightedRating(reviews);
 
+    // 统计各星级数量 (使用原始数据，不经过加权)
     const counts = {
-      rating5Count: reviews.filter(r => Number(r.rating) >= 4.5).length,
-      rating4Count: reviews.filter(r => Number(r.rating) >= 3.5 && Number(r.rating) < 4.5).length,
-      rating3Count: reviews.filter(r => Number(r.rating) >= 2.5 && Number(r.rating) < 3.5).length,
-      rating2Count: reviews.filter(r => Number(r.rating) >= 1.5 && Number(r.rating) < 2.5).length,
-      rating1Count: reviews.filter(r => Number(r.rating) < 1.5).length,
+      rating5Count: reviews.filter(r => r.rating === 5).length,
+      rating4Count: reviews.filter(r => r.rating === 4).length,
+      rating3Count: reviews.filter(r => r.rating === 3).length,
+      rating2Count: reviews.filter(r => r.rating === 2).length,
+      rating1Count: reviews.filter(r => r.rating === 1).length,
     };
 
     await this.prisma.trail.update({
       where: { id: trailId },
       data: {
-        avgRating,
+        avgRating: weightedRating,
         reviewCount: totalCount,
         ...counts,
       },
     });
+  }
+
+  /**
+   * P1: 高级评分算法
+   * 1. 去掉最高最低各5%
+   * 2. 最近30天评价权重×1.2
+   */
+  private calculateWeightedRating(
+    reviews: { rating: number; createdAt: Date }[]
+  ): number {
+    if (reviews.length === 0) return 0;
+    if (reviews.length <= 2) {
+      // 评论太少时不进行去极值处理
+      return Number((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1));
+    }
+
+    // 1. 去掉最高最低各5%
+    const sorted = [...reviews].sort((a, b) => a.rating - b.rating);
+    const trimCount = Math.max(1, Math.ceil(sorted.length * 0.05));
+    const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
+
+    // 2. 最近30天权重×1.2
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    let weightedSum = 0;
+    let totalWeight = 0;
+
+    for (const review of trimmed) {
+      const isRecent = review.createdAt > thirtyDaysAgo;
+      const weight = isRecent ? 1.2 : 1.0;
+      weightedSum += review.rating * weight;
+      totalWeight += weight;
+    }
+
+    return Number((weightedSum / totalWeight).toFixed(1));
+  }
+
+  /**
+   * P1: 检查用户是否完成过该路线（"体验过"标识）
+   */
+  private async checkUserCompletedTrail(userId: string, trailId: string): Promise<boolean> {
+    // 查询用户是否有该路线的完成记录
+    // 这里假设有 trackRecords 或其他记录表来存储完成记录
+    // 简化实现：查询用户的成就系统中是否有完成该路线的记录
+    const userStats = await this.prisma.userStats.findUnique({
+      where: { userId },
+      select: { completedTrailIds: true },
+    });
+
+    return userStats?.completedTrailIds?.includes(trailId) || false;
   }
 
   // ==================== 举报 ====================
@@ -491,16 +676,24 @@ export class ReviewsService {
 
   // ==================== 数据映射 ====================
 
-  private mapToReviewDto(review: any): ReviewDto {
+  private mapToReviewDto(review: any, currentUserId?: string): ReviewDto {
+    // 检查当前用户是否已点赞
+    let isLiked = false;
+    if (currentUserId && review.likes) {
+      isLiked = review.likes.length > 0;
+    }
+
     return {
       id: review.id,
-      rating: Number(review.rating),
+      rating: review.rating,
       content: review.content,
       tags: review.tags?.map((t: any) => t.tag) || [],
       photos: review.photos?.map((p: any) => p.url) || [],
       likeCount: review.likeCount,
       replyCount: review.replyCount,
       isEdited: review.isEdited,
+      isVerified: review.isVerified,
+      isLiked,
       user: {
         id: review.user.id,
         nickname: review.user.nickname,
@@ -511,9 +704,9 @@ export class ReviewsService {
     };
   }
 
-  private mapToReviewDetailDto(review: any): ReviewDetailDto {
+  private mapToReviewDetailDto(review: any, currentUserId?: string): ReviewDetailDto {
     return {
-      ...this.mapToReviewDto(review),
+      ...this.mapToReviewDto(review, currentUserId),
       replies: review.replies?.map((r: any) => this.mapToReplyDto(r)) || [],
     };
   }

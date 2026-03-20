@@ -368,11 +368,14 @@ model Review {
   id            String    @id @default(uuid())
   userId        String    @map("user_id")
   trailId       String    @map("trail_id")
-  rating        Decimal   @db.Decimal(2, 1)
+  // 修复：评分改为 Integer 1-5
+  rating        Int       @db.SmallInt
   content       String?   @db.VarChar(500)
   isEdited      Boolean   @default(false) @map("is_edited")
   isReported    Boolean   @default(false) @map("is_reported")
   reportReason  String?   @map("report_reason") @db.VarChar(100)
+  // P1: "体验过"标识
+  isVerified    Boolean   @default(false) @map("is_verified")
   likeCount     Int       @default(0) @map("like_count")
   replyCount    Int       @default(0) @map("reply_count")
   createdAt     DateTime  @default(now()) @map("created_at")
@@ -383,12 +386,30 @@ model Review {
   replies       ReviewReply[]
   tags          ReviewTag[]
   photos        ReviewPhoto[]
+  likes         ReviewLike[]
 
   @@unique([userId, trailId])
   @@index([trailId, createdAt])
   @@index([userId, createdAt])
   @@index([rating])
+  @@index([trailId, likeCount, createdAt])  // 热门评论排序
   @@map("reviews")
+}
+
+// P0: 评论点赞表
+model ReviewLike {
+  id            String    @id @default(uuid())
+  reviewId      String    @map("review_id")
+  userId        String    @map("user_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  review        Review    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@index([userId])
+  @@map("review_likes")
 }
 
 model ReviewReply {
@@ -593,6 +614,7 @@ model User {
   // M6 新增关联
   reviews           Review[]
   reviewReplies     ReviewReply[]
+  reviewLikes       ReviewLike[]  // 新增
   photos            Photo[]
   photoLikes        PhotoLike[]
   followers         Follow[] @relation("Following")
