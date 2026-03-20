@@ -511,10 +511,16 @@ class _NavigationScreenState extends State<NavigationScreen>
     // 在导航模式下才移动地图和更新进度
     if (_navigationMode == NavigationMode.navigating) {
       // 移动地图相机到当前位置（跟随定位）
+      // 添加多重检查避免页面关闭后操作地图
+      if (!mounted || _isDisposing || _navigationCompleted) return;
       if (_mapController != null && _currentLatLng != null) {
-        _mapController!.moveCamera(
-          CameraUpdate.newLatLng(_currentLatLng!),
-        );
+        try {
+          _mapController!.moveCamera(
+            CameraUpdate.newLatLng(_currentLatLng!),
+          );
+        } catch (e) {
+          debugPrint('移动相机时出错: $e');
+        }
       }
 
       // 更新导航进度
@@ -750,6 +756,8 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   /// 语音播报导航指令
   void _speakNavigationInstruction() {
+    // 检查 mounted 和 disposing 状态，避免页面关闭后执行
+    if (!mounted || _isDisposing || _navigationCompleted) return;
     if (!_isTtsInitialized || !_isTtsAvailable || _flutterTts == null) return;
     if (_currentPosition == null) return;
 
