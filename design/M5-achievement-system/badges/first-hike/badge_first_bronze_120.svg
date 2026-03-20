@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="120" height="120">
+  <defs>
+    <!-- 铜色渐变 -->
+    <linearGradient id="bronzeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B87333"/>
+      <stop offset="50%" style="stop-color:#CD7F32"/>
+      <stop offset="100%" style="stop-color:#D4A574"/>
+    </linearGradient>
+    <!-- 金属光泽 -->
+    <linearGradient id="bronzeShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.4)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- 徽章背景 -->
+  <circle cx="40" cy="40" r="36" fill="url(#bronzeGradient)" stroke="#8B4513" stroke-width="2"/>
+  
+  <!-- 内圈 -->
+  <circle cx="40" cy="40" r="30" fill="none" stroke="#8B4513" stroke-width="1" opacity="0.5"/>
+  
+  <!-- 脚印图标 -->
+  <g transform="translate(40, 40)">
+    <!-- 左脚印 -->
+    <ellipse cx="-8" cy="-5" rx="5" ry="7" fill="#8B4513" opacity="0.8"/>
+    <circle cx="-8" cy="-12" r="3" fill="#8B4513" opacity="0.8"/>
+    <!-- 脚趾 -->
+    <circle cx="-10" cy="-14" r="1.5" fill="#8B4513"/>
+    <circle cx="-8" cy="-15" r="1.5" fill="#8B4513"/>
+    <circle cx="-6" cy="-14" r="1.5" fill="#8B4513"/>
+  </g>
+  
+  <!-- 光泽效果 -->
+  <ellipse cx="30" cy="25" rx="12" ry="8" fill="url(#bronzeShine)" transform="rotate(-30, 30, 25)"/>
+</svg>
