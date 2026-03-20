@@ -499,15 +499,15 @@ class RecordingService extends ChangeNotifier {
         },
       );
 
-      if (response['success'] == true) {
+      if (response.success == true) {
         // 标记为已上传
         await _markSessionUploaded(sessionId);
         
-        return TrailUploadResponse.fromJson(response);
+        return TrailUploadResponse.fromJson(response.data);
       } else {
         return TrailUploadResponse(
           success: false,
-          error: response['error']?['message'] ?? '上传失败',
+          error: response.errorMessage ?? '上传失败',
         );
       }
     } catch (e) {
