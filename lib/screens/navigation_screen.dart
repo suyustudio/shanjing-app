@@ -1036,9 +1036,8 @@ class _NavigationScreenState extends State<NavigationScreen>
       polylines.add(
         Polyline(
           points: _previewPath,
-          color: Colors.blue,
-          width: 4,
-          dashed: true, // 虚线表示规划路径
+          color: Colors.blue.withOpacity(0.6), // 半透明蓝色表示规划路径
+          width: 3,
         ),
       );
     }
