@@ -33,6 +33,42 @@
 
 ---
 
+## 当前状态（2026-03-20 下午）
+
+### 🔧 导航功能全面修复 - Build #143 准备中
+
+**修复内容（待 push）：**
+1. ✅ **返回/关闭崩溃** (P0)
+   - 添加 `_isDisposing` 标志防止重复 dispose
+   - 优化 dispose 顺序：先移除 Observer，再取消订阅
+   - 添加 `WillPopScope` 处理返回键确认
+
+2. ✅ **TTS 语音功能** (P1)
+   - 添加 TTS 可用性检查 `isLanguageAvailable('zh-CN')`
+   - 完善错误处理，避免 TTS 初始化失败导致崩溃
+   - 添加 `_isTtsAvailable` 标志控制语音开关
+
+3. ✅ **导航状态刷新** (P1)
+   - 加强 `mounted` 和 `_isDisposing` 检查
+   - 优化状态更新逻辑，避免竞态条件
+
+4. ✅ **导航流程重新设计** (P2)
+   - 新增 `NavigationMode` 枚举（preview/navigating）
+   - 实现路线预览模式：显示路径、距离、起点位置
+   - 用户确认后才进入实际导航
+   - 规划从当前位置到路线起点的路径（虚线显示）
+
+**代码变更：**
+- `lib/screens/navigation_screen.dart` - 全面重构
+- `lib/screens/trail_detail_screen.dart` - 更新导航调用
+
+**待修复问题：**
+- [ ] Push 代码到 origin/main
+- [ ] 验证 Build #143 构建成功
+- [ ] 用户测试确认
+
+---
+
 ## 当前状态（2026-03-20 中午）
 
 ### ✅ Build #142 成功！

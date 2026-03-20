@@ -332,12 +332,13 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     }
   }
 
-  /// P2: 继续导航流程
+  /// P2: 继续导航流程（新流程：预览 -> 确认 -> 导航）
   void _proceedToNavigation(String trailName, String trailId) {
     debugPrint('🧭 开始导航: $trailName (ID: $trailId)');
     
     // 提取轨迹点
     List<LatLng>? routePoints;
+    LatLng? routeStartPoint;
     final coordinates = _trailData['coordinates'];
     
     if (coordinates != null && coordinates is List) {
@@ -348,6 +349,11 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
         }
         return null;
       }).whereType<LatLng>().toList();
+      
+      // 提取路线起点
+      if (routePoints.isNotEmpty) {
+        routeStartPoint = routePoints.first;
+      }
     }
     
     // 上报导航开始事件
@@ -368,12 +374,14 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
       },
     );
     
+    // 新导航流程：进入预览模式
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => NavigationScreen(
           routeName: trailName,
           routePoints: routePoints,
+          routeStartPoint: routeStartPoint,
         ),
       ),
     );

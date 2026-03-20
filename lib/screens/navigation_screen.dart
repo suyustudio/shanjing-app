@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -75,16 +76,26 @@ class NavigationInstruction {
   });
 }
 
+/// 导航模式枚举
+enum NavigationMode {
+  /// 规划模式 - 显示路径预览，等待用户确认
+  preview,
+  /// 导航模式 - 实际导航中
+  navigating,
+}
+
 /// 增强版导航页面
 /// 包含：GPS精度过滤、偏航检测、语音播报、导航进度
 class NavigationScreen extends StatefulWidget {
   final String routeName;
   final List<LatLng>? routePoints; // 路线轨迹点
+  final LatLng? routeStartPoint; // 路线起点（用于规划到起点的路径）
 
   const NavigationScreen({
     super.key,
     required this.routeName,
     this.routePoints,
+    this.routeStartPoint,
   });
 
   @override
@@ -114,8 +125,9 @@ class _NavigationScreenState extends State<NavigationScreen>
   bool _navigationCompleted = false;
 
   // 语音播报
-  final FlutterTts _flutterTts = FlutterTts();
+  FlutterTts? _flutterTts;
   bool _isTtsInitialized = false;
+  bool _isTtsAvailable = false; // TTS 是否可用
 
   // GPS 精度过滤
   static const double _minAccuracy = 10.0; // 最小精度要求（米）
@@ -163,6 +175,17 @@ class _NavigationScreenState extends State<NavigationScreen>
   // 地图 Widget 的 key，用于正确管理生命周期
   final GlobalKey _mapKey = GlobalKey();
 
+  // 导航模式
+  NavigationMode _navigationMode = NavigationMode.preview;
+  
+  // 到路线起点的规划路径
+  List<LatLng> _previewPath = [];
+  double _previewDistance = 0;
+  bool _isCalculatingPreview = false;
+
+  // 用于防止重复 dispose
+  bool _isDisposing = false;
+
   @override
   void initState() {
     super.initState();
@@ -172,12 +195,16 @@ class _NavigationScreenState extends State<NavigationScreen>
     _initTts();
     _requestLocationPermission().then((_) {
       // ✅ 埋点：导航初始化完成后触发 navigation_start
-      _trackNavigationStart();
+      if (mounted && !_navigationCompleted) {
+        _trackNavigationStart();
+      }
     });
   }
   
   /// 上报 navigation_start 事件
   void _trackNavigationStart() {
+    if (!mounted || _navigationCompleted) return;
+    
     final startTimestamp = DateTime.now().millisecondsSinceEpoch;
     
     AnalyticsService().trackEvent(
@@ -191,7 +218,7 @@ class _NavigationScreenState extends State<NavigationScreen>
         NavigationEvents.paramLocationEnabled: _currentPosition != null,
         NavigationEvents.paramLocationAccuracyM: _currentPosition?.accuracy ?? 0.0,
         NavigationEvents.paramOfflineMode: false, // 默认非离线模式
-        NavigationEvents.paramVoiceEnabled: _isTtsInitialized,
+        NavigationEvents.paramVoiceEnabled: _isTtsInitialized && _isTtsAvailable,
         NavigationEvents.paramStartTimestamp: startTimestamp,
       },
     );
@@ -199,8 +226,15 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   @override
   void dispose() {
+    // 防止重复 dispose
+    if (_isDisposing) return;
+    _isDisposing = true;
+    
     // 先标记导航完成，防止后续事件上报
     _navigationCompleted = true;
+    
+    // 移除生命周期观察器（在取消订阅之前）
+    WidgetsBinding.instance.removeObserver(this);
     
     // 取消定位订阅（最先取消，避免收到新位置更新）
     _locationSubscription?.cancel();
@@ -215,8 +249,8 @@ class _NavigationScreenState extends State<NavigationScreen>
     
     // 停止 TTS
     try {
-      if (_isTtsInitialized) {
-        _flutterTts.stop();
+      if (_isTtsInitialized && _flutterTts != null) {
+        _flutterTts!.stop();
       }
     } catch (e) {
       debugPrint('停止 TTS 时出错: $e');
@@ -225,18 +259,13 @@ class _NavigationScreenState extends State<NavigationScreen>
     // 释放地图控制器引用（但不销毁，让 Widget 自己处理）
     _mapController = null;
     
-    // 延迟移除生命周期观察器，确保当前帧完成
-    WidgetsBinding.instance.removeObserver(this);
-    
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // 先检查 mounted，避免页面关闭后执行
-    if (!mounted) return;
-    
-    super.didChangeAppLifecycleState(state);
+    // 先检查 mounted 和 disposing 状态，避免页面关闭后执行
+    if (!mounted || _isDisposing || _navigationCompleted) return;
     
     // 监听应用前后台切换
     if (state == AppLifecycleState.paused) {
@@ -326,7 +355,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       // 检查后台定位权限
       if (backgroundStatus != PermissionStatus.granted) {
         debugPrint('后台定位权限未授予，导航可能在后台无法正常工作');
-        if (mounted) {
+        if (mounted && !_isDisposing) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('建议开启后台定位权限，以确保导航在锁屏时正常工作'),
@@ -346,7 +375,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       }
     } else if (locationStatus == PermissionStatus.permanentlyDenied) {
       // 权限被永久拒绝
-      if (mounted) {
+      if (mounted && !_isDisposing) {
         PermissionManager.showPermissionDeniedDialog(
           context,
           title: '需要定位权限',
@@ -357,7 +386,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       _useDefaultLocation();
     } else {
       // 权限被拒绝
-      if (mounted) {
+      if (mounted && !_isDisposing) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('需要定位权限才能开始导航'),
@@ -371,7 +400,7 @@ class _NavigationScreenState extends State<NavigationScreen>
   
   /// 使用默认位置
   void _useDefaultLocation() {
-    if (!mounted) return;
+    if (!mounted || _isDisposing) return;
     setState(() {
       _currentPosition = GPSPoint(
         latitude: 30.25,
@@ -402,6 +431,9 @@ class _NavigationScreenState extends State<NavigationScreen>
         onError: (error) {
           debugPrint('定位错误: $error');
         },
+        onDone: () {
+          debugPrint('定位流已关闭');
+        },
       );
 
       // 开始定位
@@ -413,23 +445,38 @@ class _NavigationScreenState extends State<NavigationScreen>
     }
   }
 
-  /// 初始化语音播报
+  /// 初始化语音播报 - 增强版，包含可用性检查
   Future<void> _initTts() async {
     try {
-      await _flutterTts.setLanguage('zh-CN');
-      await _flutterTts.setSpeechRate(0.5);
-      await _flutterTts.setVolume(1.0);
-      await _flutterTts.setPitch(1.0);
+      _flutterTts = FlutterTts();
+      
+      // 检查 TTS 可用性
+      final isAvailable = await _flutterTts!.isLanguageAvailable('zh-CN');
+      if (isAvailable != true) {
+        debugPrint('⚠️ TTS 中文语音不可用');
+        _isTtsAvailable = false;
+        return;
+      }
+      
+      await _flutterTts!.setLanguage('zh-CN');
+      await _flutterTts!.setSpeechRate(0.5);
+      await _flutterTts!.setVolume(1.0);
+      await _flutterTts!.setPitch(1.0);
+      
       _isTtsInitialized = true;
+      _isTtsAvailable = true;
+      debugPrint('✅ TTS 初始化成功');
     } catch (e) {
-      debugPrint('TTS 初始化失败: $e');
+      debugPrint('⚠️ TTS 初始化失败: $e');
+      _isTtsInitialized = false;
+      _isTtsAvailable = false;
     }
   }
 
   /// 处理定位更新
   void _onLocationUpdate(Map<String, Object> location) {
-    // 检查 mounted 状态，避免页面关闭后更新状态
-    if (!mounted) return;
+    // 检查 mounted 和 disposing 状态，避免页面关闭后更新状态
+    if (!mounted || _isDisposing || _navigationCompleted) return;
     
     final double? latitude = location['latitude'] as double?;
     final double? longitude = location['longitude'] as double?;
@@ -451,33 +498,83 @@ class _NavigationScreenState extends State<NavigationScreen>
     // GPS 精度过滤
     if (!_filterGPSPoint(point)) {
       debugPrint('GPS 精度不足，过滤: accuracy=${point.accuracy}m');
-      if (!mounted) return;
+      if (!mounted || _isDisposing) return;
       setState(() => _status = NavigationStatus.weakSignal);
       return;
     }
 
-    if (!mounted) return;
+    if (!mounted || _isDisposing) return;
     setState(() {
       _currentPosition = point;
       _currentLatLng = LatLng(latitude, longitude);
       _status = NavigationStatus.navigating;
     });
 
-    // 移动地图相机到当前位置（跟随定位）
-    if (_mapController != null && _currentLatLng != null) {
-      _mapController!.moveCamera(
-        CameraUpdate.newLatLng(_currentLatLng!),
-      );
+    // 在导航模式下才移动地图和更新进度
+    if (_navigationMode == NavigationMode.navigating) {
+      // 移动地图相机到当前位置（跟随定位）
+      if (_mapController != null && _currentLatLng != null) {
+        _mapController!.moveCamera(
+          CameraUpdate.newLatLng(_currentLatLng!),
+        );
+      }
+
+      // 更新导航进度
+      _updateNavigationProgress();
+
+      // 偏航检测
+      _checkOffRoute();
+
+      // 语音播报
+      _speakNavigationInstruction();
+    } else {
+      // 预览模式：计算到起点的路径
+      _calculatePreviewPath();
     }
+  }
 
-    // 更新导航进度
-    _updateNavigationProgress();
+  /// 计算到路线起点的预览路径
+  void _calculatePreviewPath() {
+    if (_currentPosition == null) return;
+    
+    final routeStart = widget.routeStartPoint ?? 
+        (_routePoints.isNotEmpty ? _routePoints.first : null);
+    
+    if (routeStart == null) return;
+    
+    // 简化的路径规划：直接连接当前位置和路线起点
+    final currentLatLng = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
+    
+    // 检查是否已经靠近起点
+    final distanceToStart = _calculateDistance(currentLatLng, routeStart);
+    
+    if (!mounted || _isDisposing) return;
+    setState(() {
+      _previewDistance = distanceToStart;
+      _previewPath = [currentLatLng, routeStart];
+    });
+  }
 
-    // 偏航检测
-    _checkOffRoute();
-
-    // 语音播报
-    _speakNavigationInstruction();
+  /// 开始实际导航
+  void _startActualNavigation() {
+    if (!mounted || _isDisposing) return;
+    
+    setState(() {
+      _navigationMode = NavigationMode.navigating;
+      _navigationStartTime = DateTime.now(); // 重置导航开始时间
+    });
+    
+    _speak('开始导航，请跟随路线行走');
+    
+    // 上报实际导航开始事件
+    AnalyticsService().trackEvent(
+      NavigationEvents.navigationStart,
+      params: {
+        NavigationEvents.paramRouteName: widget.routeName,
+        'mode': 'actual_navigation',
+        NavigationEvents.paramStartTimestamp: DateTime.now().millisecondsSinceEpoch,
+      },
+    );
   }
 
   /// GPS 精度过滤
@@ -517,7 +614,7 @@ class _NavigationScreenState extends State<NavigationScreen>
   void _updateNavigationProgress() {
     if (_currentPosition == null || _routePoints.isEmpty) return;
     // 检查 mounted 状态，避免页面关闭后更新状态
-    if (!mounted) return;
+    if (!mounted || _isDisposing || _navigationCompleted) return;
 
     // 找到当前位置在路线上的最近点
     double minDistance = double.infinity;
@@ -547,7 +644,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     final estimatedMinutes = (remainingDistance / walkingSpeed / 60).ceil();
 
     // 更新状态
-    if (!mounted) return;
+    if (!mounted || _isDisposing) return;
     setState(() {
       _remainingDistance = remainingDistance;
       _estimatedArrivalMinutes = estimatedMinutes;
@@ -555,7 +652,7 @@ class _NavigationScreenState extends State<NavigationScreen>
 
     // 检查是否到达终点
     if (nearestIndex >= _routePoints.length - 1) {
-      if (!mounted) return;
+      if (!mounted || _isDisposing) return;
       setState(() => _status = NavigationStatus.arrived);
       _navigationCompleted = true;
       
@@ -603,7 +700,7 @@ class _NavigationScreenState extends State<NavigationScreen>
   void _checkOffRoute() {
     if (_currentPosition == null) return;
     // 检查 mounted 状态，避免页面关闭后更新状态
-    if (!mounted) return;
+    if (!mounted || _isDisposing || _navigationCompleted) return;
 
     // 计算当前位置到路线最近点的距离
     double minDistance = double.infinity;
@@ -621,7 +718,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     if (minDistance > _offRouteThreshold) {
       _offRouteCount++;
       if (_offRouteCount >= _offRouteConfirmCount) {
-        if (!mounted) return;
+        if (!mounted || _isDisposing) return;
         setState(() => _status = NavigationStatus.offRoute);
         _totalDeviationCount++; // 统计总偏航次数
         _speak('您已偏离路线，请返回');
@@ -638,7 +735,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     } else {
       _offRouteCount = 0;
       if (_status == NavigationStatus.offRoute) {
-        if (!mounted) return;
+        if (!mounted || _isDisposing) return;
         setState(() => _status = NavigationStatus.navigating);
         _speak('已回到正确路线');
         
@@ -655,7 +752,8 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   /// 语音播报导航指令
   void _speakNavigationInstruction() {
-    if (!_isTtsInitialized || _currentPosition == null) return;
+    if (!_isTtsInitialized || !_isTtsAvailable || _flutterTts == null) return;
+    if (_currentPosition == null) return;
 
     // 检查语音间隔
     final now = DateTime.now();
@@ -686,9 +784,9 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   /// 语音播报
   Future<void> _speak(String text) async {
-    if (!_isTtsInitialized) return;
+    if (!_isTtsInitialized || !_isTtsAvailable || _flutterTts == null) return;
     try {
-      await _flutterTts.speak(text);
+      await _flutterTts!.speak(text);
     } catch (e) {
       debugPrint('语音播报失败: $e');
     }
@@ -736,7 +834,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       final destination = _routePoints.last;
       
       // 检查 mounted 状态，避免页面关闭后调用 setState
-      if (!mounted) return;
+      if (!mounted || _isDisposing) return;
       
       setState(() {
         // 简化的重新规划：直接从当前位置到终点
@@ -759,7 +857,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       _speak('路线已重新规划');
       
       // 检查 mounted 状态，避免页面关闭后操作地图
-      if (!mounted) return;
+      if (!mounted || _isDisposing) return;
       
       // 移动地图视角到新路线
       _mapController?.moveCamera(
@@ -773,7 +871,9 @@ class _NavigationScreenState extends State<NavigationScreen>
   /// 触发 SOS 求助
   Future<void> _triggerSos() async {
     if (_currentPosition == null) {
-      SosStatusSnackBar.showError(context);
+      if (mounted && !_isDisposing) {
+        SosStatusSnackBar.showError(context);
+      }
       return;
     }
 
@@ -795,7 +895,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     
     final success = result.result == SOSSendResult.success;
 
-    if (mounted) {
+    if (mounted && !_isDisposing) {
       if (success) {
         SosStatusSnackBar.showSuccess(context);
       } else {
@@ -803,105 +903,184 @@ class _NavigationScreenState extends State<NavigationScreen>
       }
     }
   }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppAppBar(
-        title: '导航: ${widget.routeName}',
-        backgroundColor: _getStatusColor(context),
-        foregroundColor: DesignSystem.getTextInverse(context),
-        showBack: true,
-      ),
-      body: Stack(
-        children: [
-          // 高德地图
-          AMapWidget(
-            key: _mapKey,
-            apiKey: AMapApiKey(
-              iosKey: dotenv.env['AMAP_KEY'] ?? '',
-              androidKey: dotenv.env['AMAP_KEY'] ?? '',
-            ),
-            // 隐私合规声明 - 必须设置，否则地图不会显示
-            privacyStatement: const AMapPrivacyStatement(
-              hasContains: true,
-              hasShow: true,
-              hasAgree: true,
-            ),
-            initialCameraPosition: CameraPosition(
-              target: _routePoints.isNotEmpty ? _routePoints.first : (_currentLatLng ?? const LatLng(30.25, 120.15)),
-              zoom: 17,
-            ),
-            // myLocationEnabled 参数在 amap_flutter_map 3.0+ 中已移除
-            // 使用定位插件单独控制
-            onMapCreated: (controller) {
-              // 检查 mounted 状态，避免页面关闭后设置控制器
-              if (!mounted) {
-                // 如果页面已关闭，直接释放控制器
-                return;
-              }
-              _mapController = controller;
-            },
-            polylines: {
-              Polyline(
-                points: _routePoints,
-                color: DesignSystem.getPrimary(context),
-                width: 6,
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppAppBar(
+          title: _navigationMode == NavigationMode.preview 
+              ? '路线预览: ${widget.routeName}'
+              : '导航: ${widget.routeName}',
+          backgroundColor: _getStatusColor(context),
+          foregroundColor: DesignSystem.getTextInverse(context),
+          showBack: true,
+        ),
+        body: Stack(
+          children: [
+            // 高德地图
+            AMapWidget(
+              key: _mapKey,
+              apiKey: AMapApiKey(
+                iosKey: dotenv.env['AMAP_KEY'] ?? '',
+                androidKey: dotenv.env['AMAP_KEY'] ?? '',
               ),
-            },
-            markers: _buildMarkers(),
-          ),
-
-          // 导航信息卡片
-          Positioned(
-            top: 16,
-            left: 16,
-            right: 16,
-            child: _buildInfoCard(context),
-          ),
-
-          // 底部控制栏
-          Positioned(
-            bottom: 24,
-            left: 16,
-            right: 16,
-            child: _buildBottomCard(context),
-          ),
-
-          // SOS 紧急按钮
-          Positioned(
-            bottom: 100,
-            right: 16,
-            child: SOSButton(
-              onTriggered: _triggerSos,
-              size: 56,
+              // 隐私合规声明 - 必须设置，否则地图不会显示
+              privacyStatement: const AMapPrivacyStatement(
+                hasContains: true,
+                hasShow: true,
+                hasAgree: true,
+              ),
+              initialCameraPosition: CameraPosition(
+                target: _routePoints.isNotEmpty ? _routePoints.first : (_currentLatLng ?? const LatLng(30.25, 120.15)),
+                zoom: 17,
+              ),
+              // myLocationEnabled 参数在 amap_flutter_map 3.0+ 中已移除
+              // 使用定位插件单独控制
+              onMapCreated: (controller) {
+                // 检查 mounted 状态，避免页面关闭后设置控制器
+                if (!mounted || _isDisposing) {
+                  // 如果页面已关闭，直接释放控制器
+                  return;
+                }
+                _mapController = controller;
+              },
+              polylines: _buildPolylines(),
+              markers: _buildMarkers(),
             ),
-          ),
-        ],
+
+            // 导航信息卡片
+            Positioned(
+              top: 16,
+              left: 16,
+              right: 16,
+              child: _navigationMode == NavigationMode.preview
+                  ? _buildPreviewCard(context)
+                  : _buildInfoCard(context),
+            ),
+
+            // 底部控制栏
+            Positioned(
+              bottom: 24,
+              left: 16,
+              right: 16,
+              child: _navigationMode == NavigationMode.preview
+                  ? _buildPreviewBottomCard(context)
+                  : _buildBottomCard(context),
+            ),
+
+            // SOS 紧急按钮
+            if (_navigationMode == NavigationMode.navigating)
+              Positioned(
+                bottom: 100,
+                right: 16,
+                child: SOSButton(
+                  onTriggered: _triggerSos,
+                  size: 56,
+                ),
+              ),
+          ],
+        ),
       ),
     );
+  }
+
+  /// 处理返回键
+  Future<bool> _onWillPop() async {
+    if (_navigationMode == NavigationMode.navigating) {
+      // 导航中返回，显示确认对话框
+      final shouldPop = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('结束导航？'),
+          content: const Text('您正在导航中，确定要结束导航吗？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('继续导航'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: DesignSystem.getError(context),
+                foregroundColor: DesignSystem.getTextInverse(context),
+              ),
+              child: const Text('结束导航'),
+            ),
+          ],
+        ),
+      );
+      return shouldPop ?? false;
+    }
+    return true;
+  }
+
+  /// 构建地图折线
+  Set<Polyline> _buildPolylines() {
+    final polylines = <Polyline>{};
+    
+    // 添加主路线
+    if (_routePoints.isNotEmpty) {
+      polylines.add(
+        Polyline(
+          points: _routePoints,
+          color: _navigationMode == NavigationMode.navigating 
+              ? DesignSystem.getPrimary(context)
+              : DesignSystem.getPrimary(context).withOpacity(0.5),
+          width: 6,
+        ),
+      );
+    }
+    
+    // 预览模式下，添加从当前位置到起点的路径
+    if (_navigationMode == NavigationMode.preview && _previewPath.isNotEmpty) {
+      polylines.add(
+        Polyline(
+          points: _previewPath,
+          color: Colors.blue,
+          width: 4,
+          dashed: true, // 虚线表示规划路径
+        ),
+      );
+    }
+    
+    return polylines;
   }
 
   /// 构建地图标记
   Set<Marker> _buildMarkers() {
     final markers = <Marker>{};
 
-    // 起点
+    // 路线起点
     if (_routePoints.isNotEmpty) {
       markers.add(
         Marker(
           position: _routePoints.first,
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          infoWindow: const InfoWindow(title: '起点'),
+          infoWindow: const InfoWindow(title: '路线起点'),
         ),
       );
     }
 
-    // 终点
+    // 路线终点
     if (_routePoints.length > 1) {
       markers.add(
         Marker(
           position: _routePoints.last,
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          infoWindow: const InfoWindow(title: '终点'),
+          infoWindow: const InfoWindow(title: '路线终点'),
+        ),
+      );
+    }
+
+    // 当前位置（仅在导航模式下显示）
+    if (_navigationMode == NavigationMode.navigating && _currentLatLng != null) {
+      markers.add(
+        Marker(
+          position: _currentLatLng!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          infoWindow: const InfoWindow(title: '当前位置'),
         ),
       );
     }
@@ -909,7 +1088,192 @@ class _NavigationScreenState extends State<NavigationScreen>
     return markers;
   }
 
-  /// 构建顶部信息卡片
+  /// 构建预览模式信息卡片
+  Widget _buildPreviewCard(BuildContext context) {
+    return Card(
+      elevation: 4,
+      color: DesignSystem.getBackgroundElevated(context),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.map_outlined,
+                  color: DesignSystem.getPrimary(context),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '路线预览',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: DesignSystem.getTextPrimary(context),
+                  ),
+                ),
+                const Spacer(),
+                if (_currentPosition != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: DesignSystem.getSuccess(context).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 14,
+                          color: DesignSystem.getSuccess(context),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '已定位',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: DesignSystem.getSuccess(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // 距离信息
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildInfoItem(
+                  context: context,
+                  icon: Icons.straighten,
+                  value: '${_totalDistance.toStringAsFixed(0)} m',
+                  label: '路线总长',
+                ),
+                if (_previewDistance > 0)
+                  _buildInfoItem(
+                    context: context,
+                    icon: Icons.near_me,
+                    value: _previewDistance < 1000 
+                        ? '${_previewDistance.toStringAsFixed(0)} m'
+                        : '${(_previewDistance / 1000).toStringAsFixed(1)} km',
+                    label: '距起点',
+                  ),
+                _buildInfoItem(
+                  context: context,
+                  icon: Icons.access_time,
+                  value: '${(_totalDistance / 1.4 / 60).ceil()} 分',
+                  label: '预计用时',
+                ),
+              ],
+            ),
+            
+            // 定位提示
+            if (_currentPosition == null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: DesignSystem.getWarning(context).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: DesignSystem.getWarning(context),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '正在获取当前位置...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: DesignSystem.getWarning(context),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 构建预览模式底部卡片
+  Widget _buildPreviewBottomCard(BuildContext context) {
+    return Card(
+      elevation: 4,
+      color: DesignSystem.getBackgroundElevated(context),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.routeName,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: DesignSystem.getTextPrimary(context),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('返回'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    onPressed: _currentPosition != null 
+                        ? _startActualNavigation 
+                        : null,
+                    icon: const Icon(Icons.navigation),
+                    label: const Text('开始导航'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: DesignSystem.getPrimary(context),
+                      foregroundColor: DesignSystem.getTextInverse(context),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '点击"开始导航"后，系统将引导您前往路线起点',
+              style: TextStyle(
+                fontSize: 12,
+                color: DesignSystem.getTextTertiary(context),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 构建导航模式信息卡片
   Widget _buildInfoCard(BuildContext context) {
     return Card(
       elevation: 4,
@@ -1016,7 +1380,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     );
   }
 
-  /// 构建底部控制卡片
+  /// 构建导航模式底部控制卡片
   Widget _buildBottomCard(BuildContext context) {
     return Card(
       elevation: 4,
@@ -1042,13 +1406,13 @@ class _NavigationScreenState extends State<NavigationScreen>
                 IconButton(
                   onPressed: () {
                     setState(() {
-                      _isTtsInitialized = !_isTtsInitialized;
+                      _isTtsAvailable = !_isTtsAvailable;
                     });
-                    _speak(_isTtsInitialized ? '语音播报已开启' : '语音播报已关闭');
+                    _speak(_isTtsAvailable ? '语音播报已开启' : '语音播报已关闭');
                   },
                   icon: Icon(
-                    _isTtsInitialized ? Icons.volume_up : Icons.volume_off,
-                    color: _isTtsInitialized ? DesignSystem.getPrimary(context) : DesignSystem.getTextTertiary(context),
+                    _isTtsAvailable ? Icons.volume_up : Icons.volume_off,
+                    color: _isTtsAvailable ? DesignSystem.getPrimary(context) : DesignSystem.getTextTertiary(context),
                   ),
                 ),
 
