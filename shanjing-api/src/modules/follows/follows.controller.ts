@@ -22,6 +22,17 @@ import {
   FollowActionResponseDto,
 } from './dto/follow.dto';
 
+/**
+ * 统一响应包装函数
+ */
+function wrapResponse<T>(data: T, meta?: any) {
+  return {
+    success: true,
+    data,
+    meta,
+  };
+}
+
 @ApiTags('关注系统')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -37,8 +48,9 @@ export class FollowsController {
   async followUser(
     @CurrentUser('userId') currentUserId: string,
     @Param('id') targetUserId: string,
-  ): Promise<FollowActionResponseDto> {
-    return this.followsService.toggleFollow(currentUserId, targetUserId);
+  ) {
+    const result = await this.followsService.toggleFollow(currentUserId, targetUserId);
+    return wrapResponse(result);
   }
 
   @Delete(':id/follow')
@@ -48,8 +60,9 @@ export class FollowsController {
   async unfollowUser(
     @CurrentUser('userId') currentUserId: string,
     @Param('id') targetUserId: string,
-  ): Promise<FollowActionResponseDto> {
-    return this.followsService.toggleFollow(currentUserId, targetUserId);
+  ) {
+    const result = await this.followsService.toggleFollow(currentUserId, targetUserId);
+    return wrapResponse(result);
   }
 
   @Get(':id/followers')
@@ -59,8 +72,13 @@ export class FollowsController {
     @CurrentUser('userId') currentUserId: string,
     @Param('id') userId: string,
     @Query() query: QueryFollowsDto,
-  ): Promise<FollowListResponseDto> {
-    return this.followsService.getFollowers(userId, query, currentUserId);
+  ) {
+    const result = await this.followsService.getFollowers(userId, query, currentUserId);
+    return wrapResponse(result.list, {
+      total: result.total,
+      cursor: result.nextCursor,
+      hasMore: result.hasMore,
+    });
   }
 
   @Get(':id/following')
@@ -70,8 +88,13 @@ export class FollowsController {
     @CurrentUser('userId') currentUserId: string,
     @Param('id') userId: string,
     @Query() query: QueryFollowsDto,
-  ): Promise<FollowListResponseDto> {
-    return this.followsService.getFollowing(userId, query, currentUserId);
+  ) {
+    const result = await this.followsService.getFollowing(userId, query, currentUserId);
+    return wrapResponse(result.list, {
+      total: result.total,
+      cursor: result.nextCursor,
+      hasMore: result.hasMore,
+    });
   }
 
   @Get(':id/follow-status')
@@ -80,16 +103,16 @@ export class FollowsController {
   async getFollowStatus(
     @CurrentUser('userId') currentUserId: string,
     @Param('id') targetUserId: string,
-  ): Promise<{ isFollowing: boolean; isMutual: boolean }> {
+  ) {
     const [currentUserStatus, targetUserStatus] = await Promise.all([
       this.followsService.checkFollowStatus(currentUserId, targetUserId),
       this.followsService.checkFollowStatus(targetUserId, currentUserId),
     ]);
 
-    return {
+    return wrapResponse({
       isFollowing: currentUserStatus.isFollowing,
       isMutual: currentUserStatus.isFollowing && targetUserStatus.isFollowing,
-    };
+    });
   }
 
   @Get(':id/follow-stats')
@@ -98,8 +121,9 @@ export class FollowsController {
   async getFollowStats(
     @CurrentUser('userId') currentUserId: string,
     @Param('id') userId: string,
-  ): Promise<FollowStatsDto> {
-    return this.followsService.getFollowStats(userId, currentUserId);
+  ) {
+    const result = await this.followsService.getFollowStats(userId, currentUserId);
+    return wrapResponse(result);
   }
 
   @Get('suggestions')
@@ -108,7 +132,12 @@ export class FollowsController {
   async getFollowSuggestions(
     @CurrentUser('userId') currentUserId: string,
     @Query('limit') limit: number = 10,
-  ): Promise<FollowListResponseDto> {
-    return this.followsService.getSuggestions(currentUserId, limit);
+  ) {
+    const result = await this.followsService.getSuggestions(currentUserId, limit);
+    return wrapResponse(result.list, {
+      total: result.total,
+      cursor: result.nextCursor,
+      hasMore: result.hasMore,
+    });
   }
 }
