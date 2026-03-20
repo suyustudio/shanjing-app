@@ -232,7 +232,7 @@ class _PoiMarkerDialogState extends State<PoiMarkerDialog> {
             ? theme.colorScheme.onPrimary 
             : theme.colorScheme.onSurface,
       ),
-      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+      backgroundColor: theme.colorScheme.surfaceVariant ?? theme.colorScheme.surface.withOpacity(0.8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(

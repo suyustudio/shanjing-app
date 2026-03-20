@@ -55,7 +55,6 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
   @override
   void dispose() {
     _pulseController.dispose();
-    _mapController?.dispose();
     super.dispose();
   }
 
@@ -121,11 +120,6 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
       initialCameraPosition: const CameraPosition(
         target: LatLng(30.259, 120.148), // 默认杭州
         zoom: 15,
-      ),
-      myLocationEnabled: true,
-      myLocationStyleOptions: MyLocationStyleOptions(
-        showMyLocation: true,
-        myLocationType: MyLocationType.location_rotate,
       ),
       polylines: _polylines,
       markers: _markers,

@@ -3,12 +3,12 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:app_settings/app_settings.dart';
 import '../constants/design_system.dart';
 
-/// 权限状态
-enum PermissionStatus {
+/// 权限状态（本地定义，避免与 permission_handler 冲突）
+enum AppPermissionStatus {
   granted,
   denied,
   permanentlyDenied,
@@ -19,7 +19,7 @@ enum PermissionStatus {
 class GpsStatus {
   final bool isEnabled;
   final bool hasPermission;
-  final PermissionStatus permissionStatus;
+  final AppPermissionStatus permissionStatus;
 
   GpsStatus({
     required this.isEnabled,
@@ -41,10 +41,10 @@ class PermissionService {
   /// 检查位置权限状态
   static Future<GpsStatus> checkLocationStatus() async {
     // 检查位置服务是否开启
-    final isLocationEnabled = await Permission.location.serviceStatus.isEnabled;
+    final isLocationEnabled = await ph.Permission.location.serviceStatus.isEnabled;
     
     // 检查位置权限
-    final locationStatus = await Permission.location.status;
+    final locationStatus = await ph.Permission.location.status;
     final hasLocationPermission = locationStatus.isGranted;
 
     return GpsStatus(
@@ -55,29 +55,29 @@ class PermissionService {
   }
 
   /// 检查相机权限
-  static Future<PermissionStatus> checkCameraPermission() async {
-    final status = await Permission.camera.status;
+  static Future<AppPermissionStatus> checkCameraPermission() async {
+    final status = await ph.Permission.camera.status;
     return _convertPermissionStatus(status);
   }
 
   /// 检查存储权限
-  static Future<PermissionStatus> checkStoragePermission() async {
+  static Future<AppPermissionStatus> checkStoragePermission() async {
     if (Platform.isAndroid) {
-      final status = await Permission.storage.status;
+      final status = await ph.Permission.storage.status;
       return _convertPermissionStatus(status);
     } else {
-      final status = await Permission.photos.status;
+      final status = await ph.Permission.photos.status;
       return _convertPermissionStatus(status);
     }
   }
 
   /// 检查所有录制所需权限
-  static Future<Map<String, PermissionStatus>> checkAllRecordingPermissions() async {
-    final locationStatus = await Permission.location.status;
-    final cameraStatus = await Permission.camera.status;
+  static Future<Map<String, AppPermissionStatus>> checkAllRecordingPermissions() async {
+    final locationStatus = await ph.Permission.location.status;
+    final cameraStatus = await ph.Permission.camera.status;
     final storageStatus = Platform.isAndroid
-        ? await Permission.storage.status
-        : await Permission.photos.status;
+        ? await ph.Permission.storage.status
+        : await ph.Permission.photos.status;
 
     return {
       'location': _convertPermissionStatus(locationStatus),
@@ -110,7 +110,7 @@ class PermissionService {
   /// 申请位置权限
   static Future<bool> _requestLocationPermission(BuildContext context) async {
     // 检查当前状态
-    final status = await Permission.location.status;
+    final status = await ph.Permission.location.status;
     
     if (status.isGranted) return true;
     
@@ -129,7 +129,7 @@ class PermissionService {
     }
 
     // 申请权限
-    final result = await Permission.location.request();
+    final result = await ph.Permission.location.request();
     
     if (result.isGranted) return true;
     
@@ -146,7 +146,7 @@ class PermissionService {
 
   /// 申请相机权限
   static Future<bool> _requestCameraPermission(BuildContext context) async {
-    final status = await Permission.camera.status;
+    final status = await ph.Permission.camera.status;
     
     if (status.isGranted) return true;
     
@@ -163,7 +163,7 @@ class PermissionService {
       return false;
     }
 
-    final result = await Permission.camera.request();
+    final result = await ph.Permission.camera.request();
     
     if (result.isGranted) return true;
     
@@ -220,7 +220,7 @@ class PermissionService {
 
   /// 打开位置设置
   static Future<void> openLocationSettings() async {
-    await AppSettings.openLocationSettings();
+    await AppSettings.openAppSettings();
   }
 
   // ==================== 对话框 ====================
@@ -298,11 +298,11 @@ class PermissionService {
   // ==================== 辅助方法 ====================
 
   /// 转换权限状态
-  static PermissionStatus _convertPermissionStatus(PermissionStatus status) {
-    if (status.isGranted) return PermissionStatus.granted;
-    if (status.isPermanentlyDenied) return PermissionStatus.permanentlyDenied;
-    if (status.isRestricted) return PermissionStatus.restricted;
-    return PermissionStatus.denied;
+  static AppPermissionStatus _convertPermissionStatus(ph.PermissionStatus status) {
+    if (status.isGranted) return AppPermissionStatus.granted;
+    if (status.isPermanentlyDenied) return AppPermissionStatus.permanentlyDenied;
+    if (status.isRestricted) return AppPermissionStatus.restricted;
+    return AppPermissionStatus.denied;
   }
 
   /// 显示首次使用权限引导
