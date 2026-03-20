@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
+import 'package:amap_flutter_location/amap_location_option.dart';
 import '../analytics/analytics.dart';
 import '../widgets/app_app_bar.dart';
 import '../widgets/sos_button.dart';
@@ -422,7 +423,6 @@ class _NavigationScreenState extends State<NavigationScreen>
         locationInterval: 2000, // 2秒更新一次
         needAddress: false,
         onceLocation: false,
-        locationMode: AMapLocationMode.hightAccuracy,
       ));
       
       // 监听定位结果
