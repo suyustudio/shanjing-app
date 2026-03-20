@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <linearGradient id="bronzeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B87333"/>
+      <stop offset="50%" style="stop-color:#CD7F32"/>
+      <stop offset="100%" style="stop-color:#D4A574"/>
+    </linearGradient>
+    <linearGradient id="bronzeShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.4)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+  
+  <circle cx="40" cy="40" r="36" fill="url(#bronzeGradient)" stroke="#8B4513" stroke-width="2"/>
+  <circle cx="40" cy="40" r="30" fill="none" stroke="#8B4513" stroke-width="1" opacity="0.5"/>
+  
+  <!-- 10km 路牌 -->
+  <g transform="translate(40, 40) rotate(-15)">
+    <!-- 路牌柱 -->
+    <rect x="-3" y="0" width="6" height="25" fill="#8B4513" rx="1"/>
+    <!-- 路牌板 -->
+    <rect x="-18" y="-15" width="36" height="20" fill="#CD7F32" stroke="#8B4513" stroke-width="1.5" rx="2"/>
+    <!-- 文字 10km -->
+    <text x="0" y="-2" text-anchor="middle" font-size="10" font-weight="bold" fill="#5D3A1A">10</text>
+    <text x="0" y="7" text-anchor="middle" font-size="6" fill="#5D3A1A">km</text>
+    
+    <!-- 箭头 -->
+    <polygon points="-12,-10 -8,-10 -10,-6" fill="#5D3A1A"/>
+  </g>
+  
+  <!-- 小路径 -->
+  <path d="M 20,65 Q 30,60 40,62 T 60,58" fill="none" stroke="#8B4513" stroke-width="2" stroke-dasharray="4,2" opacity="0.6"/>
+  
+  <ellipse cx="30" cy="25" rx="12" ry="8" fill="url(#bronzeShine)" transform="rotate(-30, 30, 25)"/>
+</svg>

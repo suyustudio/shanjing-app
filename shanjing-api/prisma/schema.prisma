@@ -15,6 +15,21 @@ enum TrailDifficulty {
   HARD
 }
 
+enum AchievementCategory {
+  EXPLORER    // 探索类：完成路线
+  DISTANCE    // 里程类：累计距离
+  FREQUENCY   // 频率类：坚持徒步
+  CHALLENGE   // 挑战类：特殊条件
+  SOCIAL      // 社交类：分享互动
+}
+
+enum AchievementLevelEnum {
+  BRONZE      // 铜
+  SILVER      // 银
+  GOLD        // 金
+  DIAMOND     // 钻石
+}
+
 // ==================== 用户表 ====================
 
 model User {
@@ -30,7 +45,12 @@ model User {
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   favorites     Favorite[]
-  
+  profile       UserProfile?
+  recommendationLogs RecommendationLog[]
+  trailInteractions UserTrailInteraction[]
+  achievements  UserAchievement[]
+  stats         UserStats?
+
   @@index([phone])
   @@index([wxOpenid])
   @@map("users")
@@ -60,6 +80,8 @@ model Trail {
   boundsEast        Float?
   boundsWest        Float?
   isActive          Boolean         @default(true)
+  avgRating         Float?          @map("avg_rating")
+  reviewCount       Int             @default(0) @map("review_count")
   createdBy         String
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
@@ -110,4 +132,209 @@ model TokenBlacklist {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+// ==================== 用户画像表（推荐系统）====================
+
+model UserProfile {
+  id                      String   @id @default(uuid())
+  userId                  String   @unique @map("user_id")
+  
+  // 偏好统计
+  preferredDifficulty     String?  @map("preferred_difficulty") // 偏好难度
+  preferredMinDistanceKm  Float?   @map("preferred_min_distance_km") // 偏好最小距离
+  preferredMaxDistanceKm  Float?   @map("preferred_max_distance_km") // 偏好最大距离
+  preferredTags           String[] @default([]) @map("preferred_tags") // 偏好标签
+  
+  // 历史行为统计
+  totalCompletedTrails    Int      @default(0) @map("total_completed_trails") // 完成路线数
+  totalDistanceKm         Float    @default(0) @map("total_distance_km") // 总里程
+  totalDurationMin        Int      @default(0) @map("total_duration_min") // 总时长
+  avgRatingGiven          Float?   @map("avg_rating_given") // 平均评分
+  
+  // 用户画像向量（用于推荐）
+  difficultyVector        Json?    @map("difficulty_vector") // 难度偏好向量 {EASY: 0.3, MODERATE: 0.5, HARD: 0.2}
+  tagVector               Json?    @map("tag_vector") // 标签偏好向量
+  
+  // 冷启动标记
+  isColdStart             Boolean  @default(true) @map("is_cold_start") // 是否冷启动用户
+  
+  // 时间戳
+  updatedAt               DateTime @updatedAt @map("updated_at")
+  createdAt               DateTime @default(now()) @map("created_at")
+  
+  // 关联
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([isColdStart])
+  @@map("user_profiles")
+}
+
+// ==================== 推荐日志表 ====================
+
+model RecommendationLog {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  algorithm       String    // 算法版本：v1_rule_based
+  scene           String    // 推荐场景：home, list, similar, nearby
+  
+  // 上下文
+  contextLat      Float?    @map("context_lat") // 用户纬度
+  contextLng      Float?    @map("context_lng") // 用户经度
+  contextTime     DateTime  @map("context_time") // 推荐时间
+  
+  // 推荐结果（JSON格式）
+  results         Json      // [{trailId, score, factors: {}}]
+  
+  // 用户反馈
+  userAction      String?   @map("user_action") // 行为：click, bookmark, complete, ignore
+  actionTime      DateTime? @map("action_time") // 行为时间
+  clickedTrailId  String?   @map("clicked_trail_id") // 点击的路线ID
+  
+  // 时间戳
+  createdAt       DateTime  @default(now()) @map("created_at")
+  
+  // 关联
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, createdAt])
+  @@index([algorithm])
+  @@index([scene])
+  @@map("recommendation_logs")
+}
+
+// ==================== 用户路线交互记录（用于推荐）====================
+
+model UserTrailInteraction {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  trailId         String   @map("trail_id")
+  
+  // 交互类型
+  interactionType String   @map("interaction_type") // view, click, bookmark, complete, rate
+  rating          Float?   // 评分（当 interaction_type = rate 时）
+  
+  // 元数据
+  durationSec     Int?     @map("duration_sec") // 交互时长（秒）
+  source          String?  // 来源：recommendation, search, nearby, direct
+  
+  // 时间戳
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  // 关联
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, trailId, interactionType])
+  @@index([userId, createdAt])
+  @@index([trailId])
+  @@index([interactionType])
+  @@map("user_trail_interactions")
+}
+
+// ==================== 成就系统 ====================
+
+// 成就定义表
+model Achievement {
+  id          String              @id @default(uuid())
+  key         String              @unique @db.VarChar(32)
+  name        String              @db.VarChar(64)
+  description String?             @db.Text
+  category    AchievementCategory
+  iconUrl     String?             @map("icon_url") @db.VarChar(256)
+  isHidden    Boolean             @default(false) @map("is_hidden")
+  sortOrder   Int                 @default(0) @map("sort_order")
+  createdAt   DateTime            @default(now()) @map("created_at")
+
+  levels      AchievementLevel[]
+  userAchievements UserAchievement[]
+
+  @@index([category])
+  @@index([sortOrder])
+  @@map("achievements")
+}
+
+// 成就等级定义表
+model AchievementLevel {
+  id              String              @id @default(uuid())
+  achievementId   String              @map("achievement_id") @db.VarChar(32)
+  level           AchievementLevelEnum
+  requirement     Int
+  name            String              @db.VarChar(64)
+  description     String?             @db.Text
+  reward          String?             @db.VarChar(128)
+  iconUrl         String?             @map("icon_url") @db.VarChar(256)
+
+  achievement     Achievement         @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  userAchievements UserAchievement[]
+
+  @@unique([achievementId, level])
+  @@map("achievement_levels")
+}
+
+// 用户成就表
+model UserAchievement {
+  id              String           @id @default(uuid())
+  userId          String           @map("user_id") @db.VarChar(32)
+  achievementId   String           @map("achievement_id") @db.VarChar(32)
+  levelId         String           @map("level_id") @db.VarChar(32)
+  progress        Int              @default(0)
+  unlockedAt      DateTime         @default(now()) @map("unlocked_at")
+  isNew           Boolean          @default(true) @map("is_new")
+  isNotified      Boolean          @default(false) @map("is_notified")
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement     Achievement      @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  level           AchievementLevel @relation(fields: [levelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId, unlockedAt])
+  @@index([userId, isNew])
+  @@map("user_achievements")
+}
+
+// 用户统计表
+model UserStats {
+  userId                  String   @id @map("user_id") @db.VarChar(32)
+
+  // 里程统计
+  totalDistanceM          Int      @default(0) @map("total_distance_m")
+  totalDurationSec        Int      @default(0) @map("total_duration_sec")
+  totalElevationGainM     Float    @default(0) @map("total_elevation_gain_m")
+
+  // 路线统计
+  uniqueTrailsCount       Int      @default(0) @map("unique_trails_count")
+  completedTrailIds       String[] @default([]) @map("completed_trail_ids")
+
+  // 频率统计
+  currentWeeklyStreak     Int      @default(0) @map("current_weekly_streak")
+  longestWeeklyStreak     Int      @default(0) @map("longest_weekly_streak")
+  currentMonthlyStreak    Int      @default(0) @map("current_monthly_streak")
+  lastTrailDate           DateTime? @map("last_trail_date")
+  trailCountThisWeek      Int      @default(0) @map("trail_count_this_week")
+  trailCountThisMonth     Int      @default(0) @map("trail_count_this_month")
+
+  // 挑战统计
+  nightTrailCount         Int      @default(0) @map("night_trail_count")
+  rainTrailCount          Int      @default(0) @map("rain_trail_count")
+  soloTrailCount          Int      @default(0) @map("solo_trail_count")
+
+  // 社交统计
+  shareCount              Int      @default(0) @map("share_count")
+
+  // 用户画像（用于推荐）
+  avgDistanceKm           Float?   @map("avg_distance_km")
+  avgDurationMin          Float?   @map("avg_duration_min")
+  preferredDifficulty     String?  @map("preferred_difficulty") @db.VarChar(16)
+  preferredTags           String[] @default([]) @map("preferred_tags")
+
+  updatedAt               DateTime @updatedAt @map("updated_at")
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([totalDistanceM])
+  @@index([uniqueTrailsCount])
+  @@index([currentWeeklyStreak])
+  @@map("user_stats")
 }

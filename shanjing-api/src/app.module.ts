@@ -7,7 +7,9 @@ import { FilesModule } from './modules/files/files.module';
 import { MapModule } from './modules/map/map.module';
 import { TrailsModule } from './modules/trails/trails.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
+import { RecommendationModule } from './modules/recommendation/recommendation.module';
 import { PrismaModule } from './database/prisma.module';
+import { RedisModule } from './shared/redis/redis.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
@@ -18,12 +20,14 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
       envFilePath: '.env',
     }),
     PrismaModule,
+    RedisModule,
     AuthModule,
     UsersModule,
     FilesModule,
     MapModule,
     TrailsModule,
     FavoritesModule,
+    RecommendationModule,
   ],
   providers: [
     {

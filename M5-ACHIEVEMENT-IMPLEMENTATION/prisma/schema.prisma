@@ -1,0 +1,168 @@
+// ================================================================
+// M5 Schema Extensions - Prisma Definition
+// 山径APP M5阶段数据库扩展 - 成就系统
+// ================================================================
+
+// ==================== 枚举定义 ====================
+
+enum AchievementCategory {
+  explorer    // 探索类：完成路线
+  distance    // 里程类：累计距离
+  frequency   // 频率类：坚持徒步
+  challenge   // 挑战类：特殊条件
+  social      // 社交类：分享互动
+}
+
+enum AchievementLevel {
+  bronze      // 铜
+  silver      // 银
+  gold        // 金
+  diamond     // 钻石
+}
+
+// ==================== 成就系统 ====================
+
+// 成就定义表
+model Achievement {
+  id          String              @id @default(cuid())
+  key         String              @unique @db.VarChar(32)
+  name        String              @db.VarChar(64)
+  description String?             @db.Text
+  category    AchievementCategory
+  iconUrl     String?             @map("icon_url") @db.VarChar(256)
+  isHidden    Boolean             @default(false) @map("is_hidden")
+  sortOrder   Int                 @default(0) @map("sort_order")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  
+  levels      AchievementLevelDef[]
+  userAchievements UserAchievement[]
+  
+  @@index([category])
+  @@index([sortOrder])
+  @@map("achievements")
+}
+
+// 成就等级定义表
+model AchievementLevelDef {
+  id              String           @id @default(cuid())
+  achievementId   String           @map("achievement_id") @db.VarChar(32)
+  level           AchievementLevel
+  requirement     Int
+  name            String           @db.VarChar(64)
+  description     String?          @db.Text
+  reward          String?          @db.VarChar(128)
+  iconUrl         String?          @map("icon_url") @db.VarChar(256)
+  
+  achievement     Achievement      @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  userAchievements UserAchievement[]
+  
+  @@unique([achievementId, level])
+  @@map("achievement_levels")
+}
+
+// 用户成就表
+model UserAchievement {
+  id              String           @id @default(cuid())
+  userId          String           @map("user_id") @db.VarChar(32)
+  achievementId   String           @map("achievement_id") @db.VarChar(32)
+  levelId         String           @map("level_id") @db.VarChar(32)
+  progress        Int              @default(0)
+  unlockedAt      DateTime         @default(now()) @map("unlocked_at")
+  isNew           Boolean          @default(true) @map("is_new")
+  isNotified      Boolean          @default(false) @map("is_notified")
+  
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement     Achievement      @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  level           AchievementLevelDef @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, achievementId])
+  @@index([userId, unlockedAt])
+  @@index([userId, isNew])
+  @@map("user_achievements")
+}
+
+// 用户统计表
+model UserStats {
+  userId                  String   @id @map("user_id") @db.VarChar(32)
+  
+  // 里程统计
+  totalDistanceM          Int      @default(0) @map("total_distance_m")
+  totalDurationSec        Int      @default(0) @map("total_duration_sec")
+  totalElevationGainM     Float    @default(0) @map("total_elevation_gain_m")
+  
+  // 路线统计
+  uniqueTrailsCount       Int      @default(0) @map("unique_trails_count")
+  completedTrailIds       String[] @default([]) @map("completed_trail_ids")
+  
+  // 频率统计
+  currentWeeklyStreak     Int      @default(0) @map("current_weekly_streak")
+  longestWeeklyStreak     Int      @default(0) @map("longest_weekly_streak")
+  currentMonthlyStreak    Int      @default(0) @map("current_monthly_streak")
+  lastTrailDate           DateTime? @map("last_trail_date")
+  trailCountThisWeek      Int      @default(0) @map("trail_count_this_week")
+  trailCountThisMonth     Int      @default(0) @map("trail_count_this_month")
+  
+  // 挑战统计
+  nightTrailCount         Int      @default(0) @map("night_trail_count")
+  rainTrailCount          Int      @default(0) @map("rain_trail_count")
+  soloTrailCount          Int      @default(0) @map("solo_trail_count")
+  
+  // 社交统计
+  shareCount              Int      @default(0) @map("share_count")
+  
+  // 用户画像（用于推荐）
+  avgDistanceKm           Float?   @map("avg_distance_km")
+  avgDurationMin          Float?   @map("avg_duration_min")
+  preferredDifficulty     String?  @map("preferred_difficulty") @db.VarChar(16)
+  preferredTags           String[] @default([]) @map("preferred_tags")
+  
+  updatedAt               DateTime @updatedAt @map("updated_at")
+  createdAt               DateTime @default(now()) @map("created_at")
+  
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([totalDistanceM])
+  @@index([uniqueTrailsCount])
+  @@index([currentWeeklyStreak])
+  @@map("user_stats")
+}
+
+// 推荐日志表（可选）
+model RecommendationLog {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id") @db.VarChar(32)
+  algorithm       String   @db.VarChar(32)
+  context         Json
+  results         Json
+  userAction      String?  @map("user_action") @db.VarChar(32)
+  actionTime      DateTime? @map("action_time")
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, createdAt])
+  @@index([algorithm])
+  @@map("recommendation_logs")
+}
+
+// ==================== 扩展现有 User 模型 ====================
+
+model User {
+  // ... 已有字段 ...
+  id        String   @id @default(cuid())
+  wxOpenid  String?  @unique @map("wx_openid")
+  // ... 其他已有字段 ...
+  
+  // M5 新增关联
+  achievements    UserAchievement[]
+  stats           UserStats?
+  recommendationLogs RecommendationLog[]
+  
+  // 用户设置扩展（JSON格式）
+  settings        Json?    @default("{}")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  @@map("users")
+}

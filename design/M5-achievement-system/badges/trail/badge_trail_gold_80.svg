@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DAA520"/>
+      <stop offset="25%" style="stop-color:#FFD700"/>
+      <stop offset="50%" style="stop-color:#FFF8DC"/>
+      <stop offset="75%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#DAA520"/>
+    </linearGradient>
+    <linearGradient id="goldBorder" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF8DC"/>
+      <stop offset="50%" style="stop-color:#B8860B"/>
+      <stop offset="100%" style="stop-color:#8B6914"/>
+    </linearGradient>
+    <filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-color="#FFD700" flood-opacity="0.5"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <circle cx="40" cy="40" r="38" fill="none" stroke="#FFD700" stroke-width="2" opacity="0.4" filter="url(#goldGlow)"/>
+  <circle cx="40" cy="40" r="36" fill="url(#goldGradient)" stroke="url(#goldBorder)" stroke-width="3"/>
+  <circle cx="40" cy="40" r="33" fill="none" stroke="#FFF8DC" stroke-width="1" opacity="0.6"/>
+  
+  <!-- 地图+指南针 -->
+  <g transform="translate(40, 38)">
+    <!-- 地图 -->
+    <rect x="-18" y="-14" width="36" height="28" fill="#8B6914" opacity="0.2" rx="3"/>
+    <path d="M -14,-8 L -4,6 L 8,-6 L 14,2" fill="none" stroke="#8B6914" stroke-width="1.5"/>
+    
+    <!-- 指南针 -->
+    <circle cx="0" cy="-5" r="14" fill="#FFD700" stroke="#B8860B" stroke-width="1.5"/>
+    <circle cx="0" cy="-5" r="12" fill="none" stroke="#B8860B" stroke-width="0.5"/>
+    
+    <!-- 指南针指针 -->
+    <polygon points="0,-15 -3,-5 0,5 3,-5" fill="#B8860B"/>
+    <polygon points="0,5 -3,-5 0,-15" fill="#FFF8DC"/>
+    
+    <circle cx="0" cy="-5" r="2" fill="#8B6914"/>
+    
+    <!-- N标记 -->
+    <text x="0" y="-22" text-anchor="middle" font-size="6" font-weight="bold" fill="#8B6914">N</text>
+  </g>
+  
+  <!-- 30 -->
+  <text x="40" y="70" text-anchor="middle" font-size="11" font-weight="bold" fill="#8B6914">30</text>
+  
+  <!-- 闪烁星星 -->
+  <g fill="#FFF8DC">
+    <polygon points="15,15 16,18 19,18 16.5,20 17.5,23 15,21 12.5,23 13.5,20 11,18 14,18"/>
+    <polygon points="60,25 61,27 63,27 61.5,28.5 62,30.5 60,29.5 58,30.5 58.5,28.5 57,27 59,27"/>
+  </g>
+  
+  <ellipse cx="26" cy="20" rx="10" ry="6" fill="rgba(255,255,255,0.6)" transform="rotate(-30, 26, 20)"/>
+</svg>

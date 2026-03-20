@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <defs>
+    <linearGradient id="bronzeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B87333"/>
+      <stop offset="50%" style="stop-color:#CD7F32"/>
+      <stop offset="100%" style="stop-color:#D4A574"/>
+    </linearGradient>
+    <linearGradient id="bronzeShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.4)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+  
+  <circle cx="40" cy="40" r="36" fill="url(#bronzeGradient)" stroke="#8B4513" stroke-width="2"/>
+  <circle cx="40" cy="40" r="30" fill="none" stroke="#8B4513" stroke-width="1" opacity="0.5"/>
+  
+  <!-- 分享图标+小星星 -->
+  <g transform="translate(40, 40)">
+    <!-- 分享节点 -->
+    <circle cx="-8" cy="-8" r="5" fill="#5D3A1A"/>
+    <circle cx="8" cy="-8" r="5" fill="#5D3A1A"/>
+    <circle cx="0" cy="8" r="5" fill="#5D3A1A"/>
+    
+    <!-- 连接线 -->
+    <line x1="-4" y1="-6" x2="4" y2="-6" stroke="#5D3A1A" stroke-width="2"/>
+    <line x1="-6" y1="-4" x2="-2" y2="4" stroke="#5D3A1A" stroke-width="2"/>
+    <line x1="6" y1="-4" x2="2" y2="4" stroke="#5D3A1A" stroke-width="2"/>
+    
+    <!-- 小星星 -->
+    <polygon points="12,-14 13,-12 15,-12 13.5,-10.5 14,-8.5 12,-9.5 10,-8.5 10.5,-10.5 9,-12 11,-12" fill="#D4A574"/>
+  </g>
+  
+  <!-- 分享5次 -->
+  <text x="40" y="68" text-anchor="middle" font-size="9" font-weight="bold" fill="#5D3A1A">分享5次</text>
+  
+  <ellipse cx="30" cy="25" rx="12" ry="8" fill="url(#bronzeShine)" transform="rotate(-30, 30, 25)"/>
+</svg>
