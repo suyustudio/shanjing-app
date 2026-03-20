@@ -923,6 +923,13 @@ class _NavigationScreenState extends State<NavigationScreen>
           backgroundColor: _getStatusColor(context),
           foregroundColor: DesignSystem.getTextInverse(context),
           showBack: true,
+          onBack: () async {
+            // 使用与 WillPopScope 相同的逻辑
+            final shouldPop = await _onWillPop();
+            if (shouldPop && mounted) {
+              Navigator.pop(context);
+            }
+          },
         ),
         body: Stack(
           children: [
@@ -1450,6 +1457,17 @@ class _NavigationScreenState extends State<NavigationScreen>
                 // 结束导航按钮
                 ElevatedButton.icon(
                   onPressed: () async {
+                    // 先停止所有导航资源
+                    try {
+                      _locationPlugin?.stopLocation();
+                      _locationSubscription?.cancel();
+                      if (_isTtsInitialized && _flutterTts != null) {
+                        _flutterTts!.stop();
+                      }
+                    } catch (e) {
+                      debugPrint('停止导航资源时出错: $e');
+                    }
+                    
                     await _speak('导航结束');
                     if (mounted) {
                       Navigator.pop(context);
