@@ -1,5 +1,4 @@
-:
-HEARTBEAT.md - 定期检查清单
+:HEARTBEAT.md - 定期检查清单
 
 ## 检查频率
 每 10 分钟检查一次
@@ -34,34 +33,35 @@ HEARTBEAT.md - 定期检查清单
 
 ---
 
-## 当前状态（2026-03-21 凌晨 00:47）
+## 当前状态（2026-03-21 凌晨 00:52）
 
-### ✅ 推送成功，构建排队中
+### ✅ 推送成功，新构建进行中
 
 **Git 状态：**
 - 本地分支：与 origin/main 同步 ✅
 - 工作树：干净，无需提交
-- 推送状态：✅ 已推送（commit e9c4525）
+- 推送状态：✅ 已推送（commit f3c3e42）
 
 **GitHub Actions：**
 | Build | 工作流 | 状态 | 说明 |
 |-------|--------|------|------|
-| #193 | Build APK | 🟡 queued | 导航修复 #4，排队中 |
-| #37 | APK Pre-check | 🟡 queued | 排队中 |
-| #71 | APK Pre-check | ⚪ skipped | 旧构建 |
+| #194 | Build APK | 🔄 in_progress | 内存更新推送后触发 |
+| #38 | E2E Tests | 🔄 in_progress | 运行中 |
+| #193 | Build APK | ❌ failure | 导航修复 #4 失败（历史） |
+| #37 | E2E Tests | ❌ failure | 失败（历史） |
 
-**本次提交内容：**
-- 修复 `hightAccuracy` → `highAccuracy` 拼写错误
-- 添加 `app_settings` 依赖（版本 5.1.1）
-- `recording_model.dart` 添加 material 导入
+**本次提交内容（commit f3c3e42）：**
+- 更新 HEARTBEAT.md 状态记录
+- 更新 recording_service.dart 依赖
 
-**⚠️ 历史问题：**
-- Build #192 失败（导航修复 #3）
-- 等待 #193 构建结果验证修复效果
+**⚠️ 注意：**
+- Build #193 失败（导航修复 #4），需要排查
+- Build #194 正在运行，等待结果
 
 ---
 
 ## 历史状态存档
+- 2026-03-21 00:52: 推送内存更新（f3c3e42），Build #194/#38 进行中
 - 2026-03-21 00:47: 推送成功（nav-fix4），Build #193/#37 排队中
 - 2026-03-21 00:32: Git状态正常，无需推送；Build #36/#191 失败需排查
 - 2026-03-21 00:22: 提交推送成功，Build #190/#35 排队中
