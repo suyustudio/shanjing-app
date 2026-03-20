@@ -33,34 +33,34 @@
 
 ---
 
-## 当前状态（2026-03-21 凌晨 00:52）
+## 当前状态（2026-03-21 凌晨 01:02）
 
 ### ✅ 推送成功，新构建进行中
 
 **Git 状态：**
 - 本地分支：与 origin/main 同步 ✅
 - 工作树：干净，无需提交
-- 推送状态：✅ 已推送（commit f3c3e42）
+- 推送状态：✅ 已推送（commit c1589b77）
 
 **GitHub Actions：**
 | Build | 工作流 | 状态 | 说明 |
 |-------|--------|------|------|
-| #194 | Build APK | 🔄 in_progress | 内存更新推送后触发 |
-| #38 | E2E Tests | 🔄 in_progress | 运行中 |
-| #193 | Build APK | ❌ failure | 导航修复 #4 失败（历史） |
-| #37 | E2E Tests | ❌ failure | 失败（历史） |
+| #196 | Build APK | 🔄 in_progress | recording_service.dart 修复推送后触发 |
+| #39 | E2E Tests | 🔄 in_progress | 运行中 |
+| #194 | Build APK | ❌ failure | 内存更新推送（历史） |
+| #38 | E2E Tests | ❌ failure | 失败（历史） |
 
-**本次提交内容（commit f3c3e42）：**
-- 更新 HEARTBEAT.md 状态记录
-- 更新 recording_service.dart 依赖
+**本次提交内容（commit c1589b77）：**
+- 修复 recording_service.dart 依赖引用
 
 **⚠️ 注意：**
-- Build #193 失败（导航修复 #4），需要排查
-- Build #194 正在运行，等待结果
+- Build #194 失败（内存更新推送），原因待排查
+- Build #196 正在运行，等待结果
 
 ---
 
 ## 历史状态存档
+- 2026-03-21 01:02: 推送 recording_service.dart 修复（c1589b77），Build #196/#39 进行中
 - 2026-03-21 00:52: 推送内存更新（f3c3e42），Build #194/#38 进行中
 - 2026-03-21 00:47: 推送成功（nav-fix4），Build #193/#37 排队中
 - 2026-03-21 00:32: Git状态正常，无需推送；Build #36/#191 失败需排查
