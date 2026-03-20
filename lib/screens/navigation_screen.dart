@@ -421,8 +421,6 @@ class _NavigationScreenState extends State<NavigationScreen>
       // 设置定位选项 - 导航需要高精度、高频率定位
       _locationPlugin?.setLocationOption(AMapLocationOption(
         locationInterval: 2000, // 2秒更新一次
-        needAddress: false,
-        onceLocation: false,
       ));
       
       // 监听定位结果
