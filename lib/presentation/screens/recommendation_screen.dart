@@ -3,6 +3,7 @@
 // ============================================
 
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../../models/recommendation_model.dart';
 import '../../services/recommendation_service.dart';
 import '../../services/location_service.dart';
@@ -27,10 +28,21 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   double? _userLat;
   double? _userLng;
 
+  // 曝光追踪相关
+  Timer? _impressionDebounceTimer;
+  final Set<String> _reportedTrailIds = {};
+  static const Duration _impressionDebounceDuration = Duration(seconds: 1);
+
   @override
   void initState() {
     super.initState();
     _loadRecommendations();
+  }
+
+  @override
+  void dispose() {
+    _impressionDebounceTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadRecommendations() async {
@@ -56,6 +68,9 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         _trails = trails;
         _isLoading = false;
       });
+
+      // 延迟上报曝光（防抖处理）
+      _debouncedReportImpression();
     } catch (e) {
       setState(() {
         _errorMessage = '加载推荐失败，请重试';
@@ -111,6 +126,45 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('已收藏 ${trail.name}')),
     );
+  }
+
+  /// 防抖处理曝光上报
+  void _debouncedReportImpression() {
+    _impressionDebounceTimer?.cancel();
+    _impressionDebounceTimer = Timer(_impressionDebounceDuration, () {
+      _reportImpression();
+    });
+  }
+
+  /// 上报推荐曝光事件
+  void _reportImpression() {
+    if (_trails.isEmpty) return;
+
+    // 获取可见的路线（前5条）且未上报过的
+    final visibleTrails = _trails.take(5).where((trail) {
+      return !_reportedTrailIds.contains(trail.id);
+    }).toList();
+
+    if (visibleTrails.isEmpty) return;
+
+    final trailIds = visibleTrails.map((t) => t.id).toList();
+    final logId = _recommendationService.getCachedLogId();
+
+    // 标记为已上报
+    for (final trail in visibleTrails) {
+      _reportedTrailIds.add(trail.id);
+    }
+
+    // 发送曝光追踪请求
+    _recommendationService.trackImpression(
+      trailIds: trailIds,
+      scene: RecommendationScene.home,
+      logId: logId,
+    ).then((success) {
+      if (success) {
+        debugPrint('Impression reported: ${trailIds.length} trails');
+      }
+    });
   }
 
   @override

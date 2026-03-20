@@ -1,6 +1,11 @@
 // ================================================================
-// Achievement Screen
-// 成就/徽章墙主页面
+// Achievement Screen - Product Fixed Version
+// 成就/徽章墙主页面 - 修复版
+//
+// 修复内容:
+// - P1-3: 添加数据埋点 (页面访问/Tab切换/详情查看)
+// - P1-1: 集成分享功能
+// - P2-1: 网格从 3 列改为 4 列
 // ================================================================
 
 import 'package:flutter/material.dart';
@@ -8,7 +13,9 @@ import 'package:provider/provider.dart';
 import '../../models/achievement_model.dart';
 import '../../providers/achievement_provider.dart';
 import '../../services/achievement_service.dart';
+import '../../services/analytics_service.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/achievement_share_poster.dart';
 import 'achievement_detail_page.dart';
 import 'achievement_unlock_dialog.dart';
 
@@ -20,7 +27,7 @@ class AchievementScreen extends StatefulWidget {
 }
 
 class _AchievementScreenState extends State<AchievementScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   final List<AchievementCategory> _categories = [
     AchievementCategory.explorer,
@@ -29,22 +36,48 @@ class _AchievementScreenState extends State<AchievementScreen>
     AchievementCategory.challenge,
     AchievementCategory.social,
   ];
+  
+  final List<String> _categoryNames = ['全部', '探索', '里程', '打卡', '挑战', '社交'];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _categories.length + 1, vsync: this);
+    WidgetsBinding.instance.addObserver(this);
+    
+    _tabController = TabController(
+      length: _categories.length + 1, 
+      vsync: this,
+    );
+    
+    // Tab 切换监听（埋点）
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        final tabName = _categoryNames[_tabController.index];
+        AnalyticsService.instance.logAchievementTabClick(tabName);
+      }
+    });
     
     // 加载数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AchievementProvider>().loadUserAchievements();
+      // 埋点：页面访问
+      AnalyticsService.instance.logAchievementPageView();
     });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 应用从后台回到前台时刷新数据
+    if (state == AppLifecycleState.resumed) {
+      context.read<AchievementProvider>().refresh();
+    }
   }
 
   @override
@@ -61,12 +94,7 @@ class _AchievementScreenState extends State<AchievementScreen>
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: [
-            const Tab(text: '全部'),
-            ..._categories.map((c) => Tab(
-              text: AchievementService.getCategoryDisplayName(c),
-            )),
-          ],
+          tabs: _categoryNames.map((name) => Tab(text: name)).toList(),
         ),
       ),
       body: Consumer<AchievementProvider>(
@@ -119,9 +147,7 @@ class _AchievementScreenState extends State<AchievementScreen>
 
   Widget _buildAchievementGrid(List<UserAchievementModel> achievements) {
     if (achievements.isEmpty) {
-      return const Center(
-        child: Text('暂无成就数据'),
-      );
+      return _buildEmptyState();
     }
 
     return RefreshIndicator(
@@ -132,15 +158,15 @@ class _AchievementScreenState extends State<AchievementScreen>
           SliverToBoxAdapter(
             child: _buildStatsCard(),
           ),
-          // 成就网格
+          // 成就网格 - P2-1 Fix: 改为 4 列
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 0.8,
+                crossAxisCount: 4, // 从 3 改为 4
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.75,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -153,6 +179,47 @@ class _AchievementScreenState extends State<AchievementScreen>
                 childCount: achievements.length,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// P2-3 Fix: 空状态引导
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.emoji_events_outlined,
+            size: 80,
+            color: Colors.grey.shade300,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '还没有解锁任何成就',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '开始徒步探索，解锁你的第一个成就吧！',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade500,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
+              // 跳转到路线列表
+              Navigator.of(context).pushNamed('/trails');
+            },
+            icon: const Icon(Icons.map),
+            label: const Text('去探索路线'),
           ),
         ],
       ),
@@ -193,7 +260,7 @@ class _AchievementScreenState extends State<AchievementScreen>
                   ),
                   _buildStatItem(
                     '完成度',
-                    '${(summary.unlockedCount / summary.totalCount * 100).toInt()}%',
+                    '${summary.totalCount > 0 ? (summary.unlockedCount / summary.totalCount * 100).toInt() : 0}%',
                     Icons.trending_up,
                   ),
                 ],
@@ -243,6 +310,9 @@ class _AchievementScreenState extends State<AchievementScreen>
   }
 
   void _showAchievementDetail(UserAchievementModel achievement) {
+    // 埋点：查看详情
+    AnalyticsService.instance.logAchievementDetailView(achievement.achievementId);
+    
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -252,37 +322,81 @@ class _AchievementScreenState extends State<AchievementScreen>
   }
 
   void _showShareOptions() {
-    // TODO: 实现分享功能
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.share),
-              title: const Text('分享我的成就'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: 调用分享功能
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.download),
-              title: const Text('保存成就卡片'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: 生成并保存分享卡片
-              },
-            ),
-          ],
-        ),
+    final provider = context.read<AchievementProvider>();
+    final summary = provider.summary;
+    
+    if (summary == null || summary.unlockedCount == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('还没有解锁任何成就，快去探索吧！')),
+      );
+      return;
+    }
+    
+    // 找到最高等级的成就用于分享
+    final unlockedAchievements = summary.achievements
+        .where((a) => a.isUnlocked)
+        .toList();
+    
+    if (unlockedAchievements.isEmpty) return;
+    
+    // 按等级排序，选择最高的
+    final topAchievement = unlockedAchievements.first;
+    
+    // 埋点：点击分享
+    AnalyticsService.instance.logAchievementShareClick(
+      topAchievement.achievementId,
+      'sheet',
+    );
+    
+    // 显示分享弹窗
+    showAchievementShareSheet(
+      context,
+      data: AchievementShareData(
+        achievementName: topAchievement.name,
+        achievementLevel: topAchievement.currentLevel ?? '铜',
+        achievementIconUrl: '', // 从 achievement 获取
+        category: _parseCategory(topAchievement.category),
+        level: _parseLevel(topAchievement.currentLevel),
+        description: '我在山径App解锁了新成就！',
+        unlockedAt: topAchievement.unlockedAt ?? DateTime.now(),
+        totalUnlocked: summary.unlockedCount,
+        totalAchievements: summary.totalCount,
       ),
     );
   }
+  
+  AchievementCategory _parseCategory(String category) {
+    switch (category.toLowerCase()) {
+      case 'explorer':
+        return AchievementCategory.explorer;
+      case 'distance':
+        return AchievementCategory.distance;
+      case 'frequency':
+        return AchievementCategory.frequency;
+      case 'challenge':
+        return AchievementCategory.challenge;
+      case 'social':
+        return AchievementCategory.social;
+      default:
+        return AchievementCategory.explorer;
+    }
+  }
+  
+  AchievementLevel _parseLevel(String? level) {
+    switch (level?.toLowerCase()) {
+      case 'silver':
+        return AchievementLevel.silver;
+      case 'gold':
+        return AchievementLevel.gold;
+      case 'diamond':
+        return AchievementLevel.diamond;
+      default:
+        return AchievementLevel.bronze;
+    }
+  }
 }
 
-/// 成就徽章卡片
+/// 成就徽章卡片 - 优化版
 class _AchievementBadgeCard extends StatelessWidget {
   final UserAchievementModel achievement;
   final VoidCallback onTap;
@@ -296,10 +410,8 @@ class _AchievementBadgeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUnlocked = achievement.isUnlocked;
-    final category = AchievementCategory.values.firstWhere(
-      (c) => c.name == achievement.category,
-      orElse: () => AchievementCategory.explorer,
-    );
+    final category = _parseCategory(achievement.category);
+    final level = _parseLevel(achievement.currentLevel);
 
     return GestureDetector(
       onTap: onTap,
@@ -310,14 +422,14 @@ class _AchievementBadgeCard extends StatelessWidget {
           boxShadow: isUnlocked
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: _getLevelColor(level).withOpacity(0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
                 ]
               : null,
           border: isUnlocked
-              ? Border.all(color: Colors.green.shade200, width: 2)
+              ? Border.all(color: _getLevelColor(level).withOpacity(0.3), width: 2)
               : Border.all(color: Colors.grey.shade300),
         ),
         child: Column(
@@ -326,25 +438,25 @@ class _AchievementBadgeCard extends StatelessWidget {
             // 新解锁标记
             if (achievement.isNew)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 margin: const EdgeInsets.only(bottom: 4),
                 decoration: BoxDecoration(
                   color: Colors.red,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(
                   'NEW',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 10,
+                    fontSize: 8,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             // 徽章图标
             Container(
-              width: 60,
-              height: 60,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isUnlocked
@@ -354,21 +466,21 @@ class _AchievementBadgeCard extends StatelessWidget {
               child: Center(
                 child: Icon(
                   isUnlocked ? _getCategoryIcon(category) : Icons.lock,
-                  size: 32,
+                  size: 24,
                   color: isUnlocked
-                      ? _getCategoryColor(category)
+                      ? _getLevelColor(level)
                       : Colors.grey.shade400,
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             // 成就名称
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
                 achievement.name,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold,
                   color: isUnlocked ? Colors.black87 : Colors.grey.shade500,
                 ),
@@ -377,21 +489,22 @@ class _AchievementBadgeCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             // 等级或进度
             if (isUnlocked && achievement.currentLevel != null)
               Text(
                 achievement.currentLevel!,
                 style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey.shade600,
+                  fontSize: 9,
+                  color: _getLevelColor(level),
+                  fontWeight: FontWeight.w600,
                 ),
               )
             else
               Text(
                 '${achievement.percentage}%',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 9,
                   color: Colors.grey.shade500,
                 ),
               ),
@@ -399,6 +512,30 @@ class _AchievementBadgeCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  AchievementCategory _parseCategory(String category) {
+    try {
+      return AchievementCategory.values.firstWhere(
+        (c) => c.name == category,
+        orElse: () => AchievementCategory.explorer,
+      );
+    } catch (_) {
+      return AchievementCategory.explorer;
+    }
+  }
+
+  AchievementLevel _parseLevel(String? level) {
+    switch (level?.toLowerCase()) {
+      case 'silver':
+        return AchievementLevel.silver;
+      case 'gold':
+        return AchievementLevel.gold;
+      case 'diamond':
+        return AchievementLevel.diamond;
+      default:
+        return AchievementLevel.bronze;
+    }
   }
 
   Color _getCategoryColor(AchievementCategory category) {
@@ -413,6 +550,19 @@ class _AchievementBadgeCard extends StatelessWidget {
         return Colors.red;
       case AchievementCategory.social:
         return Colors.green;
+    }
+  }
+
+  Color _getLevelColor(AchievementLevel level) {
+    switch (level) {
+      case AchievementLevel.bronze:
+        return const Color(0xFFCD7F32);
+      case AchievementLevel.silver:
+        return const Color(0xFFC0C0C0);
+      case AchievementLevel.gold:
+        return const Color(0xFFFFD700);
+      case AchievementLevel.diamond:
+        return const Color(0xFF00CED1);
     }
   }
 

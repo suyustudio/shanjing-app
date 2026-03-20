@@ -230,6 +230,29 @@ class RecommendationService {
     );
   }
 
+  /// 记录推荐曝光事件
+  Future<bool> trackImpression({
+    required List<String> trailIds,
+    required RecommendationScene scene,
+    String? logId,
+  }) async {
+    if (trailIds.isEmpty) return false;
+
+    final body = <String, dynamic>{
+      'scene': scene.name,
+      'trailIds': trailIds,
+      'timestamp': DateTime.now().toIso8601String(),
+      if (logId != null) 'logId': logId,
+    };
+
+    final response = await _post(
+      '${ApiConfig.apiBaseUrl}/api/recommendations/impression',
+      body: body,
+    );
+
+    return response != null && response['success'] == true;
+  }
+
   /// 发送反馈（通用方法）
   Future<void> _sendFeedback({
     required UserAction action,
