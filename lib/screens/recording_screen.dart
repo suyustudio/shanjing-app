@@ -153,15 +153,9 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.95),
+              color: DesignSystem.getSurface(context).withOpacity(0.95),
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              boxShadow: DesignSystem.getShadow(context),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -176,8 +170,8 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                         child: Container(
                           width: 12,
                           height: 12,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
+                          decoration: BoxDecoration(
+                            color: DesignSystem.getError(context),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -188,17 +182,18 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                         height: 12,
                         decoration: BoxDecoration(
                           color: status == RecordingStatus.paused 
-                              ? Colors.orange 
-                              : Colors.grey,
+                              ? DesignSystem.getWarning(context) 
+                              : DesignSystem.getTextTertiary(context),
                           shape: BoxShape.circle,
                         ),
                       ),
                     const SizedBox(width: 8),
                     Text(
                       _getStatusText(status),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
+                        color: DesignSystem.getTextPrimary(context),
                       ),
                     ),
                     const Spacer(),
@@ -207,13 +202,13 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                       _buildStatChip(
                         Icons.location_on,
                         '${session.pois.length}',
-                        Colors.blue,
+                        DesignSystem.getInfo(context),
                       ),
                       const SizedBox(width: 8),
                       _buildStatChip(
                         Icons.photo,
                         '${session.photoCount}',
-                        Colors.purple,
+                        DesignSystem.getPrimary(context),
                       ),
                     ],
                   ],
@@ -258,13 +253,13 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: Colors.grey[600]),
+            Icon(icon, size: 16, color: DesignSystem.getTextSecondary(context)),
             const SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: DesignSystem.getTextSecondary(context),
               ),
             ),
           ],
@@ -272,9 +267,10 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
+            color: DesignSystem.getTextPrimary(context),
           ),
         ),
       ],
@@ -286,7 +282,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -321,14 +317,14 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
             return Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: DesignSystem.getSurface(context),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(24),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: DesignSystem.getTextPrimary(context).withOpacity(0.1),
                     blurRadius: 20,
                     offset: const Offset(0, -4),
                   ),
@@ -345,7 +341,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                       _buildControlButton(
                         icon: Icons.list,
                         label: '标记点',
-                        color: Colors.blue,
+                        color: DesignSystem.getInfo(context),
                         onPressed: () {
                           setState(() {
                             _showPoiList = !_showPoiList;
@@ -361,7 +357,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                       _buildControlButton(
                         icon: Icons.add_location_alt,
                         label: '标记',
-                        color: Colors.orange,
+                        color: DesignSystem.getWarning(context),
                         onPressed: status == RecordingStatus.recording
                             ? () => _showPoiMarkerDialog()
                             : null,
@@ -383,8 +379,8 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                           icon: const Icon(Icons.stop),
                           label: const Text('结束录制'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
+                            backgroundColor: DesignSystem.getError(context),
+                            foregroundColor: DesignSystem.textInverse,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,
                               vertical: 12,
@@ -403,7 +399,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                             icon: const Icon(Icons.delete_outline),
                             label: const Text('放弃'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.grey[600],
+                              foregroundColor: DesignSystem.getTextSecondary(context),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
                                 vertical: 12,
@@ -432,7 +428,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
         return _buildLargeButton(
           icon: Icons.fiber_manual_record,
           label: '开始录制',
-          color: Colors.red,
+          color: DesignSystem.getError(context),
           onPressed: _startRecording,
           size: 80,
         );
@@ -441,7 +437,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
         return _buildLargeButton(
           icon: Icons.pause,
           label: '暂停',
-          color: Colors.orange,
+          color: DesignSystem.getWarning(context),
           onPressed: _pauseRecording,
           size: 80,
         );
@@ -450,7 +446,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
         return _buildLargeButton(
           icon: Icons.play_arrow,
           label: '继续',
-          color: Colors.green,
+          color: DesignSystem.getSuccess(context),
           onPressed: _resumeRecording,
           size: 80,
         );
@@ -459,7 +455,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
         return _buildLargeButton(
           icon: Icons.check,
           label: '已完成',
-          color: Colors.grey,
+          color: DesignSystem.getTextTertiary(context),
           onPressed: null,
           size: 80,
         );
@@ -481,7 +477,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: onPressed != null ? color : Colors.grey[400],
+            color: onPressed != null ? color : DesignSystem.getTextTertiary(context).withOpacity(0.3),
             shape: BoxShape.circle,
             boxShadow: onPressed != null
                 ? [
@@ -500,7 +496,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
               customBorder: const CircleBorder(),
               child: Icon(
                 icon,
-                color: Colors.white,
+                color: DesignSystem.textInverse,
                 size: size * 0.4,
               ),
             ),
@@ -512,7 +508,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: onPressed != null ? color : Colors.grey[400],
+            color: onPressed != null ? color : DesignSystem.getTextTertiary(context),
           ),
         ),
       ],
@@ -536,7 +532,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
           decoration: BoxDecoration(
             color: isActive 
                 ? color.withOpacity(0.2) 
-                : (onPressed != null ? Colors.grey[100] : Colors.grey[100]),
+                : (onPressed != null ? DesignSystem.getBackgroundSecondary(context) : DesignSystem.getBackgroundSecondary(context).withOpacity(0.5)),
             borderRadius: BorderRadius.circular(16),
             border: isActive
                 ? Border.all(color: color, width: 2)
@@ -550,8 +546,8 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
               child: Icon(
                 icon,
                 color: onPressed != null 
-                    ? (isActive ? color : Colors.grey[700]) 
-                    : Colors.grey[400],
+                    ? (isActive ? color : DesignSystem.getTextSecondary(context)) 
+                    : DesignSystem.getTextTertiary(context).withOpacity(0.5),
                 size: 28,
               ),
             ),
@@ -563,8 +559,8 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
           style: TextStyle(
             fontSize: 12,
             color: onPressed != null 
-                ? (isActive ? color : Colors.grey[700]) 
-                : Colors.grey[400],
+                ? (isActive ? color : DesignSystem.getTextSecondary(context)) 
+                : DesignSystem.getTextTertiary(context).withOpacity(0.5),
           ),
         ),
       ],
@@ -585,15 +581,9 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
             margin: const EdgeInsets.symmetric(horizontal: 16),
             constraints: const BoxConstraints(maxHeight: 300),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: DesignSystem.getSurface(context),
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, -4),
-                ),
-              ],
+              boxShadow: DesignSystem.getShadow(context),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -603,13 +593,14 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on, color: Colors.blue),
+                      Icon(Icons.location_on, color: DesignSystem.getInfo(context)),
                       const SizedBox(width: 8),
                       Text(
                         '已标记点 (${pois.length})',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
+                          color: DesignSystem.getTextPrimary(context),
                         ),
                       ),
                       const Spacer(),
@@ -619,20 +610,20 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                             _showPoiList = false;
                           });
                         },
-                        icon: const Icon(Icons.close),
+                        icon: Icon(Icons.close, color: DesignSystem.getTextSecondary(context)),
                       ),
                     ],
                   ),
                 ),
-                const Divider(height: 1),
+                Divider(height: 1, color: DesignSystem.getDivider(context)),
                 // POI列表
                 if (pois.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
+                  Padding(
+                    padding: const EdgeInsets.all(24),
                     child: Text(
                       '还没有标记点\n点击"标记"按钮添加',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: DesignSystem.getTextSecondary(context)),
                     ),
                   )
                 else
@@ -660,16 +651,16 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
   /// 构建加载遮罩
   Widget _buildLoadingOverlay() {
     return Container(
-      color: Colors.black54,
-      child: const Center(
+      color: DesignSystem.getBackground(context).withOpacity(0.9),
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: Colors.white),
-            SizedBox(height: 16),
+            CircularProgressIndicator(color: DesignSystem.getPrimary(context)),
+            const SizedBox(height: 16),
             Text(
               '正在初始化定位服务...',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: DesignSystem.getTextPrimary(context)),
             ),
           ],
         ),
@@ -680,19 +671,19 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
   /// 构建错误遮罩
   Widget _buildErrorOverlay() {
     return Container(
-      color: Colors.black87,
+      color: DesignSystem.getBackground(context).withOpacity(0.95),
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              Icon(Icons.error_outline, size: 64, color: DesignSystem.getError(context)),
               const SizedBox(height: 16),
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: DesignSystem.getTextPrimary(context), fontSize: 16),
               ),
               const SizedBox(height: 24),
               ElevatedButton(

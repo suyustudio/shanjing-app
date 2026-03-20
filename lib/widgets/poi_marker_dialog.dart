@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/recording_model.dart';
+import '../constants/design_system.dart';
 
 /// POI标记弹窗
 /// 
@@ -70,9 +71,9 @@ class _PoiMarkerDialogState extends State<PoiMarkerDialog> {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: DesignSystem.getSurface(context),
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
@@ -274,10 +275,10 @@ class _PoiMarkerDialogState extends State<PoiMarkerDialog> {
         width: 100,
         height: 100,
         decoration: BoxDecoration(
-          color: Colors.grey[100],
+          color: DesignSystem.getBackgroundSecondary(context),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.grey[300]!,
+            color: DesignSystem.getBorder(context),
             style: BorderStyle.solid,
           ),
         ),
@@ -287,14 +288,14 @@ class _PoiMarkerDialogState extends State<PoiMarkerDialog> {
             Icon(
               Icons.camera_alt,
               size: 32,
-              color: Colors.grey[600],
+              color: DesignSystem.getTextSecondary(context),
             ),
             const SizedBox(height: 4),
             Text(
               '拍照',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: DesignSystem.getTextSecondary(context),
               ),
             ),
           ],
@@ -448,7 +449,7 @@ class QuickPoiButton extends StatelessWidget {
       onPressed: isRecording ? onPressed : null,
       backgroundColor: isRecording 
           ? Theme.of(context).colorScheme.secondary 
-          : Colors.grey,
+          : DesignSystem.getTextTertiary(context).withOpacity(0.3),
       icon: const Icon(Icons.add_location_alt),
       label: const Text('标记'),
     );
@@ -512,7 +513,7 @@ class PoiMarkerCard extends StatelessWidget {
                       Text(
                         poi.description!,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
+                          color: DesignSystem.getTextSecondary(context),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -522,7 +523,7 @@ class PoiMarkerCard extends StatelessWidget {
                     Text(
                       _formatTime(poi.createdAt),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[500],
+                        color: DesignSystem.getTextTertiary(context),
                         fontSize: 11,
                       ),
                     ),
@@ -540,7 +541,7 @@ class PoiMarkerCard extends StatelessWidget {
               if (onDelete != null)
                 IconButton(
                   onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  icon: Icon(Icons.delete_outline, color: DesignSystem.getError(context)),
                 ),
             ],
           ),
