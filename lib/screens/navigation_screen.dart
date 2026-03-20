@@ -202,21 +202,16 @@ class _NavigationScreenState extends State<NavigationScreen>
     // 先标记导航完成，防止后续事件上报
     _navigationCompleted = true;
     
-    // 移除生命周期观察器
-    WidgetsBinding.instance.removeObserver(this);
-    
-    // 取消定位订阅
+    // 取消定位订阅（最先取消，避免收到新位置更新）
     _locationSubscription?.cancel();
     _locationSubscription = null;
     
-    // 停止定位并销毁插件
+    // 停止定位（不调用 destroy，避免崩溃）
     try {
       _locationPlugin?.stopLocation();
-      _locationPlugin?.destroy();
     } catch (e) {
       debugPrint('停止定位时出错: $e');
     }
-    _locationPlugin = null;
     
     // 停止 TTS
     try {
@@ -227,8 +222,11 @@ class _NavigationScreenState extends State<NavigationScreen>
       debugPrint('停止 TTS 时出错: $e');
     }
     
-    // 释放地图控制器
+    // 释放地图控制器引用（但不销毁，让 Widget 自己处理）
     _mapController = null;
+    
+    // 延迟移除生命周期观察器，确保当前帧完成
+    WidgetsBinding.instance.removeObserver(this);
     
     super.dispose();
   }
