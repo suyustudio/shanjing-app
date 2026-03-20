@@ -179,7 +179,7 @@ class PermissionService {
 
   /// 申请存储权限
   static Future<bool> _requestStoragePermission(BuildContext context) async {
-    final permission = Platform.isAndroid ? Permission.storage : Permission.photos;
+    final permission = Platform.isAndroid ? ph.Permission.storage : ph.Permission.photos;
     final status = await permission.status;
     
     if (status.isGranted) return true;
