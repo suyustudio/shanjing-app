@@ -8,15 +8,18 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Param,
   Body,
   UseGuards,
   Request,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AdminGuard } from '../../common/guards/admin.guard';
 import { AchievementsService } from './achievements.service';
 import {
   AchievementDto,
@@ -156,6 +159,49 @@ export class AchievementsController {
   async markAllAchievementsViewed(@Request() req): Promise<{ success: boolean }> {
     await this.achievementsService.markAllAchievementsViewed(req.user.userId);
     return { success: true };
+  }
+}
+
+/**
+ * 成就缓存管理控制器（管理员）
+ */
+@ApiTags('成就缓存管理')
+@Controller('achievements/admin/cache')
+@UseGuards(JwtAuthGuard, AdminGuard)
+@ApiBearerAuth()
+export class AchievementCacheController {
+  constructor(private readonly achievementsService: AchievementsService) {}
+
+  /**
+   * 清除所有成就缓存
+   */
+  @Delete('all')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '清除所有成就缓存',
+    description: '管理员接口：清除所有成就相关的缓存',
+  })
+  @ApiResponse({ status: 200, description: '清除成功' })
+  async clearAllCache(): Promise<{ success: boolean; message: string }> {
+    await this.achievementsService.clearAllAchievementCache();
+    return { success: true, message: '所有成就缓存已清除' };
+  }
+
+  /**
+   * 按标签清除缓存
+   */
+  @Delete('by-tag')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '按标签清除缓存',
+    description: '管理员接口：按指定标签批量清除缓存',
+  })
+  @ApiResponse({ status: 200, description: '清除成功' })
+  async invalidateByTag(
+    @Query('tag') tag: string
+  ): Promise<{ success: boolean; deletedCount: number }> {
+    const deletedCount = await this.achievementsService.invalidateCacheByTag(tag);
+    return { success: true, deletedCount };
   }
 }
 

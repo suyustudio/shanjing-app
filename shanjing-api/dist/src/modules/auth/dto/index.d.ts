@@ -21,3 +21,12 @@ export declare class LogoutDto {
     refreshToken?: string;
     allDevices?: boolean;
 }
+export declare class PhonePasswordRegisterDto {
+    phone: string;
+    password: string;
+    nickname?: string;
+}
+export declare class PhonePasswordLoginDto {
+    phone: string;
+    password: string;
+}

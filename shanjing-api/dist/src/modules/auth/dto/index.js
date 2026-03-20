@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LogoutDto = exports.RefreshTokenDto = exports.WechatLoginDto = exports.PhoneLoginDto = exports.WechatRegisterDto = exports.PhoneRegisterDto = void 0;
+exports.PhonePasswordLoginDto = exports.PhonePasswordRegisterDto = exports.LogoutDto = exports.RefreshTokenDto = exports.WechatLoginDto = exports.PhoneLoginDto = exports.WechatRegisterDto = exports.PhoneRegisterDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 class PhoneRegisterDto {
@@ -94,4 +94,41 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Boolean)
 ], LogoutDto.prototype, "allDevices", void 0);
+class PhonePasswordRegisterDto {
+}
+exports.PhonePasswordRegisterDto = PhonePasswordRegisterDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: '手机号', example: '13800138000' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Matches)(/^1[3-9]\d{9}$/, { message: '手机号格式错误' }),
+    __metadata("design:type", String)
+], PhonePasswordRegisterDto.prototype, "phone", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: '密码', example: '123456' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(6, 20, { message: '密码长度必须在6-20个字符之间' }),
+    __metadata("design:type", String)
+], PhonePasswordRegisterDto.prototype, "password", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '用户昵称', example: '山径用户' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(2, 20, { message: '昵称长度必须在2-20个字符之间' }),
+    __metadata("design:type", String)
+], PhonePasswordRegisterDto.prototype, "nickname", void 0);
+class PhonePasswordLoginDto {
+}
+exports.PhonePasswordLoginDto = PhonePasswordLoginDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: '手机号', example: '13800138000' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Matches)(/^1[3-9]\d{9}$/, { message: '手机号格式错误' }),
+    __metadata("design:type", String)
+], PhonePasswordLoginDto.prototype, "phone", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: '密码', example: '123456' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(6, 20, { message: '密码长度必须在6-20个字符之间' }),
+    __metadata("design:type", String)
+], PhonePasswordLoginDto.prototype, "password", void 0);
 //# sourceMappingURL=index.js.map

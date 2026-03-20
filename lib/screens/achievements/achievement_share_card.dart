@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import '../../constants/design_system.dart';
 import '../../models/achievement_model.dart';
 import '../../services/achievement_service.dart';
+import '../../services/analytics_service.dart';
 import '../../widgets/achievement_badge.dart';
 
 /// 成就分享卡片
@@ -109,6 +110,16 @@ class AchievementShareCard extends StatelessWidget {
 
   Future<void> _saveToGallery(BuildContext context) async {
     try {
+      // 埋点：保存分享卡片
+      AnalyticsService.instance.logAchievementCardSave(achievement.achievementId);
+      AnalyticsService.instance.logAchievementShare(
+        achievementId: achievement.achievementId,
+        achievementName: achievement.name,
+        level: achievement.level,
+        channel: 'gallery',
+        shareType: 'card',
+      );
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('图片已保存到相册', style: DesignSystem.getBodyMedium(context)),
@@ -127,6 +138,19 @@ class AchievementShareCard extends StatelessWidget {
   }
 
   Future<void> _shareToWeChat(BuildContext context) async {
+    // 埋点：分享到微信好友
+    AnalyticsService.instance.logAchievementShareClick(
+      achievement.achievementId,
+      'wechat_friend',
+    );
+    AnalyticsService.instance.logAchievementShare(
+      achievementId: achievement.achievementId,
+      achievementName: achievement.name,
+      level: achievement.level,
+      channel: 'wechat_friend',
+      shareType: 'card',
+    );
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('分享给微信好友', style: DesignSystem.getBodyMedium(context)),
@@ -136,6 +160,19 @@ class AchievementShareCard extends StatelessWidget {
   }
 
   Future<void> _shareToMoments(BuildContext context) async {
+    // 埋点：分享到朋友圈
+    AnalyticsService.instance.logAchievementShareClick(
+      achievement.achievementId,
+      'wechat_moments',
+    );
+    AnalyticsService.instance.logAchievementShare(
+      achievementId: achievement.achievementId,
+      achievementName: achievement.name,
+      level: achievement.level,
+      channel: 'wechat_moments',
+      shareType: 'card',
+    );
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('分享到朋友圈', style: DesignSystem.getBodyMedium(context)),

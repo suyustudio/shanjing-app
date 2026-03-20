@@ -1,12 +1,12 @@
-// ============================================
-// 推荐服务
-// ============================================
+// ================================================================
+// 推荐服务 (Enhanced with Timeout & Retry)
+// ================================================================
 
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
+import '../constants/achievement_constants.dart';
 import '../models/recommendation_model.dart';
-import 'api_config.dart';
 import 'auth_service.dart';
 
 /// 推荐服务
@@ -15,13 +15,13 @@ class RecommendationService {
   factory RecommendationService() => _instance;
   RecommendationService._internal();
 
-  final http.Client _client = http.Client();
+  final RetryableHttpClient _client = RetryableHttpClient();
   final AuthService _authService = AuthService();
 
   /// 缓存
   RecommendationsResponse? _cachedResponse;
   DateTime? _cacheTime;
-  static const Duration _cacheValidity = Duration(minutes: 5);
+  static const Duration _cacheValidity = CacheTtl.medium;
 
   // ============ 工具方法 ============
 
@@ -30,18 +30,19 @@ class RecommendationService {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
-    
+
     final token = _authService.token;
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
     }
-    
+
     return headers;
   }
 
-  Future<Map<String, dynamic>?> _get(
+  Future<ApiResponse<Map<String, dynamic>>?>> _get(
     String url, {
     Map<String, String>? queryParams,
+    Duration? timeout,
   }) async {
     try {
       var uri = Uri.parse(url);
@@ -49,21 +50,36 @@ class RecommendationService {
         uri = uri.replace(queryParameters: queryParams);
       }
 
-      final response = await _client.get(uri, headers: _getHeaders());
-      
+      final response = await _client.get(
+        uri,
+        headers: _getHeaders(),
+        timeout: timeout,
+      );
+
       if (response.statusCode == 200) {
-        return jsonDecode(response.body) as Map<String, dynamic>;
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return ApiResponse.success(data, statusCode: response.statusCode);
       }
-      return null;
+      return ApiResponse.error(
+        'HTTP ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    } on TimeoutException catch (e) {
+      debugPrint('GET请求超时: $e');
+      return ApiResponse.error('请求超时', statusCode: 408);
+    } on NetworkException catch (e) {
+      debugPrint('GET请求网络错误: $e');
+      return ApiResponse.error('网络连接失败', statusCode: 0);
     } catch (e) {
       debugPrint('GET请求失败: $e');
-      return null;
+      return ApiResponse.error('请求失败: $e');
     }
   }
 
-  Future<Map<String, dynamic>?> _post(
+  Future<ApiResponse<Map<String, dynamic>>?>> _post(
     String url, {
     Map<String, dynamic>? body,
+    Duration? timeout,
   }) async {
     try {
       final uri = Uri.parse(url);
@@ -71,15 +87,26 @@ class RecommendationService {
         uri,
         headers: _getHeaders(),
         body: body != null ? jsonEncode(body) : null,
+        timeout: timeout,
       );
-      
+
       if (response.statusCode == 200) {
-        return jsonDecode(response.body) as Map<String, dynamic>;
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return ApiResponse.success(data, statusCode: response.statusCode);
       }
-      return null;
+      return ApiResponse.error(
+        'HTTP ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    } on TimeoutException catch (e) {
+      debugPrint('POST请求超时: $e');
+      return ApiResponse.error('请求超时', statusCode: 408);
+    } on NetworkException catch (e) {
+      debugPrint('POST请求网络错误: $e');
+      return ApiResponse.error('网络连接失败', statusCode: 0);
     } catch (e) {
       debugPrint('POST请求失败: $e');
-      return null;
+      return ApiResponse.error('请求失败: $e');
     }
   }
 
@@ -87,7 +114,7 @@ class RecommendationService {
 
   /// 获取首页推荐
   Future<List<RecommendedTrail>> getHomeRecommendations({
-    int limit = 10,
+    int limit = ValidationConstraints.defaultLimit,
     double? lat,
     double? lng,
   }) async {
@@ -103,7 +130,7 @@ class RecommendationService {
   Future<List<RecommendedTrail>> getNearbyRecommendations({
     required double lat,
     required double lng,
-    int limit = 10,
+    int limit = ValidationConstraints.defaultLimit,
   }) async {
     return _getRecommendations(
       scene: RecommendationScene.nearby,
@@ -128,7 +155,7 @@ class RecommendationService {
   /// 获取推荐（通用方法）
   Future<List<RecommendedTrail>> _getRecommendations({
     required RecommendationScene scene,
-    int limit = 10,
+    int limit = ValidationConstraints.defaultLimit,
     double? lat,
     double? lng,
     String? referenceTrailId,
@@ -154,27 +181,30 @@ class RecommendationService {
     }
 
     final response = await _get(
-      '${ApiConfig.apiBaseUrl}/api/recommendations',
+      '${ApiConfig.apiBaseUrl}/recommendations',
       queryParams: queryParams,
     );
 
-    if (response != null && response['success'] == true && response['data'] != null) {
-      final data = RecommendationsResponse.fromJson(response['data']);
-      
-      // 缓存结果
-      _cachedResponse = data;
-      _cacheTime = DateTime.now();
-      
-      return data.trails;
+    if (response.success && response.data != null) {
+      final data = response.data!;
+      if (data['success'] == true && data['data'] != null) {
+        final recommendationData = RecommendationsResponse.fromJson(data['data']);
+
+        // 缓存结果
+        _cachedResponse = recommendationData;
+        _cacheTime = DateTime.now();
+
+        return recommendationData.trails;
+      }
     }
-    
+
     return [];
   }
 
   /// 刷新推荐
   Future<List<RecommendedTrail>> refreshRecommendations({
     RecommendationScene scene = RecommendationScene.home,
-    int limit = 10,
+    int limit = ValidationConstraints.defaultLimit,
     double? lat,
     double? lng,
   }) async {
@@ -246,11 +276,11 @@ class RecommendationService {
     };
 
     final response = await _post(
-      '${ApiConfig.apiBaseUrl}/api/recommendations/impression',
+      '${ApiConfig.apiBaseUrl}/recommendations/impression',
       body: body,
     );
 
-    return response != null && response['success'] == true;
+    return response.success && response.data?['success'] == true;
   }
 
   /// 发送反馈（通用方法）
@@ -268,9 +298,12 @@ class RecommendationService {
     };
 
     await _post(
-      '${ApiConfig.apiBaseUrl}/api/recommendations/feedback',
+      '${ApiConfig.apiBaseUrl}/recommendations/feedback',
       body: body,
     );
+
+    // 清除用户推荐缓存
+    await clearCache();
   }
 
   // ============ 缓存管理 ============
@@ -285,4 +318,9 @@ class RecommendationService {
 
   /// 获取缓存的日志ID（用于追踪）
   String? getCachedLogId() => _cachedResponse?.logId;
+  
+  /// 关闭客户端
+  void dispose() {
+    _client.close();
+  }
 }

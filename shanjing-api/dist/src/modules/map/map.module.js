@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const amap_config_service_1 = require("./amap-config.service");
 const amap_geocode_service_1 = require("./amap-geocode.service");
+const amap_route_service_1 = require("./amap-route.service");
 const map_controller_1 = require("./map.controller");
 let MapModule = class MapModule {
 };
@@ -19,8 +20,8 @@ exports.MapModule = MapModule = __decorate([
     (0, common_1.Module)({
         imports: [config_1.ConfigModule],
         controllers: [map_controller_1.MapController],
-        providers: [amap_config_service_1.AmapConfigService, amap_geocode_service_1.AmapGeocodeService],
-        exports: [amap_config_service_1.AmapConfigService, amap_geocode_service_1.AmapGeocodeService],
+        providers: [amap_config_service_1.AmapConfigService, amap_geocode_service_1.AmapGeocodeService, amap_route_service_1.AmapRouteService],
+        exports: [amap_config_service_1.AmapConfigService, amap_geocode_service_1.AmapGeocodeService, amap_route_service_1.AmapRouteService],
     })
 ], MapModule);
 //# sourceMappingURL=map.module.js.map

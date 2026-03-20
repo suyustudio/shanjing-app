@@ -241,8 +241,74 @@ let AuthService = class AuthService {
         };
     }
     sanitizeUser(user) {
-        const { wxOpenid, wxUnionid, ...safeUser } = user;
+        const { wxOpenid, wxUnionid, passwordHash, ...safeUser } = user;
         return safeUser;
+    }
+    async registerWithPassword(dto) {
+        const { phone, password, nickname } = dto;
+        const existingUser = await this.prisma.user.findUnique({
+            where: { phone },
+        });
+        if (existingUser) {
+            throw new common_1.ConflictException({
+                success: false,
+                error: {
+                    code: 'PHONE_ALREADY_EXISTS',
+                    message: '该手机号已被注册',
+                },
+            });
+        }
+        const user = await this.prisma.user.create({
+            data: {
+                phone,
+                passwordHash: this.hashPassword(password),
+                nickname: nickname || `用户${phone.slice(-4)}`,
+                settings: {},
+            },
+        });
+        const tokens = await this.generateTokens(user.id);
+        return {
+            success: true,
+            data: {
+                user: this.sanitizeUser(user),
+                tokens,
+            },
+        };
+    }
+    async loginWithPassword(dto) {
+        const { phone, password } = dto;
+        const user = await this.prisma.user.findUnique({
+            where: { phone },
+        });
+        if (!user) {
+            throw new common_1.UnauthorizedException({
+                success: false,
+                error: {
+                    code: 'USER_NOT_FOUND',
+                    message: '手机号未注册',
+                },
+            });
+        }
+        if (user.passwordHash !== this.hashPassword(password)) {
+            throw new common_1.UnauthorizedException({
+                success: false,
+                error: {
+                    code: 'INVALID_PASSWORD',
+                    message: '密码错误',
+                },
+            });
+        }
+        const tokens = await this.generateTokens(user.id);
+        return {
+            success: true,
+            data: {
+                user: this.sanitizeUser(user),
+                tokens,
+            },
+        };
+    }
+    hashPassword(password) {
+        return crypto.createHash('sha256').update(password).digest('hex');
     }
 };
 exports.AuthService = AuthService;

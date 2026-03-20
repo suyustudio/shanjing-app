@@ -1,5 +1,5 @@
 // ============================================
-// Redis 服务
+// Redis 服务 (Enhanced with Cache Tags)
 // ============================================
 
 import { Injectable, Logger } from '@nestjs/common';
@@ -10,7 +10,8 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class RedisService {
   private readonly logger = new Logger(RedisService.name);
-  private cache: Map<string, { value: string; expires: number }> = new Map();
+  private cache: Map<string, { value: string; expires: number; tags?: string[] }> = new Map();
+  private tagIndex: Map<string, Set<string>> = new Map();
 
   constructor(private configService: ConfigService) {
     // 定期清理过期缓存
@@ -23,6 +24,7 @@ export class RedisService {
     
     if (Date.now() > item.expires) {
       this.cache.delete(key);
+      this.removeFromTagIndex(key);
       return null;
     }
     
@@ -44,9 +46,35 @@ export class RedisService {
     this.cache.set(key, { value, expires });
   }
 
+  /**
+   * 设置带标签的缓存
+   * @param key 缓存键
+   * @param ttlSeconds 过期时间（秒）
+   * @param value 缓存值
+   * @param tags 缓存标签，用于批量失效
+   */
+  async setexWithTags(
+    key: string, 
+    ttlSeconds: number, 
+    value: string,
+    tags: string[]
+  ): Promise<void> {
+    const expires = Date.now() + ttlSeconds * 1000;
+    this.cache.set(key, { value, expires, tags });
+    
+    // 更新标签索引
+    for (const tag of tags) {
+      if (!this.tagIndex.has(tag)) {
+        this.tagIndex.set(tag, new Set());
+      }
+      this.tagIndex.get(tag)!.add(key);
+    }
+  }
+
   async del(...keys: string[]): Promise<void> {
     for (const key of keys) {
       this.cache.delete(key);
+      this.removeFromTagIndex(key);
     }
   }
 
@@ -70,17 +98,84 @@ export class RedisService {
     
     for (const key of keysToDelete) {
       this.cache.delete(key);
+      this.removeFromTagIndex(key);
     }
     
     return keysToDelete.length;
   }
 
+  /**
+   * 根据标签删除缓存
+   * @param tag 缓存标签
+   * @returns 删除的缓存数量
+   */
+  async invalidateByTag(tag: string): Promise<number> {
+    const keys = this.tagIndex.get(tag);
+    if (!keys || keys.size === 0) {
+      return 0;
+    }
+
+    const keysArray = Array.from(keys);
+    for (const key of keysArray) {
+      this.cache.delete(key);
+    }
+    
+    this.tagIndex.delete(tag);
+    
+    this.logger.debug(`Invalidated ${keysArray.length} cache entries by tag: ${tag}`);
+    return keysArray.length;
+  }
+
+  /**
+   * 根据多个标签删除缓存
+   * @param tags 缓存标签列表
+   * @returns 删除的缓存数量
+   */
+  async invalidateByTags(tags: string[]): Promise<number> {
+    let totalDeleted = 0;
+    for (const tag of tags) {
+      totalDeleted += await this.invalidateByTag(tag);
+    }
+    return totalDeleted;
+  }
+
+  /**
+   * 获取标签信息（用于调试）
+   */
+  async getTagInfo(tag: string): Promise<{ keyCount: number; keys: string[] }> {
+    const keys = this.tagIndex.get(tag);
+    return {
+      keyCount: keys?.size ?? 0,
+      keys: keys ? Array.from(keys) : [],
+    };
+  }
+
+  private removeFromTagIndex(key: string): void {
+    for (const [tag, keys] of this.tagIndex.entries()) {
+      keys.delete(key);
+      if (keys.size === 0) {
+        this.tagIndex.delete(tag);
+      }
+    }
+  }
+
   private cleanExpired(): void {
     const now = Date.now();
+    const expiredKeys: string[] = [];
+    
     for (const [key, item] of this.cache.entries()) {
       if (now > item.expires) {
-        this.cache.delete(key);
+        expiredKeys.push(key);
       }
+    }
+    
+    for (const key of expiredKeys) {
+      this.cache.delete(key);
+      this.removeFromTagIndex(key);
+    }
+    
+    if (expiredKeys.length > 0) {
+      this.logger.debug(`Cleaned ${expiredKeys.length} expired cache entries`);
     }
   }
 }

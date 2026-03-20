@@ -21,6 +21,12 @@ let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
+    async register(dto) {
+        return this.authService.registerWithPassword(dto);
+    }
+    async login(dto) {
+        return this.authService.loginWithPassword(dto);
+    }
     async registerByPhone(dto) {
         return this.authService.registerByPhone(dto);
     }
@@ -46,7 +52,28 @@ let AuthController = class AuthController {
 };
 exports.AuthController = AuthController;
 __decorate([
-    (0, common_1.Post)('register/phone'),
+    (0, common_1.Post)('register'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: '手机号密码注册（简化版）' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: '注册成功' }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: '手机号已存在' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dto_1.PhonePasswordRegisterDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "register", null);
+__decorate([
+    (0, common_1.Post)('login'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: '手机号密码登录（简化版）' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: '登录成功' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: '手机号或密码错误' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dto_1.PhonePasswordLoginDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "login", null);
+__decorate([
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: '手机号注册' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: '注册成功' }),

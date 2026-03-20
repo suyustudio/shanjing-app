@@ -1,0 +1,111 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.VALIDATION_CONSTRAINTS = exports.LOG_CONTEXT = exports.TRANSACTION_CONFIG = exports.ALGORITHM_WEIGHTS = exports.CACHE_TTL_BY_SCENE = exports.DIFFICULTY_MAP = exports.RECOMMENDATION_CONSTANTS = exports.ACHIEVEMENT_CONSTANTS = exports.CACHE_TTL = exports.DISTANCE_CONSTANTS = exports.TIME_CONSTANTS = void 0;
+exports.TIME_CONSTANTS = {
+    ONE_MINUTE: 60 * 1000,
+    FIVE_MINUTES: 5 * 60 * 1000,
+    TEN_MINUTES: 10 * 60 * 1000,
+    THIRTY_MINUTES: 30 * 60 * 1000,
+    ONE_HOUR: 60 * 60 * 1000,
+    ONE_DAY: 24 * 60 * 60 * 1000,
+    THIRTY_DAYS: 30 * 24 * 60 * 60 * 1000,
+    NINETY_DAYS: 90 * 24 * 60 * 60 * 1000,
+};
+exports.DISTANCE_CONSTANTS = {
+    ONE_KM: 1000,
+    TEN_KM: 10 * 1000,
+    FIFTY_KM: 50 * 1000,
+    ONE_HUNDRED_KM: 100 * 1000,
+    MAX_REFERENCE_DISTANCE_KM: 100,
+    EARTH_RADIUS_METERS: 6371000,
+};
+exports.CACHE_TTL = {
+    VERY_SHORT: 120,
+    SHORT: 180,
+    MEDIUM: 300,
+    LONG: 600,
+    PERSISTENT: 1800,
+};
+exports.ACHIEVEMENT_CONSTANTS = {
+    ACHIEVEMENT_CACHE_TTL: 300,
+    USER_ACHIEVEMENT_CACHE_TTL: 180,
+    ACHIEVEMENT_LIST_CACHE_KEY: 'achievements:all',
+    USER_ACHIEVEMENT_CACHE_PREFIX: 'achievements:user',
+    VALID_TRIGGER_TYPES: ['trail_completed', 'share', 'manual'],
+};
+exports.RECOMMENDATION_CONSTANTS = {
+    CACHE_PREFIX: 'recommendation:',
+    POPULARITY_CACHE_TTL: 300,
+    RECOMMENDATION_CACHE_TTL: 600,
+    FRESHNESS_DECAY_DAYS: 90,
+    MAX_DIFFICULTY_DIFF: 3,
+    COLD_START_MULTIPLIER: 3,
+    HOME_TOP_TRAILS_COUNT: 3,
+    FRESHNESS_HIGH_THRESHOLD: 0.7,
+    DIFFICULTY_MATCH_HIGH_THRESHOLD: 0.8,
+    DISTANCE_HIGH_THRESHOLD: 0.7,
+    POPULARITY_HIGH_THRESHOLD: 0.8,
+    RATING_HIGH_THRESHOLD: 0.85,
+    NEARBY_MAX_DISTANCE_METERS: 50000,
+    DISTANCE_BONUS_THRESHOLD_KM: 10,
+    DISTANCE_PENALTY_THRESHOLD_KM: 100,
+    NEW_TRAIL_PROTECTION_DAYS: 30,
+    MIN_REVIEW_COUNT: 10,
+    DEFAULT_RATING: 3.5,
+    POPULARITY_COMPLETION_DENOMINATOR: 100,
+    POPULARITY_BOOKMARK_DENOMINATOR: 50,
+    POPULARITY_COMPLETION_WEIGHT: 0.6,
+    POPULARITY_BOOKMARK_WEIGHT: 0.4,
+    NEW_TRAIL_BASE_POPULARITY_SCORE: 0.5,
+    COLD_START_DEFAULT_MATCH_SCORE: 0.8,
+    DEFAULT_DISTANCE_SCORE: 0.5,
+    DEFAULT_FRESHNESS_SCORE: 0.5,
+    LOW_REVIEW_COUNT_SCORE: 0.7,
+};
+exports.DIFFICULTY_MAP = {
+    EASY: 1,
+    MODERATE: 2,
+    HARD: 3,
+    EXPERT: 4,
+};
+exports.CACHE_TTL_BY_SCENE = {
+    HOME: 300,
+    LIST: 600,
+    SIMILAR: 1800,
+    NEARBY: 120,
+};
+exports.ALGORITHM_WEIGHTS = {
+    DEFAULT: {
+        difficultyMatch: 0.25,
+        distance: 0.20,
+        rating: 0.20,
+        popularity: 0.20,
+        freshness: 0.15,
+    },
+    NEARBY: {
+        difficultyMatch: 0.20,
+        distance: 0.40,
+        rating: 0.15,
+        popularity: 0.15,
+        freshness: 0.10,
+    },
+};
+exports.TRANSACTION_CONFIG = {
+    MAX_WAIT_MS: 5000,
+    TIMEOUT_MS: 10000,
+    ISOLATION_LEVEL: 'Serializable',
+};
+exports.LOG_CONTEXT = {
+    ACHIEVEMENTS_SERVICE: 'AchievementsService',
+    RECOMMENDATION_SERVICE: 'RecommendationService',
+    RECOMMENDATION_ALGORITHM_SERVICE: 'RecommendationAlgorithmService',
+    USER_PROFILE_SERVICE: 'UserProfileService',
+};
+exports.VALIDATION_CONSTRAINTS = {
+    MAX_DISTANCE_METERS: 1000000,
+    MAX_DURATION_SECONDS: 86400,
+    MAX_LIMIT: 50,
+    MIN_LIMIT: 1,
+    DEFAULT_LIMIT: 10,
+};
+//# sourceMappingURL=achievement.constants.js.map

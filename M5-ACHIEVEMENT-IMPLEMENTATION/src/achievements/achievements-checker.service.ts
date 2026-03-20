@@ -2,7 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CheckAchievementsDto, TrailStatsDto } from './dto/check-achievements.dto';
 import { CheckResultResponseDto, NewlyUnlockedDto, ProgressUpdatedDto } from './dto/check-result-response.dto';
-import { AchievementCategory, AchievementLevel } from '@prisma/client';
+import { AchievementCategory, AchievementLevel, Prisma } from '@prisma/client';
+import {
+  AchievementError,
+  InvalidTriggerTypeError,
+  TransactionError,
+  ConcurrentModificationError,
+} from './errors';
 
 interface AchievementCheckContext {
   userId: string;
@@ -20,123 +26,194 @@ export class AchievementsCheckerService {
 
   /**
    * 检查并解锁成就
+   * 
+   * 关键修复:
+   * 1. 使用 $transaction 包裹所有写操作，保证原子性
+   * 2. 使用 upsert 替代 create/update，防止竞态条件导致的重复解锁
+   * 3. 数据库层已添加唯一约束 (userId, achievementId)
    */
   async checkAchievements(
     userId: string,
     dto: CheckAchievementsDto,
   ): Promise<CheckResultResponseDto> {
-    // 获取或初始化用户统计
-    let userStats = await this.prisma.userStats.findUnique({
-      where: { userId },
-    });
-
-    if (!userStats) {
-      userStats = await this.prisma.userStats.create({
-        data: { userId },
-      });
+    // 验证触发类型
+    const validTriggerTypes = ['trail_completed', 'share', 'manual'];
+    if (!validTriggerTypes.includes(dto.triggerType)) {
+      throw new InvalidTriggerTypeError(dto.triggerType);
     }
 
-    // 更新用户统计数据
-    await this.updateUserStats(userId, dto, userStats);
+    try {
+      // 使用事务包裹所有操作
+      return await this.prisma.$transaction(async (tx) => {
+        // 获取或初始化用户统计
+        let userStats = await tx.userStats.findUnique({
+          where: { userId },
+        });
 
-    // 重新获取更新后的统计
-    userStats = await this.prisma.userStats.findUnique({
-      where: { userId },
-    });
-
-    const context: AchievementCheckContext = {
-      userId,
-      userStats,
-      completedTrailIds: userStats?.completedTrailIds || [],
-      triggerType: dto.triggerType,
-      trailStats: dto.stats,
-    };
-
-    // 获取所有成就定义
-    const achievements = await this.prisma.achievement.findMany({
-      include: {
-        levels: {
-          orderBy: { requirement: 'asc' },
-        },
-      },
-    });
-
-    // 获取用户已解锁的成就
-    const userAchievements = await this.prisma.userAchievement.findMany({
-      where: { userId },
-      include: { level: true },
-    });
-
-    const newlyUnlocked: NewlyUnlockedDto[] = [];
-    const progressUpdated: ProgressUpdatedDto[] = [];
-
-    // 检查每个成就
-    for (const achievement of achievements) {
-      const userAchievement = userAchievements.find(
-        (ua) => ua.achievementId === achievement.id,
-      );
-
-      const currentLevelOrder = userAchievement?.level
-        ? this.getLevelOrder(userAchievement.level.level)
-        : 0;
-
-      // 检查是否可以解锁更高级别
-      for (const level of achievement.levels) {
-        const levelOrder = this.getLevelOrder(level.level);
-
-        // 只能逐级解锁
-        if (levelOrder <= currentLevelOrder) continue;
-        if (levelOrder > currentLevelOrder + 1) break;
-
-        const shouldUnlock = this.checkAchievementCondition(
-          achievement.category,
-          level.requirement,
-          context,
-        );
-
-        if (shouldUnlock) {
-          // 解锁成就
-          await this.unlockAchievement(userId, achievement.id, level.id);
-
-          newlyUnlocked.push({
-            achievementId: achievement.id,
-            level: level.level,
-            name: `${achievement.name}·${this.getLevelName(level.level)}`,
-            message: this.generateUnlockMessage(achievement, level),
-            badgeUrl: level.iconUrl || achievement.iconUrl,
+        if (!userStats) {
+          userStats = await tx.userStats.create({
+            data: { userId },
           });
+        }
 
-          this.logger.log(
-            `User ${userId} unlocked achievement: ${achievement.key} - ${level.level}`,
+        // 更新用户统计数据 (在事务内)
+        await this.updateUserStatsTx(tx, userId, dto, userStats);
+
+        // 重新获取更新后的统计
+        userStats = await tx.userStats.findUnique({
+          where: { userId },
+        });
+
+        const context: AchievementCheckContext = {
+          userId,
+          userStats,
+          completedTrailIds: userStats?.completedTrailIds || [],
+          triggerType: dto.triggerType,
+          trailStats: dto.stats,
+        };
+
+        // 获取所有成就定义
+        const achievements = await tx.achievement.findMany({
+          include: {
+            levels: {
+              orderBy: { requirement: 'asc' },
+            },
+          },
+        });
+
+        // 获取用户已解锁的成就
+        const userAchievements = await tx.userAchievement.findMany({
+          where: { userId },
+          include: { level: true },
+        });
+
+        const newlyUnlocked: NewlyUnlockedDto[] = [];
+        const progressUpdated: ProgressUpdatedDto[] = [];
+
+        // 检查每个成就
+        for (const achievement of achievements) {
+          const userAchievement = userAchievements.find(
+            (ua) => ua.achievementId === achievement.id,
           );
-          break; // 每次只解锁一个等级
+
+          const currentLevelOrder = userAchievement?.level
+            ? this.getLevelOrder(userAchievement.level.level)
+            : 0;
+
+          // 检查是否可以解锁更高级别
+          for (const level of achievement.levels) {
+            const levelOrder = this.getLevelOrder(level.level);
+
+            // 只能逐级解锁
+            if (levelOrder <= currentLevelOrder) continue;
+            if (levelOrder > currentLevelOrder + 1) break;
+
+            const shouldUnlock = this.checkAchievementCondition(
+              achievement.category,
+              level.requirement,
+              context,
+            );
+
+            if (shouldUnlock) {
+              // 使用 upsert 防止竞态条件导致的重复解锁
+              try {
+                await tx.userAchievement.upsert({
+                  where: {
+                    userId_achievementId: {
+                      userId,
+                      achievementId: achievement.id,
+                    },
+                  },
+                  update: {
+                    levelId: level.id,
+                    isNew: true,
+                    isNotified: false,
+                    unlockedAt: new Date(),
+                  },
+                  create: {
+                    userId,
+                    achievementId: achievement.id,
+                    levelId: level.id,
+                    isNew: true,
+                    isNotified: false,
+                    unlockedAt: new Date(),
+                  },
+                });
+
+                newlyUnlocked.push({
+                  achievementId: achievement.id,
+                  level: level.level,
+                  name: `${achievement.name}·${this.getLevelName(level.level)}`,
+                  message: this.generateUnlockMessage(achievement, level),
+                  badgeUrl: level.iconUrl || achievement.iconUrl,
+                });
+
+                this.logger.log(
+                  `User ${userId} unlocked achievement: ${achievement.key} - ${level.level}`,
+                );
+              } catch (error) {
+                // 唯一约束冲突，记录警告但不中断
+                this.logger.warn(
+                  `Achievement upsert conflict for user ${userId}, achievement ${achievement.id}`,
+                  error,
+                );
+              }
+              break; // 每次只解锁一个等级
+            }
+          }
+
+          // 计算进度更新
+          const progress = this.calculateProgress(achievement.category, context);
+          const nextLevel = this.getNextLevel(achievement.levels, progress);
+
+          if (nextLevel) {
+            progressUpdated.push({
+              achievementId: achievement.id,
+              progress,
+              requirement: nextLevel.requirement,
+              percentage: Math.min(100, Math.round((progress / nextLevel.requirement) * 100)),
+            });
+          }
+        }
+
+        return {
+          newlyUnlocked,
+          progressUpdated,
+        };
+      }, {
+        // 使用 Serializable 隔离级别防止幻读
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        // 重试配置
+        maxWait: 5000,
+        timeout: 10000,
+      });
+    } catch (error) {
+      if (error instanceof AchievementError) {
+        throw error;
+      }
+
+      this.logger.error(`Transaction failed for user ${userId}`, error);
+
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // 唯一约束冲突 (P2002)
+        if (error.code === 'P2002') {
+          throw new ConcurrentModificationError('user_achievement', userId);
+        }
+        // 外键约束冲突 (P2003)
+        if (error.code === 'P2003') {
+          throw new AchievementError('关联数据不存在', 'FOREIGN_KEY_VIOLATION', 400);
         }
       }
 
-      // 计算进度更新
-      const progress = this.calculateProgress(achievement.category, context);
-      const nextLevel = this.getNextLevel(achievement.levels, progress);
-
-      if (nextLevel) {
-        progressUpdated.push({
-          achievementId: achievement.id,
-          progress,
-          requirement: nextLevel.requirement,
-          percentage: Math.min(100, Math.round((progress / nextLevel.requirement) * 100)),
-        });
-      }
+      throw new TransactionError('checkAchievements', error as Error);
     }
-
-    return {
-      newlyUnlocked,
-      progressUpdated,
-    };
   }
 
   /**
-   * 更新用户统计数据
+   * 更新用户统计数据 - 事务版本
    */
-  private async updateUserStats(
+  private async updateUserStatsTx(
+    tx: Prisma.TransactionClient,
     userId: string,
     dto: CheckAchievementsDto,
     currentStats: any,
@@ -176,7 +253,7 @@ export class AchievementsCheckerService {
       }
 
       // 更新连续打卡
-      await this.updateStreak(userId, currentStats, today);
+      await this.updateStreakTx(tx, userId, currentStats, today);
 
       // 更新最后徒步日期
       updates.lastTrailDate = today;
@@ -187,7 +264,7 @@ export class AchievementsCheckerService {
     }
 
     if (Object.keys(updates).length > 0) {
-      await this.prisma.userStats.update({
+      await tx.userStats.update({
         where: { userId },
         data: updates,
       });
@@ -195,15 +272,16 @@ export class AchievementsCheckerService {
   }
 
   /**
-   * 更新连续打卡统计
+   * 更新连续打卡统计 - 事务版本
    */
-  private async updateStreak(
+  private async updateStreakTx(
+    tx: Prisma.TransactionClient,
     userId: string,
     currentStats: any,
     today: Date,
   ): Promise<void> {
     if (!currentStats?.lastTrailDate) {
-      await this.prisma.userStats.update({
+      await tx.userStats.update({
         where: { userId },
         data: {
           currentWeeklyStreak: 1,
@@ -243,7 +321,7 @@ export class AchievementsCheckerService {
       newWeeklyStreak,
     );
 
-    await this.prisma.userStats.update({
+    await tx.userStats.update({
       where: { userId },
       data: {
         currentWeeklyStreak: newWeeklyStreak,
@@ -312,46 +390,6 @@ export class AchievementsCheckerService {
         return stats?.shareCount || 0;
       default:
         return 0;
-    }
-  }
-
-  /**
-   * 解锁成就
-   */
-  private async unlockAchievement(
-    userId: string,
-    achievementId: string,
-    levelId: string,
-  ): Promise<void> {
-    const existing = await this.prisma.userAchievement.findFirst({
-      where: {
-        userId,
-        achievementId,
-      },
-    });
-
-    if (existing) {
-      // 升级成就
-      await this.prisma.userAchievement.update({
-        where: { id: existing.id },
-        data: {
-          levelId,
-          isNew: true,
-          isNotified: false,
-          unlockedAt: new Date(),
-        },
-      });
-    } else {
-      // 新解锁成就
-      await this.prisma.userAchievement.create({
-        data: {
-          userId,
-          achievementId,
-          levelId,
-          isNew: true,
-          isNotified: false,
-        },
-      });
     }
   }
 

@@ -8,18 +8,18 @@ export declare class AdminTrailsController {
         success: boolean;
         data: {
             favoriteCount: number;
-            name: string;
             id: string;
+            name: string;
+            createdAt: Date;
+            _count: {
+                favorites: number;
+            };
             distanceKm: number;
             durationMin: number;
             difficulty: import(".prisma/client").$Enums.TrailDifficulty;
             city: string;
             district: string;
             isActive: boolean;
-            createdAt: Date;
-            _count: {
-                favorites: number;
-            };
         }[];
         meta: {
             page: number;
@@ -45,24 +45,26 @@ export declare class AdminTrailsController {
         success: boolean;
         data: {
             favoriteCount: number;
-            pois: {
-                name: string;
-                type: string;
-                description: string | null;
-                lng: number;
-                lat: number;
-                id: string;
-                createdAt: Date;
-                order: number;
-                trailId: string;
-            }[];
             _count: {
                 favorites: number;
             };
-            name: string;
-            description: string | null;
+            pois: {
+                id: string;
+                name: string;
+                description: string | null;
+                createdAt: Date;
+                type: string;
+                trailId: string;
+                lat: number;
+                lng: number;
+                order: number;
+            }[];
             tags: string[];
             id: string;
+            name: string;
+            description: string | null;
+            createdAt: Date;
+            updatedAt: Date;
             distanceKm: number;
             durationMin: number;
             elevationGainM: number;
@@ -80,19 +82,21 @@ export declare class AdminTrailsController {
             boundsEast: number | null;
             boundsWest: number | null;
             isActive: boolean;
+            avgRating: number | null;
+            reviewCount: number;
             createdBy: string;
-            createdAt: Date;
-            updatedAt: Date;
             deletedAt: Date | null;
         };
     }>;
     createTrail(dto: CreateTrailDto, admin: AdminInfo): Promise<{
         success: boolean;
         data: {
-            name: string;
-            description: string | null;
             tags: string[];
             id: string;
+            name: string;
+            description: string | null;
+            createdAt: Date;
+            updatedAt: Date;
             distanceKm: number;
             durationMin: number;
             elevationGainM: number;
@@ -110,19 +114,21 @@ export declare class AdminTrailsController {
             boundsEast: number | null;
             boundsWest: number | null;
             isActive: boolean;
+            avgRating: number | null;
+            reviewCount: number;
             createdBy: string;
-            createdAt: Date;
-            updatedAt: Date;
             deletedAt: Date | null;
         };
     }>;
     updateTrail(trailId: string, dto: UpdateTrailDto): Promise<{
         success: boolean;
         data: {
-            name: string;
-            description: string | null;
             tags: string[];
             id: string;
+            name: string;
+            description: string | null;
+            createdAt: Date;
+            updatedAt: Date;
             distanceKm: number;
             durationMin: number;
             elevationGainM: number;
@@ -140,9 +146,9 @@ export declare class AdminTrailsController {
             boundsEast: number | null;
             boundsWest: number | null;
             isActive: boolean;
+            avgRating: number | null;
+            reviewCount: number;
             createdBy: string;
-            createdAt: Date;
-            updatedAt: Date;
             deletedAt: Date | null;
         };
     }>;

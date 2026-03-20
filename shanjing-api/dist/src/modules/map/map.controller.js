@@ -16,10 +16,12 @@ exports.MapController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const amap_geocode_service_1 = require("./amap-geocode.service");
+const amap_route_service_1 = require("./amap-route.service");
 const dto_1 = require("./dto");
 let MapController = class MapController {
-    constructor(amapGeocodeService) {
+    constructor(amapGeocodeService, amapRouteService) {
         this.amapGeocodeService = amapGeocodeService;
+        this.amapRouteService = amapRouteService;
     }
     async geocode(dto) {
         const result = await this.amapGeocodeService.geocode({
@@ -48,6 +50,97 @@ let MapController = class MapController {
                 formattedAddress: result.formattedAddress,
                 addressComponent: result.addressComponent,
                 pois: result.pois,
+            },
+        };
+    }
+    async walkingRoute(dto) {
+        const origin = this.amapRouteService.formatLocation(dto.originLat, dto.originLng);
+        const destination = this.amapRouteService.formatLocation(dto.destLat, dto.destLng);
+        const result = await this.amapRouteService.walkingRoute({
+            origin,
+            destination,
+        });
+        return {
+            success: result.success,
+            errorMessage: result.errorMessage,
+            data: {
+                origin: result.origin || origin,
+                destination: result.destination || destination,
+                paths: result.paths,
+            },
+        };
+    }
+    async drivingRoute(dto) {
+        const origin = this.amapRouteService.formatLocation(dto.originLat, dto.originLng);
+        const destination = this.amapRouteService.formatLocation(dto.destLat, dto.destLng);
+        const result = await this.amapRouteService.drivingRoute({
+            origin,
+            destination,
+            strategy: dto.strategy,
+        });
+        return {
+            success: result.success,
+            errorMessage: result.errorMessage,
+            data: {
+                origin: result.origin || origin,
+                destination: result.destination || destination,
+                paths: result.paths,
+            },
+        };
+    }
+    async bicyclingRoute(dto) {
+        const origin = this.amapRouteService.formatLocation(dto.originLat, dto.originLng);
+        const destination = this.amapRouteService.formatLocation(dto.destLat, dto.destLng);
+        const result = await this.amapRouteService.bicyclingRoute({
+            origin,
+            destination,
+        });
+        return {
+            success: result.success,
+            errorMessage: result.errorMessage,
+            data: {
+                origin: result.origin || origin,
+                destination: result.destination || destination,
+                paths: result.paths,
+            },
+        };
+    }
+    async routePlanning(dto) {
+        const origin = this.amapRouteService.formatLocation(dto.originLat, dto.originLng);
+        const destination = this.amapRouteService.formatLocation(dto.destLat, dto.destLng);
+        let result;
+        switch (dto.type) {
+            case dto_1.RouteType.WALKING:
+                result = await this.amapRouteService.walkingRoute({ origin, destination });
+                break;
+            case dto_1.RouteType.DRIVING:
+                result = await this.amapRouteService.drivingRoute({
+                    origin,
+                    destination,
+                    strategy: dto.strategy,
+                });
+                break;
+            case dto_1.RouteType.BICYCLING:
+                result = await this.amapRouteService.bicyclingRoute({ origin, destination });
+                break;
+            default:
+                return {
+                    success: false,
+                    errorMessage: '不支持的路线类型',
+                    data: {
+                        origin,
+                        destination,
+                        paths: [],
+                    },
+                };
+        }
+        return {
+            success: result.success,
+            errorMessage: result.errorMessage,
+            data: {
+                origin: result.origin || origin,
+                destination: result.destination || destination,
+                paths: result.paths,
             },
         };
     }
@@ -95,9 +188,94 @@ __decorate([
     __metadata("design:paramtypes", [dto_1.RegeocodeDto]),
     __metadata("design:returntype", Promise)
 ], MapController.prototype, "regeocode", null);
+__decorate([
+    (0, common_1.Post)('route/walking'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: '步行路线规划',
+        description: '规划两点之间的步行路线'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: '路线规划成功',
+        type: dto_1.RouteResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: '请求参数错误',
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dto_1.WalkingRouteDto]),
+    __metadata("design:returntype", Promise)
+], MapController.prototype, "walkingRoute", null);
+__decorate([
+    (0, common_1.Post)('route/driving'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: '驾车路线规划',
+        description: '规划两点之间的驾车路线'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: '路线规划成功',
+        type: dto_1.RouteResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: '请求参数错误',
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dto_1.DrivingRouteDto]),
+    __metadata("design:returntype", Promise)
+], MapController.prototype, "drivingRoute", null);
+__decorate([
+    (0, common_1.Post)('route/bicycling'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: '骑行路线规划',
+        description: '规划两点之间的骑行路线'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: '路线规划成功',
+        type: dto_1.RouteResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: '请求参数错误',
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dto_1.BicyclingRouteDto]),
+    __metadata("design:returntype", Promise)
+], MapController.prototype, "bicyclingRoute", null);
+__decorate([
+    (0, common_1.Post)('route'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: '路线规划',
+        description: '根据类型规划路线（步行、驾车、骑行）'
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: '路线规划成功',
+        type: dto_1.RouteResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: '请求参数错误',
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dto_1.RoutePlanningDto]),
+    __metadata("design:returntype", Promise)
+], MapController.prototype, "routePlanning", null);
 exports.MapController = MapController = __decorate([
     (0, swagger_1.ApiTags)('地图服务'),
     (0, common_1.Controller)('map'),
-    __metadata("design:paramtypes", [amap_geocode_service_1.AmapGeocodeService])
+    __metadata("design:paramtypes", [amap_geocode_service_1.AmapGeocodeService,
+        amap_route_service_1.AmapRouteService])
 ], MapController);
 //# sourceMappingURL=map.controller.js.map

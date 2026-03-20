@@ -14,7 +14,11 @@ const auth_module_1 = require("./modules/auth/auth.module");
 const users_module_1 = require("./modules/users/users.module");
 const files_module_1 = require("./modules/files/files.module");
 const map_module_1 = require("./modules/map/map.module");
+const trails_module_1 = require("./modules/trails/trails.module");
+const favorites_module_1 = require("./modules/favorites/favorites.module");
+const recommendation_module_1 = require("./modules/recommendation/recommendation.module");
 const prisma_module_1 = require("./database/prisma.module");
+const redis_module_1 = require("./shared/redis/redis.module");
 const all_exceptions_filter_1 = require("./common/filters/all-exceptions.filter");
 const transform_interceptor_1 = require("./common/interceptors/transform.interceptor");
 let AppModule = class AppModule {
@@ -28,10 +32,14 @@ exports.AppModule = AppModule = __decorate([
                 envFilePath: '.env',
             }),
             prisma_module_1.PrismaModule,
+            redis_module_1.RedisModule,
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             files_module_1.FilesModule,
             map_module_1.MapModule,
+            trails_module_1.TrailsModule,
+            favorites_module_1.FavoritesModule,
+            recommendation_module_1.RecommendationModule,
         ],
         providers: [
             {

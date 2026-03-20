@@ -13,6 +13,9 @@ import {
   ValidateNested,
   Min,
   Max,
+  MinLength,
+  MaxLength,
+  IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -193,11 +196,16 @@ export class UserAchievementSummaryDto {
 export class CheckAchievementsRequestDto {
   @ApiProperty({ description: '触发类型', enum: ['trail_completed', 'share', 'manual'] })
   @IsString()
+  @IsEnum(['trail_completed', 'share', 'manual'] as const, {
+    message: 'triggerType 必须是 trail_completed, share 或 manual',
+  })
   triggerType: 'trail_completed' | 'share' | 'manual';
 
   @ApiProperty({ description: '路线ID', required: false })
   @IsOptional()
   @IsString()
+  @MinLength(1, { message: 'trailId 不能为空字符串' })
+  @MaxLength(64, { message: 'trailId 长度不能超过64' })
   trailId?: string;
 
   @ApiProperty({ description: '轨迹统计数据', required: false, type: TrailStatsDto })

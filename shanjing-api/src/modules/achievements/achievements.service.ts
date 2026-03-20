@@ -1,6 +1,6 @@
 // ================================================================
 // Achievement Service
-// 成就系统服务层 (Optimized with Transactions & Concurrency Control)
+// 成就系统服务层 (Optimized with Transactions, Concurrency Control & Enhanced Logging)
 // ================================================================
 
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
@@ -28,19 +28,30 @@ import {
   TransactionError,
   ConcurrentModificationError,
 } from './errors';
-
-// 缓存配置
-const ACHIEVEMENT_CACHE_TTL = 300; // 5分钟
-const USER_ACHIEVEMENT_CACHE_TTL = 180; // 3分钟
+import {
+  ACHIEVEMENT_CONSTANTS,
+  TIME_CONSTANTS,
+  TRANSACTION_CONFIG,
+  LOG_CONTEXT,
+} from './constants/achievement.constants';
+import {
+  StructuredLogger,
+  createStructuredLogger,
+} from '../../shared/logger/structured-logger.util';
 
 @Injectable()
 export class AchievementsService {
-  private readonly logger = new Logger(AchievementsService.name);
+  private readonly logger: StructuredLogger;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
-  ) {}
+  ) {
+    this.logger = createStructuredLogger(
+      new Logger(AchievementsService.name),
+      LOG_CONTEXT.ACHIEVEMENTS_SERVICE,
+    );
+  }
 
   // ==================== 成就定义查询 ====================
 
@@ -48,14 +59,19 @@ export class AchievementsService {
    * 获取所有成就定义
    */
   async getAllAchievements(): Promise<AchievementDto[]> {
+    const timer = this.logger.startTimer('getAllAchievements');
+
     // 尝试从缓存获取
-    const cacheKey = 'achievements:all';
+    const cacheKey = ACHIEVEMENT_CONSTANTS.ACHIEVEMENT_LIST_CACHE_KEY;
     const cached = await this.redis.get(cacheKey);
     if (cached) {
       try {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        timer.end({ source: 'cache', count: parsed.length });
+        this.logger.debug('Achievement list cache hit', { count: parsed.length });
+        return parsed;
       } catch {
-        // 缓存解析失败，继续查询数据库
+        this.logger.warn('Failed to parse achievement list cache');
       }
     }
 
@@ -73,10 +89,17 @@ export class AchievementsService {
     });
 
     const result = achievements.map((achievement) => this.mapToAchievementDto(achievement));
-    
+
     // 写入缓存
-    await this.redis.setex(cacheKey, ACHIEVEMENT_CACHE_TTL, JSON.stringify(result));
-    
+    await this.redis.setex(
+      cacheKey,
+      ACHIEVEMENT_CONSTANTS.ACHIEVEMENT_CACHE_TTL,
+      JSON.stringify(result),
+    );
+
+    timer.end({ source: 'database', count: result.length });
+    this.logger.info('Fetched all achievements', { count: result.length });
+
     return result;
   }
 
@@ -84,6 +107,8 @@ export class AchievementsService {
    * 获取单个成就定义
    */
   async getAchievementById(id: string): Promise<AchievementDto> {
+    const timer = this.logger.startTimer('getAchievementById', { achievementId: id });
+
     const achievement = await this.prisma.achievement.findUnique({
       where: { id },
       include: {
@@ -96,9 +121,11 @@ export class AchievementsService {
     });
 
     if (!achievement) {
+      timer.end({ found: false });
       throw new AchievementNotFoundError(id);
     }
 
+    timer.end({ found: true, name: achievement.name });
     return this.mapToAchievementDto(achievement);
   }
 
@@ -108,14 +135,19 @@ export class AchievementsService {
    * 获取用户成就概览
    */
   async getUserAchievements(userId: string): Promise<UserAchievementSummaryDto> {
+    const timer = this.logger.startTimer('getUserAchievements', { userId });
+
     // 尝试从缓存获取
-    const cacheKey = `achievements:user:${userId}`;
+    const cacheKey = `${ACHIEVEMENT_CONSTANTS.USER_ACHIEVEMENT_CACHE_PREFIX}:${userId}`;
     const cached = await this.redis.get(cacheKey);
     if (cached) {
       try {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        timer.end({ source: 'cache', totalCount: parsed.totalCount, unlockedCount: parsed.unlockedCount });
+        this.logger.debug('User achievement cache hit', { userId, unlockedCount: parsed.unlockedCount });
+        return parsed;
       } catch {
-        // 缓存解析失败，继续查询
+        this.logger.warn('Failed to parse user achievement cache', undefined, { userId });
       }
     }
 
@@ -148,7 +180,7 @@ export class AchievementsService {
     // 构建成就列表
     const achievements: UserAchievementDto[] = allAchievements.map((achievement) => {
       const userAchievement = userAchievements.find(
-        (ua) => ua.achievementId === achievement.id
+        (ua) => ua.achievementId === achievement.id,
       );
 
       return this.buildUserAchievementDto(achievement, userAchievement, userStats);
@@ -166,7 +198,24 @@ export class AchievementsService {
     };
 
     // 写入缓存
-    await this.redis.setex(cacheKey, USER_ACHIEVEMENT_CACHE_TTL, JSON.stringify(result));
+    await this.redis.setex(
+      cacheKey,
+      ACHIEVEMENT_CONSTANTS.USER_ACHIEVEMENT_CACHE_TTL,
+      JSON.stringify(result),
+    );
+
+    timer.end({
+      source: 'database',
+      totalCount: result.totalCount,
+      unlockedCount: result.unlockedCount,
+      newUnlockedCount: result.newUnlockedCount,
+    });
+
+    this.logger.info('Fetched user achievements', {
+      userId,
+      totalCount: result.totalCount,
+      unlockedCount: result.unlockedCount,
+    });
 
     return result;
   }
@@ -175,6 +224,8 @@ export class AchievementsService {
    * 标记成就已查看
    */
   async markAchievementViewed(userId: string, achievementId: string): Promise<void> {
+    const timer = this.logger.startTimer('markAchievementViewed', { userId, achievementId });
+
     await this.prisma.userAchievement.updateMany({
       where: {
         userId,
@@ -187,13 +238,18 @@ export class AchievementsService {
 
     // 清除用户成就缓存
     await this.clearUserAchievementCache(userId);
+
+    timer.end({ userId, achievementId });
+    this.logger.info('Marked achievement as viewed', { userId, achievementId });
   }
 
   /**
    * 标记所有新成就已查看
    */
   async markAllAchievementsViewed(userId: string): Promise<void> {
-    await this.prisma.userAchievement.updateMany({
+    const timer = this.logger.startTimer('markAllAchievementsViewed', { userId });
+
+    const result = await this.prisma.userAchievement.updateMany({
       where: {
         userId,
         isNew: true,
@@ -205,219 +261,252 @@ export class AchievementsService {
 
     // 清除用户成就缓存
     await this.clearUserAchievementCache(userId);
+
+    timer.end({ userId, updatedCount: result.count });
+    this.logger.info('Marked all achievements as viewed', { userId, updatedCount: result.count });
   }
 
   // ==================== 成就检查与解锁 (事务保护) ====================
 
   /**
    * 检查并解锁成就
-   * 
-   * 关键修复:
+   *
+   * 关键特性:
    * 1. 使用 $transaction 包裹所有写操作，保证原子性
    * 2. 使用 upsert 替代 create/update，防止竞态条件导致的重复解锁
    * 3. 添加唯一约束检查 (userId, achievementId) 已在数据库层定义
    */
   async checkAchievements(
     userId: string,
-    dto: CheckAchievementsRequestDto
+    dto: CheckAchievementsRequestDto,
   ): Promise<CheckAchievementsResponseDto> {
+    const timer = this.logger.startTimer('checkAchievements', {
+      userId,
+      triggerType: dto.triggerType,
+      trailId: dto.trailId,
+    });
+
     // 验证触发类型
-    const validTriggerTypes = ['trail_completed', 'share', 'manual'];
-    if (!validTriggerTypes.includes(dto.triggerType)) {
+    if (!ACHIEVEMENT_CONSTANTS.VALID_TRIGGER_TYPES.includes(dto.triggerType)) {
       throw new InvalidTriggerTypeError(dto.triggerType);
     }
 
     try {
       // 使用事务包裹所有操作
-      return await this.prisma.$transaction(async (tx) => {
-        const newlyUnlocked: NewlyUnlockedAchievementDto[] = [];
-        const progressUpdated: ProgressUpdateDto[] = [];
+      const result = await this.prisma.$transaction(
+        async (tx) => {
+          const newlyUnlocked: NewlyUnlockedAchievementDto[] = [];
+          const progressUpdated: ProgressUpdateDto[] = [];
 
-        // 更新用户统计 (在事务内)
-        if (dto.triggerType === 'trail_completed' && dto.stats) {
-          await this.updateStatsAfterTrailTx(tx, userId, dto.trailId, dto.stats);
-        } else if (dto.triggerType === 'share') {
-          await this.incrementShareCountTx(tx, userId);
-        }
-
-        // 获取最新的用户统计 (在事务内)
-        const userStats = await tx.userStats.findUnique({
-          where: { userId },
-        });
-
-        if (!userStats) {
-          throw new AchievementError('用户统计不存在', 'USER_STATS_NOT_FOUND', 500);
-        }
-
-        // 获取所有成就定义
-        const allAchievements = await tx.achievement.findMany({
-          include: {
-            levels: {
-              orderBy: {
-                requirement: 'asc',
-              },
-            },
-          },
-        });
-
-        // 获取用户已解锁的成就 (使用 FOR UPDATE 语义保证一致性)
-        const userAchievements = await tx.userAchievement.findMany({
-          where: { userId },
-          include: {
-            level: true,
-          },
-        });
-
-        // 检查每个成就
-        for (const achievement of allAchievements) {
-          const currentProgress = this.getProgressForAchievement(achievement.category, userStats);
-          const userAchievement = userAchievements.find(
-            (ua) => ua.achievementId === achievement.id
-          );
-
-          // 计算应该达到的等级
-          const targetLevel = this.calculateTargetLevel(achievement.levels, currentProgress);
-
-          if (!targetLevel) {
-            // 未解锁任何等级，更新进度
-            const nextLevel = achievement.levels[0];
-            if (nextLevel) {
-              progressUpdated.push({
-                achievementId: achievement.id,
-                progress: currentProgress,
-                requirement: nextLevel.requirement,
-                percentage: Math.min(100, Math.round((currentProgress / nextLevel.requirement) * 100)),
-              });
-            }
-            continue;
+          // 更新用户统计 (在事务内)
+          if (dto.triggerType === 'trail_completed' && dto.stats) {
+            await this.updateStatsAfterTrailTx(tx, userId, dto.trailId, dto.stats);
+          } else if (dto.triggerType === 'share') {
+            await this.incrementShareCountTx(tx, userId);
           }
 
-          if (!userAchievement) {
-            // 首次解锁该成就 - 使用 upsert 防止竞态条件
-            try {
-              await tx.userAchievement.upsert({
-                where: {
-                  userId_achievementId: {
+          // 获取最新的用户统计 (在事务内)
+          const userStats = await tx.userStats.findUnique({
+            where: { userId },
+          });
+
+          if (!userStats) {
+            throw new AchievementError('用户统计不存在', 'USER_STATS_NOT_FOUND', 500);
+          }
+
+          // 获取所有成就定义
+          const allAchievements = await tx.achievement.findMany({
+            include: {
+              levels: {
+                orderBy: {
+                  requirement: 'asc',
+                },
+              },
+            },
+          });
+
+          // 获取用户已解锁的成就 (使用 FOR UPDATE 语义保证一致性)
+          const userAchievements = await tx.userAchievement.findMany({
+            where: { userId },
+            include: {
+              level: true,
+            },
+          });
+
+          // 检查每个成就
+          for (const achievement of allAchievements) {
+            const currentProgress = this.getProgressForAchievement(achievement.category, userStats);
+            const userAchievement = userAchievements.find(
+              (ua) => ua.achievementId === achievement.id,
+            );
+
+            // 计算应该达到的等级
+            const targetLevel = this.calculateTargetLevel(achievement.levels, currentProgress);
+
+            if (!targetLevel) {
+              // 未解锁任何等级，更新进度
+              const nextLevel = achievement.levels[0];
+              if (nextLevel) {
+                progressUpdated.push({
+                  achievementId: achievement.id,
+                  progress: currentProgress,
+                  requirement: nextLevel.requirement,
+                  percentage: Math.min(
+                    100,
+                    Math.round((currentProgress / nextLevel.requirement) * 100),
+                  ),
+                });
+              }
+              continue;
+            }
+
+            if (!userAchievement) {
+              // 首次解锁该成就 - 使用 upsert 防止竞态条件
+              try {
+                await tx.userAchievement.upsert({
+                  where: {
+                    userId_achievementId: {
+                      userId,
+                      achievementId: achievement.id,
+                    },
+                  },
+                  update: {
+                    levelId: targetLevel.id,
+                    progress: currentProgress,
+                    isNew: true,
+                    unlockedAt: new Date(),
+                  },
+                  create: {
                     userId,
                     achievementId: achievement.id,
+                    levelId: targetLevel.id,
+                    progress: currentProgress,
+                    isNew: true,
+                    unlockedAt: new Date(),
                   },
-                },
-                update: {
-                  // 如果已存在，检查是否需要升级
-                  levelId: targetLevel.id,
-                  progress: currentProgress,
-                  isNew: true,
-                  unlockedAt: new Date(),
-                },
-                create: {
-                  userId,
+                });
+
+                newlyUnlocked.push({
                   achievementId: achievement.id,
-                  levelId: targetLevel.id,
-                  progress: currentProgress,
-                  isNew: true,
-                  unlockedAt: new Date(),
-                },
-              });
+                  level: targetLevel.level,
+                  name: targetLevel.name,
+                  message: `恭喜！你已完成${achievement.name}成就 - ${targetLevel.name}`,
+                  badgeUrl: targetLevel.iconUrl || achievement.iconUrl || '',
+                });
+              } catch (error) {
+                this.logger.warn(
+                  'Achievement upsert conflict',
+                  error,
+                  { userId, achievementId: achievement.id },
+                );
+              }
+            } else if (targetLevel.id !== userAchievement.levelId) {
+              // 升级到更高等级
+              const oldLevelIndex = achievement.levels.findIndex(
+                (l) => l.id === userAchievement.levelId,
+              );
+              const newLevelIndex = achievement.levels.findIndex((l) => l.id === targetLevel.id);
 
-              newlyUnlocked.push({
-                achievementId: achievement.id,
-                level: targetLevel.level,
-                name: targetLevel.name,
-                message: `恭喜！你已完成${achievement.name}成就 - ${targetLevel.name}`,
-                badgeUrl: targetLevel.iconUrl || achievement.iconUrl || '',
-              });
-            } catch (error) {
-              // 唯一约束冲突或其他错误，记录但不中断
-              this.logger.warn(`Achievement upsert conflict for user ${userId}, achievement ${achievement.id}`, error);
-            }
-          } else if (targetLevel.id !== userAchievement.levelId) {
-            // 升级到更高等级
-            const oldLevelIndex = achievement.levels.findIndex(
-              (l) => l.id === userAchievement.levelId
-            );
-            const newLevelIndex = achievement.levels.findIndex((l) => l.id === targetLevel.id);
+              if (newLevelIndex > oldLevelIndex) {
+                await tx.userAchievement.update({
+                  where: { id: userAchievement.id },
+                  data: {
+                    levelId: targetLevel.id,
+                    progress: currentProgress,
+                    isNew: true,
+                    unlockedAt: new Date(),
+                  },
+                });
 
-            if (newLevelIndex > oldLevelIndex) {
+                newlyUnlocked.push({
+                  achievementId: achievement.id,
+                  level: targetLevel.level,
+                  name: targetLevel.name,
+                  message: `恭喜升级！你已达到${achievement.name} - ${targetLevel.name}`,
+                  badgeUrl: targetLevel.iconUrl || achievement.iconUrl || '',
+                });
+              }
+            } else {
+              // 更新进度
               await tx.userAchievement.update({
                 where: { id: userAchievement.id },
                 data: {
-                  levelId: targetLevel.id,
                   progress: currentProgress,
-                  isNew: true,
-                  unlockedAt: new Date(),
                 },
               });
 
-              newlyUnlocked.push({
-                achievementId: achievement.id,
-                level: targetLevel.level,
-                name: targetLevel.name,
-                message: `恭喜升级！你已达到${achievement.name} - ${targetLevel.name}`,
-                badgeUrl: targetLevel.iconUrl || achievement.iconUrl || '',
-              });
-            }
-          } else {
-            // 更新进度
-            await tx.userAchievement.update({
-              where: { id: userAchievement.id },
-              data: {
-                progress: currentProgress,
-              },
-            });
+              // 计算下一级
+              const currentLevelIndex = achievement.levels.findIndex(
+                (l) => l.id === userAchievement.levelId,
+              );
+              const nextLevel = achievement.levels[currentLevelIndex + 1];
 
-            // 计算下一级
-            const currentLevelIndex = achievement.levels.findIndex(
-              (l) => l.id === userAchievement.levelId
-            );
-            const nextLevel = achievement.levels[currentLevelIndex + 1];
-
-            if (nextLevel) {
-              progressUpdated.push({
-                achievementId: achievement.id,
-                progress: currentProgress,
-                requirement: nextLevel.requirement,
-                percentage: Math.min(
-                  100,
-                  Math.round(
-                    ((currentProgress - targetLevel.requirement) /
-                      (nextLevel.requirement - targetLevel.requirement)) *
-                      100
-                  )
-                ),
-              });
+              if (nextLevel) {
+                progressUpdated.push({
+                  achievementId: achievement.id,
+                  progress: currentProgress,
+                  requirement: nextLevel.requirement,
+                  percentage: Math.min(
+                    100,
+                    Math.round(
+                      ((currentProgress - targetLevel.requirement) /
+                        (nextLevel.requirement - targetLevel.requirement)) *
+                        100,
+                    ),
+                  ),
+                });
+              }
             }
           }
-        }
 
-        return {
-          newlyUnlocked,
-          progressUpdated,
-        };
-      }, {
-        // 使用 Serializable 隔离级别防止幻读
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-        // 重试配置
-        maxWait: 5000,
-        timeout: 10000,
+          return {
+            newlyUnlocked,
+            progressUpdated,
+          };
+        },
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          maxWait: TRANSACTION_CONFIG.MAX_WAIT_MS,
+          timeout: TRANSACTION_CONFIG.TIMEOUT_MS,
+        },
+      );
+
+      timer.end({
+        userId,
+        newlyUnlockedCount: result.newlyUnlocked.length,
+        progressUpdatedCount: result.progressUpdated.length,
       });
+
+      if (result.newlyUnlocked.length > 0) {
+        this.logger.info('Achievements unlocked', {
+          userId,
+          newlyUnlocked: result.newlyUnlocked.map((a) => ({
+            achievementId: a.achievementId,
+            level: a.level,
+            name: a.name,
+          })),
+        });
+      }
+
+      return result;
     } catch (error) {
+      timer.fail(error instanceof Error ? error : undefined, { userId });
+
       if (error instanceof AchievementError) {
         throw error;
       }
-      
-      this.logger.error(`Transaction failed for user ${userId}`, error);
-      
+
+      this.logger.error('Transaction failed', error, { userId, triggerType: dto.triggerType });
+
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        // 唯一约束冲突 (P2002)
         if (error.code === 'P2002') {
           throw new ConcurrentModificationError('user_achievement', userId);
         }
-        // 外键约束冲突 (P2003)
         if (error.code === 'P2003') {
           throw new AchievementError('关联数据不存在', 'FOREIGN_KEY_VIOLATION', 400);
         }
       }
-      
+
       throw new TransactionError('checkAchievements', error as Error);
     } finally {
       // 清除用户成就缓存 (无论成功与否都清除，确保数据一致性)
@@ -441,6 +530,7 @@ export class AchievementsService {
           userId,
         },
       });
+      this.logger.info('Created user stats', { userId });
     }
 
     return stats;
@@ -478,7 +568,7 @@ export class AchievementsService {
       isNight: boolean;
       isRain: boolean;
       isSolo: boolean;
-    }
+    },
   ): Promise<void> {
     const userStats = await tx.userStats.findUnique({
       where: { userId },
@@ -540,7 +630,9 @@ export class AchievementsService {
       const lastDate = new Date(userStats.lastTrailDate);
       lastDate.setHours(0, 0, 0, 0);
 
-      const diffDays = Math.floor((today.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.floor(
+        (today.getTime() - lastDate.getTime()) / TIME_CONSTANTS.ONE_DAY,
+      );
 
       if (diffDays === 1) {
         // 连续徒步，增加周连续数
@@ -558,20 +650,10 @@ export class AchievementsService {
 
     updateData.lastTrailDate = today;
 
-    // 计算本周和本月次数（简化处理）- 这些字段在schema中不存在，暂时注释
-    // const currentWeek = this.getWeekNumber(today);
-    // const lastWeek = userStats.lastTrailDate
-    //   ? this.getWeekNumber(new Date(userStats.lastTrailDate))
-    //   : null;
-
-    // if (lastWeek === currentWeek) {
-    //   updateData.trailCountThisWeek = { increment: 1 };
-    // } else {
-    //   updateData.trailCountThisWeek = 1;
-    // }
-
     // 更新平均数据
-    const totalTrails = (userStats.uniqueTrailsCount || 0) + (trailId && !userStats.completedTrailIds?.includes(trailId) ? 1 : 0);
+    const totalTrails =
+      (userStats.uniqueTrailsCount || 0) +
+      (trailId && !userStats.completedTrailIds?.includes(trailId) ? 1 : 0);
     if (totalTrails > 0) {
       const totalDistanceKm = (userStats.totalDistanceM + stats.distance) / 1000;
       const totalDurationMin = (userStats.totalDurationSec + stats.duration) / 60;
@@ -617,15 +699,17 @@ export class AchievementsService {
    * 清除用户成就缓存
    */
   private async clearUserAchievementCache(userId: string): Promise<void> {
-    const cacheKey = `achievements:user:${userId}`;
+    const cacheKey = `${ACHIEVEMENT_CONSTANTS.USER_ACHIEVEMENT_CACHE_PREFIX}:${userId}`;
     await this.redis.del(cacheKey);
+    this.logger.debug('Cleared user achievement cache', { userId });
   }
 
   /**
    * 清除所有成就缓存
    */
   async clearAllAchievementCache(): Promise<void> {
-    await this.redis.del('achievements:all');
+    await this.redis.del(ACHIEVEMENT_CONSTANTS.ACHIEVEMENT_LIST_CACHE_KEY);
+    this.logger.info('Cleared all achievement cache');
   }
 
   // ==================== 辅助方法 ====================
@@ -661,7 +745,7 @@ export class AchievementsService {
   private buildUserAchievementDto(
     achievement: any,
     userAchievement: any,
-    userStats: any
+    userStats: any,
   ): UserAchievementDto {
     const currentProgress = this.getProgressForAchievement(achievement.category, userStats);
     const isUnlocked = !!userAchievement;
@@ -671,7 +755,7 @@ export class AchievementsService {
     let nextRequirement = achievement.levels[0]?.requirement || 0;
     if (currentLevel) {
       const currentLevelIndex = achievement.levels.findIndex(
-        (l: any) => l.id === currentLevel.id
+        (l: any) => l.id === currentLevel.id,
       );
       const nextLevel = achievement.levels[currentLevelIndex + 1];
       nextRequirement = nextLevel?.requirement || currentLevel.requirement;
@@ -681,7 +765,7 @@ export class AchievementsService {
     let percentage = 0;
     if (currentLevel) {
       const currentLevelIndex = achievement.levels.findIndex(
-        (l: any) => l.id === currentLevel.id
+        (l: any) => l.id === currentLevel.id,
       );
       const nextLevel = achievement.levels[currentLevelIndex + 1];
       if (nextLevel) {
@@ -690,17 +774,14 @@ export class AchievementsService {
           Math.round(
             ((currentProgress - currentLevel.requirement) /
               (nextLevel.requirement - currentLevel.requirement)) *
-              100
-          )
+              100,
+          ),
         );
       } else {
         percentage = 100;
       }
     } else {
-      percentage = Math.min(
-        100,
-        Math.round((currentProgress / nextRequirement) * 100)
-      );
+      percentage = Math.min(100, Math.round((currentProgress / nextRequirement) * 100));
     }
 
     return {
@@ -730,7 +811,6 @@ export class AchievementsService {
       case AchievementCategory.FREQUENCY:
         return userStats.currentWeeklyStreak || 0;
       case AchievementCategory.CHALLENGE:
-        // 挑战类使用夜间徒步次数作为示例
         return userStats.nightTrailCount || 0;
       case AchievementCategory.SOCIAL:
         return userStats.shareCount || 0;
@@ -742,10 +822,7 @@ export class AchievementsService {
   /**
    * 计算目标等级
    */
-  private calculateTargetLevel(
-    levels: any[],
-    currentProgress: number
-  ): any | null {
+  private calculateTargetLevel(levels: any[], currentProgress: number): any | null {
     let targetLevel = null;
     for (const level of levels) {
       if (currentProgress >= level.requirement) {

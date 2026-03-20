@@ -29,24 +29,26 @@ export declare class TrailsService {
         data: {
             favoriteCount: number;
             isFavorited: boolean;
-            pois: {
-                name: string;
-                type: string;
-                description: string | null;
-                lng: number;
-                lat: number;
-                id: string;
-                createdAt: Date;
-                order: number;
-                trailId: string;
-            }[];
             _count: {
                 favorites: number;
             };
-            name: string;
-            description: string | null;
+            pois: {
+                id: string;
+                name: string;
+                description: string | null;
+                createdAt: Date;
+                type: string;
+                trailId: string;
+                lat: number;
+                lng: number;
+                order: number;
+            }[];
             tags: string[];
             id: string;
+            name: string;
+            description: string | null;
+            createdAt: Date;
+            updatedAt: Date;
             distanceKm: number;
             durationMin: number;
             elevationGainM: number;
@@ -64,9 +66,9 @@ export declare class TrailsService {
             boundsEast: number | null;
             boundsWest: number | null;
             isActive: boolean;
+            avgRating: number | null;
+            reviewCount: number;
             createdBy: string;
-            createdAt: Date;
-            updatedAt: Date;
             deletedAt: Date | null;
         };
     }>;
@@ -76,8 +78,11 @@ export declare class TrailsService {
             distanceFromUser: number;
             favoriteCount: number;
             isFavorited: boolean;
-            name: string;
             id: string;
+            name: string;
+            _count: {
+                favorites: number;
+            };
             distanceKm: number;
             durationMin: number;
             difficulty: import(".prisma/client").$Enums.TrailDifficulty;
@@ -86,9 +91,6 @@ export declare class TrailsService {
             district: string;
             startPointLat: number;
             startPointLng: number;
-            _count: {
-                favorites: number;
-            };
         }[];
     }>;
     getRecommendedTrails(limit?: number, userId?: string): Promise<{

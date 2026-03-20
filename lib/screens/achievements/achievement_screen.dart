@@ -29,6 +29,7 @@ class AchievementScreen extends StatefulWidget {
 class _AchievementScreenState extends State<AchievementScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
+  final ScrollController _scrollController = ScrollController();
   final List<AchievementCategory> _categories = [
     AchievementCategory.explorer,
     AchievementCategory.distance,
@@ -38,6 +39,10 @@ class _AchievementScreenState extends State<AchievementScreen>
   ];
   
   final List<String> _categoryNames = ['全部', '探索', '里程', '打卡', '挑战', '社交'];
+  
+  // 滚动埋点控制
+  double _lastReportedScrollPercent = 0;
+  static const double _scrollReportInterval = 25; // 每25%上报一次
 
   @override
   void initState() {
@@ -57,6 +62,9 @@ class _AchievementScreenState extends State<AchievementScreen>
       }
     });
     
+    // 滚动监听（埋点）
+    _scrollController.addListener(_onScroll);
+    
     // 加载数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AchievementProvider>().loadUserAchievements();
@@ -64,11 +72,53 @@ class _AchievementScreenState extends State<AchievementScreen>
       AnalyticsService.instance.logAchievementPageView();
     });
   }
+  
+  /// 滚动埋点处理
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    
+    final offset = _scrollController.offset;
+    final maxExtent = _scrollController.position.maxScrollExtent;
+    
+    if (maxExtent <= 0) return;
+    
+    // 计算滚动百分比
+    final scrollPercent = (offset / maxExtent * 100).round();
+    final currentBucket = (scrollPercent ~/ _scrollReportInterval) * _scrollReportInterval;
+    
+    // 每25%区间只上报一次
+    if (currentBucket > _lastReportedScrollPercent) {
+      _lastReportedScrollPercent = currentBucket;
+      
+      final provider = context.read<AchievementProvider>();
+      final currentCategory = _tabController.index == 0 
+          ? 'all' 
+          : _categories[_tabController.index - 1].name;
+      
+      AnalyticsService.instance.logAchievementScroll(
+        scrollOffset: offset,
+        maxScrollExtent: maxExtent,
+        visibleBadgeCount: _calculateVisibleBadgeCount(),
+        category: currentCategory,
+      );
+    }
+  }
+  
+  /// 计算当前可见徽章数量
+  int _calculateVisibleBadgeCount() {
+    // 简化计算：假设每个徽章高度约80，宽度约70，每行4个
+    if (!_scrollController.hasClients) return 0;
+    
+    final viewportHeight = MediaQuery.of(context).size.height - 200; // 减去头部
+    final visibleRows = (viewportHeight / 80).ceil();
+    return visibleRows * 4; // 每行4个
+  }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
   
@@ -153,6 +203,7 @@ class _AchievementScreenState extends State<AchievementScreen>
     return RefreshIndicator(
       onRefresh: () => context.read<AchievementProvider>().refresh(),
       child: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           // 顶部统计卡片
           SliverToBoxAdapter(

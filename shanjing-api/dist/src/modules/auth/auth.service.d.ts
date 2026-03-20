@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
-import { PhoneRegisterDto, WechatRegisterDto, PhoneLoginDto, WechatLoginDto, LogoutDto } from './dto';
+import { PhoneRegisterDto, WechatRegisterDto, PhoneLoginDto, WechatLoginDto, LogoutDto, PhonePasswordRegisterDto, PhonePasswordLoginDto } from './dto';
 import { AuthResponse, TokenResponse } from './interfaces/auth.interface';
 export declare class AuthService {
     private readonly prisma;
@@ -18,4 +18,7 @@ export declare class AuthService {
     private verifySmsCode;
     private getWechatUserInfo;
     private sanitizeUser;
+    registerWithPassword(dto: PhonePasswordRegisterDto): Promise<AuthResponse>;
+    loginWithPassword(dto: PhonePasswordLoginDto): Promise<AuthResponse>;
+    private hashPassword;
 }

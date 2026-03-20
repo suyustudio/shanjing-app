@@ -8,9 +8,9 @@ export declare class JwtStrategy extends JwtStrategy_base {
     private readonly prisma;
     constructor(configService: ConfigService, prisma: PrismaService);
     validate(payload: TokenPayload): Promise<{
-        userId: any;
-        phone: any;
-        wxOpenid: any;
+        userId: string;
+        phone: string;
+        wxOpenid: string;
     }>;
 }
 export {};

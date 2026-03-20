@@ -1,9 +1,11 @@
 import { AuthService } from './auth.service';
-import { PhoneRegisterDto, WechatRegisterDto, PhoneLoginDto, WechatLoginDto, RefreshTokenDto, LogoutDto } from './dto';
+import { PhoneRegisterDto, WechatRegisterDto, PhoneLoginDto, WechatLoginDto, RefreshTokenDto, LogoutDto, PhonePasswordRegisterDto, PhonePasswordLoginDto } from './dto';
 import { AuthResponse, TokenResponse } from './interfaces/auth.interface';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
+    register(dto: PhonePasswordRegisterDto): Promise<AuthResponse>;
+    login(dto: PhonePasswordLoginDto): Promise<AuthResponse>;
     registerByPhone(dto: PhoneRegisterDto): Promise<AuthResponse>;
     registerByWechat(dto: WechatRegisterDto): Promise<AuthResponse>;
     loginByPhone(dto: PhoneLoginDto): Promise<AuthResponse>;

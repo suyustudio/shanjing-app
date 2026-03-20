@@ -361,3 +361,294 @@ model UserStats {
   @@index([currentWeeklyStreak])
   @@map("user_stats")
 }
+
+// ==================== M6: 评论系统 ====================
+
+model Review {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  trailId       String    @map("trail_id")
+  rating        Decimal   @db.Decimal(2, 1)
+  content       String?   @db.VarChar(500)
+  isEdited      Boolean   @default(false) @map("is_edited")
+  isReported    Boolean   @default(false) @map("is_reported")
+  reportReason  String?   @map("report_reason") @db.VarChar(100)
+  likeCount     Int       @default(0) @map("like_count")
+  replyCount    Int       @default(0) @map("reply_count")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trail         Trail     @relation(fields: [trailId], references: [id], onDelete: Cascade)
+  replies       ReviewReply[]
+  tags          ReviewTag[]
+  photos        ReviewPhoto[]
+
+  @@unique([userId, trailId])
+  @@index([trailId, createdAt])
+  @@index([userId, createdAt])
+  @@index([rating])
+  @@map("reviews")
+}
+
+model ReviewReply {
+  id            String    @id @default(uuid())
+  reviewId      String    @map("review_id")
+  userId        String    @map("user_id")
+  parentId      String?   @map("parent_id")
+  content       String    @db.VarChar(500)
+  isReported    Boolean   @default(false) @map("is_reported")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  review        Review    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent        ReviewReply? @relation("ReplyParent", fields: [parentId], references: [id])
+  children      ReviewReply[] @relation("ReplyParent")
+
+  @@index([reviewId, createdAt])
+  @@index([userId])
+  @@map("review_replies")
+}
+
+model ReviewTag {
+  id            String    @id @default(uuid())
+  reviewId      String    @map("review_id")
+  tag           String    @db.VarChar(32)
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  review        Review    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@index([tag])
+  @@map("review_tags")
+}
+
+model ReviewPhoto {
+  id            String    @id @default(uuid())
+  reviewId      String    @map("review_id")
+  url           String    @db.VarChar(512)
+  sortOrder     Int       @default(0) @map("sort_order")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  review        Review    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@map("review_photos")
+}
+
+// ==================== M6: 照片系统 ====================
+
+model Photo {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  trailId       String?   @map("trail_id")
+  poiId         String?   @map("poi_id")
+  url           String    @db.VarChar(512)
+  thumbnailUrl  String?   @map("thumbnail_url") @db.VarChar(512)
+  width         Int?
+  height        Int?
+  sizeKb        Int?      @map("size_kb")
+  description   String?   @db.VarChar(100)
+  latitude      Decimal?  @db.Decimal(10, 8)
+  longitude     Decimal?  @db.Decimal(11, 8)
+  takenAt       DateTime? @map("taken_at")
+  device        String?   @db.VarChar(100)
+  likeCount     Int       @default(0) @map("like_count")
+  isPublic      Boolean   @default(true) @map("is_public")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trail         Trail?    @relation(fields: [trailId], references: [id], onDelete: SetNull)
+  likes         PhotoLike[]
+
+  @@index([trailId, createdAt])
+  @@index([userId, createdAt])
+  @@index([latitude, longitude])
+  @@map("photos")
+}
+
+model PhotoLike {
+  id            String    @id @default(uuid())
+  photoId       String    @map("photo_id")
+  userId        String    @map("user_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  photo         Photo     @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([photoId, userId])
+  @@index([photoId])
+  @@index([userId])
+  @@map("photo_likes")
+}
+
+// ==================== M6: 用户关注系统 ====================
+
+model Follow {
+  id            String    @id @default(uuid())
+  followerId    String    @map("follower_id")
+  followingId   String    @map("following_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  follower      User      @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following     User      @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId, createdAt])
+  @@index([followingId, createdAt])
+  @@map("follows")
+}
+
+// ==================== M6: 用户动态系统 ====================
+
+enum ActivityType {
+  COMPLETE_TRAIL
+  POST_REVIEW
+  UPLOAD_PHOTO
+  UNLOCK_ACHIEVEMENT
+  CREATE_COLLECTION
+}
+
+model UserActivity {
+  id            String       @id @default(uuid())
+  userId        String       @map("user_id")
+  type          ActivityType
+  content       Json
+  isPublic      Boolean      @default(true) @map("is_public")
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@map("user_activities")
+}
+
+// ==================== M6: 收藏夹系统 ====================
+
+model Collection {
+  id            String             @id @default(uuid())
+  userId        String             @map("user_id")
+  name          String             @db.VarChar(50)
+  description   String?            @db.VarChar(200)
+  coverUrl      String?            @map("cover_url") @db.VarChar(512)
+  isPublic      Boolean            @default(true) @map("is_public")
+  sortOrder     Int                @default(0) @map("sort_order")
+  trailCount    Int                @default(0) @map("trail_count")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trails        CollectionTrail[]
+
+  @@index([userId, sortOrder])
+  @@index([isPublic, createdAt])
+  @@map("collections")
+}
+
+model CollectionTrail {
+  id            String      @id @default(uuid())
+  collectionId  String      @map("collection_id")
+  trailId       String      @map("trail_id")
+  sortOrder     Int         @default(0) @map("sort_order")
+  note          String?     @db.VarChar(100)
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  collection    Collection  @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  trail         Trail       @relation(fields: [trailId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, trailId])
+  @@index([collectionId, sortOrder])
+  @@map("collection_trails")
+}
+
+// ==================== M6: 扩展现有模型 ====================
+
+model User {
+  id            String    @id @default(uuid())
+  phone         String?   @unique
+  passwordHash  String?   @map("password_hash")
+  wxOpenid      String?   @unique @map("wx_openid")
+  wxUnionid     String?   @unique @map("wx_unionid")
+  nickname      String?
+  avatarUrl     String?   @map("avatar_url")
+  settings      Json      @default("{}")
+  
+  // M6 新增社交统计字段
+  followersCount Int      @default(0) @map("followers_count")
+  followingCount Int      @default(0) @map("following_count")
+  photosCount    Int      @default(0) @map("photos_count")
+  
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  favorites     Favorite[]
+  profile       UserProfile?
+  recommendationLogs RecommendationLog[]
+  trailInteractions UserTrailInteraction[]
+  achievements  UserAchievement[]
+  stats         UserStats?
+  
+  // M6 新增关联
+  reviews           Review[]
+  reviewReplies     ReviewReply[]
+  photos            Photo[]
+  photoLikes        PhotoLike[]
+  followers         Follow[] @relation("Following")
+  following         Follow[] @relation("Follower")
+  activities        UserActivity[]
+  collections       Collection[]
+
+  @@index([phone])
+  @@index([wxOpenid])
+  @@map("users")
+}
+
+model Trail {
+  id                String          @id @default(uuid())
+  name              String
+  description       String?
+  distanceKm        Float
+  durationMin       Int
+  elevationGainM    Int
+  difficulty        TrailDifficulty
+  tags              String[]
+  coverImages       String[]
+  gpxUrl            String?
+  city              String
+  district          String
+  startPointLat     Float
+  startPointLng     Float
+  startPointAddress String?
+  safetyInfo        Json?
+  boundsNorth       Float?
+  boundsSouth       Float?
+  boundsEast        Float?
+  boundsWest        Float?
+  isActive          Boolean         @default(true)
+  
+  // 原有评分字段
+  avgRating         Float?          @map("avg_rating")
+  reviewCount       Int             @default(0) @map("review_count")
+  
+  // M6 新增评分统计字段
+  rating5Count      Int             @default(0) @map("rating_5_count")
+  rating4Count      Int             @default(0) @map("rating_4_count")
+  rating3Count      Int             @default(0) @map("rating_3_count")
+  rating2Count      Int             @default(0) @map("rating_2_count")
+  rating1Count      Int             @default(0) @map("rating_1_count")
+  
+  createdBy         String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  deletedAt         DateTime?
+  
+  pois              TrailPoi[]
+  favorites         Favorite[]
+  
+  // M6 新增关联
+  reviews           Review[]
+  photos            Photo[]
+  collectionTrails  CollectionTrail[]
+}

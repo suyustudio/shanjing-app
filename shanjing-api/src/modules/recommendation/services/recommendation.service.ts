@@ -16,27 +16,33 @@ import {
   ImpressionDto,
   RecommendationScene,
 } from '../dto/recommendation.dto';
-
-const CACHE_PREFIX = 'recommendation:';
-
-// 按场景配置缓存 TTL（秒）
-const CACHE_TTL_BY_SCENE: Record<RecommendationScene, number> = {
-  [RecommendationScene.HOME]: 300,      // 首页推荐: 5分钟
-  [RecommendationScene.LIST]: 600,      // 列表推荐: 10分钟
-  [RecommendationScene.SIMILAR]: 1800,  // 详情推荐(相似路线): 30分钟
-  [RecommendationScene.NEARBY]: 120,    // 附近推荐: 2分钟（位置敏感）
-};
+import {
+  CACHE_TTL_BY_SCENE,
+  RECOMMENDATION_CONSTANTS,
+  DISTANCE_CONSTANTS,
+  LOG_CONTEXT,
+  VALIDATION_CONSTRAINTS,
+} from '../../../modules/achievements/constants/achievement.constants';
+import {
+  StructuredLogger,
+  createStructuredLogger,
+} from '../../../shared/logger/structured-logger.util';
 
 @Injectable()
 export class RecommendationService {
-  private readonly logger = new Logger(RecommendationService.name);
+  private readonly logger: StructuredLogger;
 
   constructor(
     private prisma: PrismaService,
     private redis: RedisService,
     private algorithmService: RecommendationAlgorithmService,
     private profileService: UserProfileService,
-  ) {}
+  ) {
+    this.logger = createStructuredLogger(
+      new Logger(RecommendationService.name),
+      LOG_CONTEXT.RECOMMENDATION_SERVICE,
+    );
+  }
 
   /**
    * 获取推荐路线
@@ -52,37 +58,67 @@ export class RecommendationService {
       throw new Error('User ID is required');
     }
 
+    const timer = this.logger.startTimer('getRecommendations', {
+      userId: targetUserId,
+      scene,
+      hasLocation: !!(lat && lng),
+      limit,
+    });
+
     // 尝试从缓存获取
     const cacheKey = this.buildCacheKey(targetUserId, scene, lat, lng, limit);
     const cached = await this.getFromCache(cacheKey);
     if (cached) {
-      this.logger.debug(`Cache hit for ${cacheKey}`);
+      this.logger.debug('Cache hit for recommendation', {
+        userId: targetUserId,
+        cacheKey,
+        scene,
+      });
+      timer.end({ source: 'cache', trailCount: cached.trails.length });
       return cached;
     }
 
     // 获取用户画像
+    const profileTimer = this.logger.startTimer('getUserProfile', { userId: targetUserId });
     const userProfile = await this.profileService.getOrCreateProfile(targetUserId);
     const userPrefs = await this.profileService.getUserPreferenceVector(targetUserId);
+    profileTimer.end({ isColdStart: userProfile.isColdStart });
 
     // 获取候选路线
     let candidateTrails: any[] = [];
+    const candidateTimer = this.logger.startTimer('getCandidateTrails', { scene });
 
     if (userProfile.isColdStart && scene !== RecommendationScene.SIMILAR) {
       // 冷启动用户：使用热门路线
-      candidateTrails = await this.profileService.getColdStartRecommendations(limit * 3);
+      candidateTrails = await this.profileService.getColdStartRecommendations(
+        limit * RECOMMENDATION_CONSTANTS.COLD_START_MULTIPLIER,
+      );
     } else if (scene === RecommendationScene.SIMILAR && referenceTrailId) {
       // 相似推荐
-      candidateTrails = await this.getSimilarTrails(referenceTrailId, targetUserId, limit * 3);
+      candidateTrails = await this.getSimilarTrails(
+        referenceTrailId,
+        targetUserId,
+        limit * RECOMMENDATION_CONSTANTS.COLD_START_MULTIPLIER,
+      );
     } else {
       // 正常推荐：获取活跃路线
-      candidateTrails = await this.getActiveTrails(excludeIds, limit * 3);
+      candidateTrails = await this.getActiveTrails(
+        excludeIds,
+        limit * RECOMMENDATION_CONSTANTS.COLD_START_MULTIPLIER,
+      );
     }
+    candidateTimer.end({ candidateCount: candidateTrails.length });
 
     // 排除已完成的路线
+    const excludeTimer = this.logger.startTimer('excludeCompletedTrails', { userId: targetUserId });
     const completedTrailIds = await this.getCompletedTrailIds(targetUserId);
     candidateTrails = candidateTrails.filter(
-      trail => !completedTrailIds.includes(trail.id)
+      (trail) => !completedTrailIds.includes(trail.id),
     );
+    excludeTimer.end({
+      beforeCount: candidateTrails.length + completedTrailIds.length,
+      afterCount: candidateTrails.length,
+    });
 
     // 计算推荐分数
     const scoredTrails = await this.algorithmService.calculateScores(
@@ -97,14 +133,14 @@ export class RecommendationService {
     const selectedTrails = this.applySceneStrategy(scoredTrails, scene, limit);
 
     // 转换为响应DTO
-    const recommendedTrails: RecommendedTrailDto[] = selectedTrails.map(st => ({
+    const recommendedTrails: RecommendedTrailDto[] = selectedTrails.map((st) => ({
       id: st.trail.id,
       name: st.trail.name,
       coverImage: st.trail.coverImages?.[0] || '',
       distanceKm: st.trail.distanceKm,
       durationMin: st.trail.durationMin,
       difficulty: st.trail.difficulty,
-      rating: st.trail.avgRating || 3.5,
+      rating: st.trail.avgRating || RECOMMENDATION_CONSTANTS.DEFAULT_RATING,
       matchScore: st.score,
       matchFactors: {
         difficultyMatch: Math.round(st.factors.difficultyMatch * 100),
@@ -126,7 +162,7 @@ export class RecommendationService {
         contextLat: lat,
         contextLng: lng,
         contextTime: new Date(),
-        results: recommendedTrails.map(t => ({
+        results: recommendedTrails.map((t) => ({
           trailId: t.id,
           score: t.matchScore,
           factors: {
@@ -150,6 +186,12 @@ export class RecommendationService {
     // 写入缓存（使用场景化TTL）
     await this.setCache(cacheKey, response, scene);
 
+    timer.end({
+      trailCount: recommendedTrails.length,
+      logId: log.id,
+      topScore: recommendedTrails[0]?.matchScore,
+    });
+
     return response;
   }
 
@@ -161,6 +203,12 @@ export class RecommendationService {
     currentUserId: string,
   ): Promise<{ success: boolean }> {
     const { action, trailId, logId, durationSec } = dto;
+
+    const timer = this.logger.startTimer('recordFeedback', {
+      userId: currentUserId,
+      action,
+      trailId,
+    });
 
     // 记录交互
     await this.profileService.recordInteraction(
@@ -184,6 +232,7 @@ export class RecommendationService {
 
     // 清除用户推荐缓存
     await this.clearUserCache(currentUserId);
+    timer.end({ action, trailId });
 
     return { success: true };
   }
@@ -201,9 +250,15 @@ export class RecommendationService {
       return { success: false, message: 'trailIds cannot be empty' };
     }
 
+    const timer = this.logger.startTimer('recordImpression', {
+      userId: currentUserId,
+      scene,
+      trailCount: trailIds.length,
+    });
+
     try {
       // 批量记录曝光日志
-      const impressionData = trailIds.map(trailId => ({
+      const impressionData = trailIds.map((trailId) => ({
         userId: currentUserId,
         trailId,
         scene,
@@ -226,15 +281,25 @@ export class RecommendationService {
         }
       });
 
-      this.logger.debug(`Recorded ${trailIds.length} impressions for user ${currentUserId}, scene: ${scene}`);
+      this.logger.debug('Recorded impressions', {
+        userId: currentUserId,
+        scene,
+        count: trailIds.length,
+      });
+      timer.end({ count: trailIds.length });
 
-      return { 
-        success: true, 
-        message: `Recorded ${trailIds.length} impressions successfully` 
+      return {
+        success: true,
+        message: `Recorded ${trailIds.length} impressions successfully`,
       };
     } catch (error) {
-      this.logger.error(`Failed to record impression: ${error.message}`);
-      return { success: false, message: error.message };
+      timer.fail(error instanceof Error ? error : undefined, { trailCount: trailIds.length });
+      this.logger.error('Failed to record impression', error, {
+        userId: currentUserId,
+        scene,
+        trailCount: trailIds.length,
+      });
+      return { success: false, message: (error as Error).message };
     }
   }
 
@@ -246,16 +311,22 @@ export class RecommendationService {
     userId: string,
     limit: number,
   ): Promise<any[]> {
+    const timer = this.logger.startTimer('getSimilarTrails', {
+      referenceTrailId,
+      userId,
+    });
+
     const referenceTrail = await this.prisma.trail.findUnique({
       where: { id: referenceTrailId },
     });
 
     if (!referenceTrail) {
+      timer.end({ found: 0 });
       return [];
     }
 
     // 查找同难度、同区域的路线
-    return this.prisma.trail.findMany({
+    const trails = await this.prisma.trail.findMany({
       where: {
         id: { not: referenceTrailId },
         isActive: true,
@@ -272,6 +343,9 @@ export class RecommendationService {
       },
       take: limit,
     });
+
+    timer.end({ found: trails.length });
+    return trails;
   }
 
   /**
@@ -281,10 +355,16 @@ export class RecommendationService {
     excludeIds: string[] = [],
     limit: number,
   ): Promise<any[]> {
+    // 验证并限制 excludeIds 长度，防止查询过大
+    const validatedExcludeIds =
+      excludeIds.length > VALIDATION_CONSTRAINTS.MAX_LIMIT
+        ? excludeIds.slice(0, VALIDATION_CONSTRAINTS.MAX_LIMIT)
+        : excludeIds;
+
     return this.prisma.trail.findMany({
       where: {
         isActive: true,
-        id: { notIn: excludeIds.length > 0 ? excludeIds : undefined },
+        id: { notIn: validatedExcludeIds.length > 0 ? validatedExcludeIds : undefined },
       },
       take: limit,
     });
@@ -301,7 +381,7 @@ export class RecommendationService {
       },
       select: { trailId: true },
     });
-    return interactions.map(i => i.trailId);
+    return interactions.map((i) => i.trailId);
   }
 
   /**
@@ -332,20 +412,23 @@ export class RecommendationService {
   private applyHomeStrategy(scoredTrails: any[], limit: number): any[] {
     const result: any[] = [];
     const usedDifficulties = new Set<string>();
-    
+
     // 前3条：综合得分最高的路线
-    const topByScore = scoredTrails.slice(0, Math.min(3, limit));
+    const topByScore = scoredTrails.slice(
+      0,
+      Math.min(RECOMMENDATION_CONSTANTS.HOME_TOP_TRAILS_COUNT, limit),
+    );
     for (const trail of topByScore) {
       result.push(trail);
       usedDifficulties.add(trail.trail.difficulty);
     }
 
     // 第4-5条：适当加入新鲜度高的新路线
-    const remaining = scoredTrails.slice(3);
+    const remaining = scoredTrails.slice(RECOMMENDATION_CONSTANTS.HOME_TOP_TRAILS_COUNT);
     const freshTrails = remaining
-      .filter(t => t.factors.freshness > 0.7)
+      .filter((t) => t.factors.freshness > RECOMMENDATION_CONSTANTS.FRESHNESS_HIGH_THRESHOLD)
       .slice(0, 2);
-    
+
     for (const trail of freshTrails) {
       if (result.length >= limit) break;
       result.push(trail);
@@ -372,7 +455,11 @@ export class RecommendationService {
   private applyNearbyStrategy(scoredTrails: any[], limit: number): any[] {
     // 仅显示50km范围内的路线，按距离排序
     return scoredTrails
-      .filter(t => !t.userDistanceM || t.userDistanceM <= 50000)
+      .filter(
+        (t) =>
+          !t.userDistanceM ||
+          t.userDistanceM <= RECOMMENDATION_CONSTANTS.NEARBY_MAX_DISTANCE_METERS,
+      )
       .sort((a, b) => (a.userDistanceM || Infinity) - (b.userDistanceM || Infinity))
       .slice(0, limit);
   }
@@ -386,10 +473,11 @@ export class RecommendationService {
     lng?: number,
     limit?: number,
   ): string {
-    const locationHash = lat && lng 
-      ? `${Math.round(lat * 100) / 100},${Math.round(lng * 100) / 100}`
-      : 'none';
-    return `${CACHE_PREFIX}${userId}:${scene}:${locationHash}:${limit}`;
+    const locationHash =
+      lat && lng
+        ? `${Math.round(lat * 100) / 100},${Math.round(lng * 100) / 100}`
+        : 'none';
+    return `${RECOMMENDATION_CONSTANTS.CACHE_PREFIX}${userId}:${scene}:${locationHash}:${limit}`;
   }
 
   private async getFromCache(key: string): Promise<RecommendationsResponseDto | null> {
@@ -407,22 +495,23 @@ export class RecommendationService {
     scene: RecommendationScene = RecommendationScene.HOME,
   ): Promise<void> {
     try {
-      const ttl = CACHE_TTL_BY_SCENE[scene] || CACHE_TTL_BY_SCENE[RecommendationScene.HOME];
+      const ttl = CACHE_TTL_BY_SCENE[scene] || CACHE_TTL_BY_SCENE.HOME;
       await this.redis.set(key, JSON.stringify(value), ttl);
     } catch (error) {
-      this.logger.warn(`Failed to cache recommendation: ${error.message}`);
+      this.logger.warn('Failed to cache recommendation', error, { key });
     }
   }
 
   private async clearUserCache(userId: string): Promise<void> {
     try {
-      const pattern = `${CACHE_PREFIX}${userId}:*`;
+      const pattern = `${RECOMMENDATION_CONSTANTS.CACHE_PREFIX}${userId}:*`;
       const keys = await this.redis.keys(pattern);
       if (keys.length > 0) {
         await this.redis.del(...keys);
+        this.logger.debug('Cleared user cache', { userId, keyCount: keys.length });
       }
     } catch (error) {
-      this.logger.warn(`Failed to clear cache: ${error.message}`);
+      this.logger.warn('Failed to clear cache', error, { userId });
     }
   }
 }

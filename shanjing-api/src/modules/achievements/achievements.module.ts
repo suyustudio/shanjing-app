@@ -4,7 +4,7 @@
 // ================================================================
 
 import { Module } from '@nestjs/common';
-import { AchievementsController, UserStatsController } from './achievements.controller';
+import { AchievementsController, UserStatsController, AchievementCacheController } from './achievements.controller';
 import { AchievementsService } from './achievements.service';
 import { AchievementsCheckerService } from './achievements-checker.service';
 import { PrismaModule } from '../../database/prisma.module';
@@ -12,7 +12,7 @@ import { RedisModule } from '../../shared/redis/redis.module';
 
 @Module({
   imports: [PrismaModule, RedisModule],
-  controllers: [AchievementsController, UserStatsController],
+  controllers: [AchievementsController, UserStatsController, AchievementCacheController],
   providers: [AchievementsService, AchievementsCheckerService],
   exports: [AchievementsService, AchievementsCheckerService],
 })

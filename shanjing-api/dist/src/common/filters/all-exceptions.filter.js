@@ -9,6 +9,7 @@ var AllExceptionsFilter_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AllExceptionsFilter = void 0;
 const common_1 = require("@nestjs/common");
+const achievement_errors_1 = require("../../modules/achievements/errors/achievement.errors");
 let AllExceptionsFilter = AllExceptionsFilter_1 = class AllExceptionsFilter {
     constructor() {
         this.logger = new common_1.Logger(AllExceptionsFilter_1.name);
@@ -25,7 +26,11 @@ let AllExceptionsFilter = AllExceptionsFilter_1 = class AllExceptionsFilter {
                 message: '服务器内部错误',
             },
         };
-        if (exception instanceof common_1.HttpException) {
+        if (exception instanceof achievement_errors_1.AchievementError) {
+            status = exception.statusCode;
+            errorResponse = exception.toJSON();
+        }
+        else if (exception instanceof common_1.HttpException) {
             status = exception.getStatus();
             const exceptionResponse = exception.getResponse();
             if (typeof exceptionResponse === 'object' &&
