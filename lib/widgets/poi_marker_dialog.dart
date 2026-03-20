@@ -171,19 +171,19 @@ class _PoiMarkerDialogState extends State<PoiMarkerDialog> {
                   : _submit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: DesignSystem.textInverse,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                disabledBackgroundColor: Colors.grey[300],
+                disabledBackgroundColor: DesignSystem.getTextTertiary(context).withOpacity(0.3),
               ),
               child: _isSubmitting
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 24,
                       height: 24,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(DesignSystem.textInverse),
                       ),
                     )
                   : const Text(
@@ -326,13 +326,13 @@ class _PoiMarkerDialogState extends State<PoiMarkerDialog> {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: Colors.black54,
+                color: DesignSystem.getTextPrimary(context).withOpacity(0.5),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.close,
                 size: 16,
-                color: Colors.white,
+                color: DesignSystem.textInverse,
               ),
             ),
           ),

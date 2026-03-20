@@ -163,7 +163,7 @@ class _RecordingQualificationScreenState extends State<RecordingQualificationScr
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(DesignSystem.textInverse),
                         ),
                       )
                     : const Text(

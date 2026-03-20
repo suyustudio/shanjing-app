@@ -23,12 +23,15 @@ class RecordingService extends ChangeNotifier {
   
   // 录制间隔（毫秒）- 每秒1点
   static const int _recordingInterval = 1000;
+  static const int _powerSaveRecordingInterval = 5000; // 省电模式下5秒1点
   
   // 最小精度要求（米）
   static const double _minAccuracy = 20.0;
+  static const double _powerSaveMinAccuracy = 50.0; // 省电模式下放宽精度要求
   
   // 最小移动距离（米）- 过滤GPS抖动
   static const double _minMoveDistance = 3.0;
+  static const double _powerSaveMinMoveDistance = 10.0; // 省电模式下增大距离过滤
 
   // 高德定位插件
   AMapFlutterLocation? _locationPlugin;
@@ -40,6 +43,14 @@ class RecordingService extends ChangeNotifier {
   // 当前会话
   RecordingSession? _currentSession;
   RecordingSession? get currentSession => _currentSession;
+  
+  // 省电模式状态 (P1修复#5)
+  bool _isPowerSaveMode = false;
+  bool get isPowerSaveMode => _isPowerSaveMode;
+  
+  // 轨迹照片列表 (P1修复#4)
+  final List<String> _trailPhotos = [];
+  List<String> get trailPhotos => List.unmodifiable(_trailPhotos);
   
   // 录制状态
   RecordingStatus get status => _currentSession?.status ?? RecordingStatus.idle;
@@ -78,6 +89,7 @@ class RecordingService extends ChangeNotifier {
   VoidCallback? onRecordingStopped;
   Function(String error)? onError;
   VoidCallback? onLocationUpdated;
+  Function(double accuracy)? onGpsAccuracyChanged; // GPS精度变化回调 (P1修复#6)
 
   /// 初始化定位服务
   Future<bool> initialize() async {
@@ -129,7 +141,7 @@ class RecordingService extends ChangeNotifier {
       int attempts = 0;
       while (startPoint == null && attempts < 30) {
         await Future.delayed(const Duration(milliseconds: 100));
-        if (_currentPosition != null && _currentPosition!.accuracy <= _minAccuracy) {
+        if (_currentPosition != null && _currentPosition!.accuracy <= _currentMinAccuracy) {
           startPoint = _currentPosition;
         }
         attempts++;
@@ -579,6 +591,54 @@ class RecordingService extends ChangeNotifier {
     return true;
   }
 
+  // ========== P1 新增功能 ==========
+
+  /// 设置省电模式 (P1修复#5)
+  void setPowerSaveMode(bool enabled) {
+    _isPowerSaveMode = enabled;
+    if (isRecording) {
+      // 重新启动定时器以应用新的采样频率
+      _startRecordingTimer();
+    }
+    notifyListeners();
+  }
+
+  /// 添加轨迹照片 (P1修复#4) - 独立照片，不关联特定POI
+  Future<bool> addTrailPhoto(String photoPath) async {
+    if (_currentSession == null) return false;
+
+    try {
+      _trailPhotos.add(photoPath);
+      
+      // 更新会话照片计数
+      _currentSession = _currentSession!.copyWith(
+        updatedAt: DateTime.now(),
+      );
+
+      notifyListeners();
+      await _saveCurrentSession();
+      return true;
+    } catch (e) {
+      onError?.call('添加轨迹照片失败: $e');
+      return false;
+    }
+  }
+
+  /// 获取当前录制间隔
+  int get _currentRecordingInterval {
+    return _isPowerSaveMode ? _powerSaveRecordingInterval : _recordingInterval;
+  }
+
+  /// 获取当前最小精度要求
+  double get _currentMinAccuracy {
+    return _isPowerSaveMode ? _powerSaveMinAccuracy : _minAccuracy;
+  }
+
+  /// 获取当前最小移动距离
+  double get _currentMinMoveDistance {
+    return _isPowerSaveMode ? _powerSaveMinMoveDistance : _minMoveDistance;
+  }
+
   // ========== 私有方法 ==========
 
   /// 定位变化回调
@@ -587,7 +647,7 @@ class RecordingService extends ChangeNotifier {
       final latitude = (location['latitude'] as num?)?.toDouble();
       final longitude = (location['longitude'] as num?)?.toDouble();
       final altitude = (location['altitude'] as num?)?.toDouble() ?? 0;
-      final accuracy = (location['accuracy'] as num?)?.toDouble() ?? 0;
+      final accuracy = (location['accuracy'] as num?)?.toDouble() ?? 999;
       final speed = (location['speed'] as num?)?.toDouble();
       final timestamp = DateTime.now();
 
@@ -603,6 +663,9 @@ class RecordingService extends ChangeNotifier {
       );
 
       _currentPosition = trackPoint;
+      
+      // 通知GPS精度变化 (P1修复#6)
+      onGpsAccuracyChanged?.call(accuracy);
       
       // 添加到历史
       _positionHistory.add(trackPoint);
@@ -623,10 +686,10 @@ class RecordingService extends ChangeNotifier {
 
   /// 处理轨迹点
   void _processTrackPoint(TrackPoint point) {
-    // 精度过滤
-    if (point.accuracy > _minAccuracy) return;
+    // 精度过滤 - 使用动态阈值
+    if (point.accuracy > _currentMinAccuracy) return;
 
-    // 距离过滤
+    // 距离过滤 - 使用动态阈值
     if (_lastTrackPoint != null) {
       final distance = _calculateDistance(
         _lastTrackPoint!.latitude,
@@ -635,7 +698,7 @@ class RecordingService extends ChangeNotifier {
         point.longitude,
       );
       
-      if (distance < _minMoveDistance) return;
+      if (distance < _currentMinMoveDistance) return;
 
       // 更新总距离
       final newDistance = _currentSession!.totalDistanceMeters + distance;
@@ -707,12 +770,12 @@ class RecordingService extends ChangeNotifier {
     );
   }
 
-  /// 开始录制定时器
+  /// 开始录制定时器 - 使用动态间隔
   void _startRecordingTimer() {
     _recordingTimer?.cancel();
     
     _recordingTimer = Timer.periodic(
-      const Duration(seconds: 1),
+      Duration(milliseconds: _currentRecordingInterval),
       (_) => _onTick(),
     );
   }

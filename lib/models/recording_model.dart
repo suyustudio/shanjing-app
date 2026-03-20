@@ -363,6 +363,9 @@ class RecordingSession {
   final bool isUploaded;
   final DateTime createdAt;
   final DateTime updatedAt;
+  
+  // P1新增字段
+  final List<String> trailPhotos; // 独立轨迹照片 (P1修复#4)
 
   RecordingSession({
     required this.id,
@@ -393,6 +396,8 @@ class RecordingSession {
     this.isUploaded = false,
     required this.createdAt,
     required this.updatedAt,
+    // P1新增字段
+    this.trailPhotos = const [],
   });
 
   factory RecordingSession.fromJson(Map<String, dynamic> json) {
@@ -455,6 +460,8 @@ class RecordingSession {
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'])
           : DateTime.now(),
+      // P1新增字段
+      trailPhotos: List<String>.from(json['trailPhotos'] ?? []),
     );
   }
 
@@ -488,6 +495,8 @@ class RecordingSession {
       'isUploaded': isUploaded,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      // P1新增字段
+      'trailPhotos': trailPhotos,
     };
   }
 
@@ -518,6 +527,7 @@ class RecordingSession {
     bool? isUploaded,
     DateTime? createdAt,
     DateTime? updatedAt,
+    List<String>? trailPhotos,
   }) {
     return RecordingSession(
       id: id ?? this.id,
@@ -546,6 +556,7 @@ class RecordingSession {
       isUploaded: isUploaded ?? this.isUploaded,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      trailPhotos: trailPhotos ?? this.trailPhotos,
     );
   }
 
@@ -571,9 +582,10 @@ class RecordingSession {
     }
   }
 
-  /// 获取照片数量
+  /// 获取照片数量 - 包括POI照片和轨迹照片
   int get photoCount {
-    return pois.fold(0, (sum, poi) => sum + poi.photoUrls.length);
+    final poiPhotos = pois.fold(0, (sum, poi) => sum + poi.photoUrls.length);
+    return poiPhotos + trailPhotos.length;
   }
 }
 
@@ -746,6 +758,8 @@ class CollectorQualification {
       'reviewedAt': reviewedAt?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      // P1新增字段
+      'trailPhotos': trailPhotos,
     };
   }
 

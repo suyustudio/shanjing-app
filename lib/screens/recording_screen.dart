@@ -1,12 +1,15 @@
 // recording_screen.dart
-// 山径APP - 轨迹录制主界面
+// 山径APP - 轨迹录制主界面 (P1修复版)
 
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:battery_plus/battery_plus.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/recording_model.dart';
 import '../services/recording_service.dart';
 import '../widgets/poi_marker_dialog.dart';
@@ -27,35 +30,123 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
   // 录制服务
   late RecordingService _recordingService;
   
-  // 动画控制器
+  // 动画控制器 - 录制指示器呼吸灯效果 (1.5s循环)
   late AnimationController _pulseController;
+  
+  // 电池状态
+  final Battery _battery = Battery();
+  StreamSubscription<BatteryState>? _batterySubscription;
+  int _batteryLevel = 100;
+  bool _isPowerSaveMode = false;
+  bool _hasShownPowerSaveAlert = false;
+  
+  // GPS信号状态
+  bool _isGpsWeak = false;
+  double _gpsAccuracy = 0;
   
   // 页面状态
   bool _isInitializing = true;
   String? _errorMessage;
   bool _showPoiList = false;
   
+  // 照片选择器
+  final ImagePicker _imagePicker = ImagePicker();
+  
   // 地图状态
   LatLng? _currentPosition;
   List<LatLng> _trackPoints = [];
   final Set<Polyline> _polylines = {};
   final Set<Marker> _markers = {};
+  
+  // 音频播放器（用于提示音）
+  bool _enableAudioFeedback = true;
 
   @override
   void initState() {
     super.initState();
+    // 录制指示器呼吸灯效果 - 1.5s循环 (P1修复#8)
     _pulseController = AnimationController(
-      duration: const Duration(seconds: 1),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
     
     _initializeService();
+    _initBatteryMonitoring();
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    _batterySubscription?.cancel();
     super.dispose();
+  }
+
+  /// 初始化电池监控 (P1修复#5)
+  Future<void> _initBatteryMonitoring() async {
+    try {
+      // 获取当前电量
+      _batteryLevel = await _battery.batteryLevel;
+      
+      // 监听电量变化
+      _batterySubscription = _battery.onBatteryStateChanged.listen((state) async {
+        final level = await _battery.batteryLevel;
+        if (mounted) {
+          setState(() {
+            _batteryLevel = level;
+          });
+          
+          // 电量低于20%时提示省电模式
+          if (level <= 20 && !_hasShownPowerSaveAlert && !_isPowerSaveMode) {
+            _showPowerSaveModeDialog();
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Battery monitoring init failed: $e');
+    }
+  }
+
+  /// 显示省电模式提示 (P1修复#5)
+  void _showPowerSaveModeDialog() {
+    _hasShownPowerSaveAlert = true;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: DesignSystem.getSurface(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.battery_alert, color: DesignSystem.getWarning(context)),
+            const SizedBox(width: 8),
+            Text('电量不足', style: DesignSystem.getTitleLarge(context)),
+          ],
+        ),
+        content: Text(
+          '当前电量 $_batteryLevel%，建议开启省电模式。\n\n省电模式将降低GPS采样频率以延长续航。',
+          style: DesignSystem.getBodyMedium(context),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() => _isPowerSaveMode = true);
+              _recordingService.setPowerSaveMode(true);
+              Navigator.of(context).pop();
+              _showSnackBar('已开启省电模式');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DesignSystem.getWarning(context),
+              foregroundColor: DesignSystem.textInverse,
+            ),
+            child: const Text('开启省电模式'),
+          ),
+        ],
+      ),
+    );
   }
 
   /// 初始化服务
@@ -67,6 +158,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     _recordingService.onRecordingStopped = _onRecordingStopped;
     _recordingService.onError = _onError;
     _recordingService.onLocationUpdated = _onLocationUpdated;
+    _recordingService.onGpsAccuracyChanged = _onGpsAccuracyChanged;
 
     final initialized = await _recordingService.initialize();
     
@@ -85,15 +177,20 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     return ChangeNotifierProvider.value(
       value: _recordingService,
       child: Scaffold(
+        backgroundColor: DesignSystem.getBackground(context),
         body: Stack(
           children: [
             // 地图层
             _buildMap(),
             
+            // GPS信号弱提示 (P1修复#6)
+            if (_isGpsWeak && _recordingService.isRecording)
+              _buildGpsWeakBanner(),
+            
             // 顶部状态栏
             _buildTopBar(),
             
-            // 底部控制面板
+            // 底部控制面板 (P1修复#3)
             _buildBottomPanel(),
             
             // POI列表（可展开）
@@ -104,6 +201,45 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
             
             // 错误提示
             if (_errorMessage != null) _buildErrorOverlay(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 构建GPS信号弱提示条 (P1修复#6)
+  Widget _buildGpsWeakBanner() {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 80,
+      left: 16,
+      right: 16,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: DesignSystem.getError(context),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: DesignSystem.getShadow(context),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.gps_off, color: DesignSystem.textInverse, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'GPS信号弱，定位精度不足',
+                style: TextStyle(
+                  color: DesignSystem.textInverse,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Text(
+              '精度: ${_gpsAccuracy.toStringAsFixed(0)}m',
+              style: TextStyle(
+                color: DesignSystem.textInverse.withOpacity(0.8),
+                fontSize: 12,
+              ),
+            ),
           ],
         ),
       ),
@@ -147,26 +283,35 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: DesignSystem.getSurface(context).withOpacity(0.95),
+              color: _isGpsWeak && service.isRecording
+                  ? DesignSystem.getError(context).withOpacity(0.95) // GPS弱时变红 (P1修复#6)
+                  : DesignSystem.getSurface(context).withOpacity(0.95),
               borderRadius: BorderRadius.circular(16),
               boxShadow: DesignSystem.getShadow(context),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // 状态指示器
+                // 状态指示器行
                 Row(
                   children: [
-                    // 录制状态指示灯
+                    // 录制状态指示灯 - 呼吸灯效果 (P1修复#8)
                     if (status == RecordingStatus.recording)
                       FadeTransition(
-                        opacity: _pulseController,
+                        opacity: Tween<double>(begin: 0.3, end: 1.0).animate(_pulseController),
                         child: Container(
                           width: 12,
                           height: 12,
                           decoration: BoxDecoration(
                             color: DesignSystem.getError(context),
                             shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: DesignSystem.getError(context).withOpacity(0.5),
+                                blurRadius: 8,
+                                spreadRadius: 2,
+                              ),
+                            ],
                           ),
                         ),
                       )
@@ -187,10 +332,15 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: DesignSystem.getTextPrimary(context),
+                        color: _isGpsWeak && service.isRecording
+                            ? DesignSystem.textInverse
+                            : DesignSystem.getTextPrimary(context),
                       ),
                     ),
                     const Spacer(),
+                    // 电量显示 (P1修复#5)
+                    _buildBatteryIndicator(),
+                    const SizedBox(width: 12),
                     // POI数量
                     if (session != null) ...[
                       _buildStatChip(
@@ -210,23 +360,23 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                 
                 if (session != null) ...[
                   const Divider(height: 16),
-                  // 录制数据
+                  // 录制数据 - 使用 DIN Alternate Bold 32px (P1修复#7)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildStatItem(
+                      _buildStatItemWithFont(
                         '时长',
-                        session.formattedDuration,
+                        _isGpsWeak && service.isRecording ? '--:--' : session.formattedDuration,
                         Icons.timer,
                       ),
-                      _buildStatItem(
+                      _buildStatItemWithFont(
                         '距离',
-                        session.formattedDistance,
+                        _isGpsWeak && service.isRecording ? '--' : session.formattedDistance,
                         Icons.straighten,
                       ),
-                      _buildStatItem(
+                      _buildStatItemWithFont(
                         '爬升',
-                        '${session.elevationGain.toStringAsFixed(0)}m',
+                        _isGpsWeak && service.isRecording ? '--' : '${session.elevationGain.toStringAsFixed(0)}m',
                         Icons.trending_up,
                       ),
                     ],
@@ -240,8 +390,64 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     );
   }
 
-  /// 构建统计项
-  Widget _buildStatItem(String label, String value, IconData icon) {
+  /// 构建电量指示器 (P1修复#5)
+  Widget _buildBatteryIndicator() {
+    Color batteryColor;
+    IconData batteryIcon;
+    
+    if (_batteryLevel <= 20) {
+      batteryColor = DesignSystem.getError(context);
+      batteryIcon = Icons.battery_alert;
+    } else if (_batteryLevel <= 50) {
+      batteryColor = DesignSystem.getWarning(context);
+      batteryIcon = Icons.battery_3_bar;
+    } else {
+      batteryColor = DesignSystem.getSuccess(context);
+      batteryIcon = Icons.battery_full;
+    }
+    
+    // 省电模式指示
+    if (_isPowerSaveMode) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.eco,
+            size: 16,
+            color: DesignSystem.getWarning(context),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '省电',
+            style: TextStyle(
+              fontSize: 12,
+              color: DesignSystem.getWarning(context),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      );
+    }
+    
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(batteryIcon, size: 16, color: batteryColor),
+        const SizedBox(width: 2),
+        Text(
+          '$_batteryLevel%',
+          style: TextStyle(
+            fontSize: 12,
+            color: batteryColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 构建统计项 - 使用 DIN Alternate Bold 字体 (P1修复#7)
+  Widget _buildStatItemWithFont(String label, String value, IconData icon) {
     return Column(
       children: [
         Row(
@@ -262,13 +468,21 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
         Text(
           value,
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 32, // 32px (P1修复#7)
             fontWeight: FontWeight.bold,
+            // DIN Alternate Bold 字体 - 在 Flutter 中需要配置字体包
+            // 这里使用系统等宽字体作为替代，实际项目中需要添加字体文件
+            fontFamily: 'DINAlternate', 
             color: DesignSystem.getTextPrimary(context),
           ),
         ),
       ],
     );
+  }
+
+  /// 构建统计项（旧版，保留兼容）
+  Widget _buildStatItem(String label, String value, IconData icon) {
+    return _buildStatItemWithFont(label, value, icon);
   }
 
   /// 构建统计芯片
@@ -297,7 +511,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     );
   }
 
-  /// 构建底部控制面板
+  /// 构建底部控制面板 (P1修复#3) - [标记POI][拍照][暂停][结束]，72px圆形按钮
   Widget _buildBottomPanel() {
     return Positioned(
       left: 0,
@@ -324,89 +538,116 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                   ),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 控制按钮行
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // 左侧：POI列表切换
-                      _buildControlButton(
-                        icon: Icons.list,
-                        label: '标记点',
-                        color: DesignSystem.getInfo(context),
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 控制按钮行 - [标记POI][拍照][暂停][结束] (P1修复#3)
+                    if (status == RecordingStatus.recording)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          // 1. 标记POI按钮 - 72px圆形
+                          _buildCircularControlButton(
+                            icon: Icons.add_location_alt,
+                            label: '标记',
+                            color: DesignSystem.getWarning(context),
+                            onPressed: () => _showPoiMarkerDialog(),
+                            size: 72,
+                          ),
+                          // 2. 拍照按钮 - 72px圆形 (P1修复#4)
+                          _buildCircularControlButton(
+                            icon: Icons.camera_alt,
+                            label: '拍照',
+                            color: DesignSystem.getInfo(context),
+                            onPressed: () => _takeTrailPhoto(),
+                            size: 72,
+                          ),
+                          // 3. 暂停按钮 - 72px圆形
+                          _buildCircularControlButton(
+                            icon: Icons.pause,
+                            label: '暂停',
+                            color: DesignSystem.getWarning(context),
+                            onPressed: _pauseRecording,
+                            size: 72,
+                          ),
+                          // 4. 结束按钮 - 72px圆形
+                          _buildCircularControlButton(
+                            icon: Icons.stop,
+                            label: '结束',
+                            color: DesignSystem.getError(context),
+                            onPressed: _confirmStopRecording,
+                            size: 72,
+                          ),
+                        ],
+                      )
+                    else if (status == RecordingStatus.paused)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          // 暂停状态下：继续 | 结束 | 放弃
+                          _buildCircularControlButton(
+                            icon: Icons.play_arrow,
+                            label: '继续',
+                            color: DesignSystem.getSuccess(context),
+                            onPressed: _resumeRecording,
+                            size: 72,
+                          ),
+                          _buildCircularControlButton(
+                            icon: Icons.stop,
+                            label: '结束',
+                            color: DesignSystem.getError(context),
+                            onPressed: _confirmStopRecording,
+                            size: 72,
+                          ),
+                          _buildCircularControlButton(
+                            icon: Icons.delete_outline,
+                            label: '放弃',
+                            color: DesignSystem.getTextSecondary(context),
+                            onPressed: _confirmDiscardRecording,
+                            size: 72,
+                          ),
+                        ],
+                      )
+                    else if (status == RecordingStatus.idle)
+                      // 开始录制大按钮
+                      _buildLargeStartButton()
+                    else
+                      // 已完成状态
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildCircularControlButton(
+                            icon: Icons.check,
+                            label: '已完成',
+                            color: DesignSystem.getTextTertiary(context),
+                            onPressed: null,
+                            size: 72,
+                          ),
+                        ],
+                      ),
+                    
+                    const SizedBox(height: 8),
+                    
+                    // POI列表切换按钮（仅录制/暂停时显示）
+                    if (status == RecordingStatus.recording || status == RecordingStatus.paused)
+                      TextButton.icon(
                         onPressed: () {
                           setState(() {
                             _showPoiList = !_showPoiList;
                           });
                         },
-                        isActive: _showPoiList,
-                      ),
-                      
-                      // 中间：主控制按钮
-                      _buildMainControlButton(status),
-                      
-                      // 右侧：添加POI
-                      _buildControlButton(
-                        icon: Icons.add_location_alt,
-                        label: '标记',
-                        color: DesignSystem.getWarning(context),
-                        onPressed: status == RecordingStatus.recording
-                            ? () => _showPoiMarkerDialog()
-                            : null,
-                        isActive: false,
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // 次要控制按钮
-                  if (status != RecordingStatus.idle)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // 结束录制按钮
-                        ElevatedButton.icon(
-                          onPressed: _confirmStopRecording,
-                          icon: const Icon(Icons.stop),
-                          label: const Text('结束录制'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: DesignSystem.getError(context),
-                            foregroundColor: DesignSystem.textInverse,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
+                        icon: Icon(
+                          _showPoiList ? Icons.expand_more : Icons.expand_less,
+                          color: DesignSystem.getTextSecondary(context),
                         ),
-                        
-                        if (status == RecordingStatus.paused) ...[
-                          const SizedBox(width: 16),
-                          // 放弃录制按钮
-                          OutlinedButton.icon(
-                            onPressed: _confirmDiscardRecording,
-                            icon: const Icon(Icons.delete_outline),
-                            label: const Text('放弃'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: DesignSystem.getTextSecondary(context),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                ],
+                        label: Text(
+                          _showPoiList ? '收起标记列表' : '查看标记列表',
+                          style: TextStyle(color: DesignSystem.getTextSecondary(context)),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             );
           },
@@ -415,53 +656,8 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     );
   }
 
-  /// 构建主控制按钮
-  Widget _buildMainControlButton(RecordingStatus status) {
-    switch (status) {
-      case RecordingStatus.idle:
-        return _buildLargeButton(
-          icon: Icons.fiber_manual_record,
-          label: '开始录制',
-          color: DesignSystem.getError(context),
-          onPressed: _startRecording,
-          size: 80,
-        );
-      
-      case RecordingStatus.recording:
-        return _buildLargeButton(
-          icon: Icons.pause,
-          label: '暂停',
-          color: DesignSystem.getWarning(context),
-          onPressed: _pauseRecording,
-          size: 80,
-        );
-      
-      case RecordingStatus.paused:
-        return _buildLargeButton(
-          icon: Icons.play_arrow,
-          label: '继续',
-          color: DesignSystem.getSuccess(context),
-          onPressed: _resumeRecording,
-          size: 80,
-        );
-      
-      case RecordingStatus.finished:
-      case RecordingStatus.submitted:
-      case RecordingStatus.reviewing:
-      case RecordingStatus.approved:
-      case RecordingStatus.rejected:
-        return _buildLargeButton(
-          icon: Icons.check,
-          label: '已完成',
-          color: DesignSystem.getTextTertiary(context),
-          onPressed: null,
-          size: 80,
-        );
-    }
-  }
-
-  /// 构建大按钮
-  Widget _buildLargeButton({
+  /// 构建圆形控制按钮 - 72px (P1修复#3)
+  Widget _buildCircularControlButton({
     required IconData icon,
     required String label,
     required Color color,
@@ -481,8 +677,8 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                 ? [
                     BoxShadow(
                       color: color.withOpacity(0.4),
-                      blurRadius: 20,
-                      spreadRadius: 4,
+                      blurRadius: 16,
+                      spreadRadius: 2,
                     ),
                   ]
                 : null,
@@ -495,58 +691,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
               child: Icon(
                 icon,
                 color: DesignSystem.textInverse,
-                size: size * 0.4,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: onPressed != null ? color : DesignSystem.getTextTertiary(context),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// 构建控制按钮
-  Widget _buildControlButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback? onPressed,
-    required bool isActive,
-  }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: isActive 
-                ? color.withOpacity(0.2) 
-                : (onPressed != null ? DesignSystem.getBackgroundSecondary(context) : DesignSystem.getBackgroundSecondary(context).withOpacity(0.5)),
-            borderRadius: BorderRadius.circular(16),
-            border: isActive
-                ? Border.all(color: color, width: 2)
-                : null,
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onPressed,
-              borderRadius: BorderRadius.circular(16),
-              child: Icon(
-                icon,
-                color: onPressed != null 
-                    ? (isActive ? color : DesignSystem.getTextSecondary(context)) 
-                    : DesignSystem.getTextTertiary(context).withOpacity(0.5),
-                size: 28,
+                size: size * 0.35,
               ),
             ),
           ),
@@ -556,9 +701,53 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
           label,
           style: TextStyle(
             fontSize: 12,
-            color: onPressed != null 
-                ? (isActive ? color : DesignSystem.getTextSecondary(context)) 
-                : DesignSystem.getTextTertiary(context).withOpacity(0.5),
+            fontWeight: FontWeight.w500,
+            color: onPressed != null ? color : DesignSystem.getTextTertiary(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 构建大开始按钮
+  Widget _buildLargeStartButton() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 88,
+          height: 88,
+          decoration: BoxDecoration(
+            color: DesignSystem.getError(context),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: DesignSystem.getError(context).withOpacity(0.4),
+                blurRadius: 20,
+                spreadRadius: 4,
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _startRecording,
+              customBorder: const CircleBorder(),
+              child: const Icon(
+                Icons.fiber_manual_record,
+                color: DesignSystem.textInverse,
+                size: 40,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '开始录制',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: DesignSystem.getError(context),
           ),
         ),
       ],
@@ -701,6 +890,9 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
 
   void _onRecordingStarted() {
     HapticFeedback.mediumImpact();
+    if (_enableAudioFeedback) {
+      // 播放提示音
+    }
     _showSnackBar('开始录制轨迹');
   }
 
@@ -755,6 +947,14 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     }
   }
 
+  /// GPS精度变化回调 (P1修复#6)
+  void _onGpsAccuracyChanged(double accuracy) {
+    setState(() {
+      _gpsAccuracy = accuracy;
+      _isGpsWeak = accuracy > 20.0; // 精度大于20米认为信号弱
+    });
+  }
+
   // ========== 控制方法 ==========
 
   Future<void> _startRecording() async {
@@ -776,8 +976,13 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('结束录制'),
-        content: const Text('确定要结束当前轨迹录制吗？结束后可以上传路线。'),
+        backgroundColor: DesignSystem.getSurface(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('结束录制', style: DesignSystem.getTitleLarge(context)),
+        content: Text(
+          '确定要结束当前轨迹录制吗？结束后可以上传路线。',
+          style: DesignSystem.getBodyMedium(context),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -785,7 +990,10 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DesignSystem.getError(context),
+              foregroundColor: DesignSystem.textInverse,
+            ),
             child: const Text('结束'),
           ),
         ],
@@ -801,8 +1009,13 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('放弃录制'),
-        content: const Text('确定要放弃当前录制吗？已记录的数据将丢失。'),
+        backgroundColor: DesignSystem.getSurface(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('放弃录制', style: DesignSystem.getTitleLarge(context)),
+        content: Text(
+          '确定要放弃当前录制吗？已记录的数据将丢失。',
+          style: DesignSystem.getBodyMedium(context),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -810,7 +1023,10 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DesignSystem.getError(context),
+              foregroundColor: DesignSystem.textInverse,
+            ),
             child: const Text('放弃'),
           ),
         ],
@@ -847,96 +1063,39 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     );
   }
 
+  /// 拍摄轨迹照片 (P1修复#4) - 独立拍照功能
+  Future<void> _takeTrailPhoto() async {
+    try {
+      final XFile? photo = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (photo != null) {
+        // 将照片关联到轨迹（而非特定POI）
+        await _recordingService.addTrailPhoto(photo.path);
+        if (mounted) {
+          _showSnackBar('照片已保存到轨迹');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('拍照失败: $e', isError: true);
+      }
+    }
+  }
+
   Future<void> _showUploadDialog() async {
     final session = _recordingService.currentSession;
     if (session == null) return;
 
-    final TextEditingController nameController = TextEditingController(
-      text: session.trailName,
+    // 跳转到编辑页面
+    Navigator.of(context).pushReplacementNamed(
+      '/recording/edit',
+      arguments: session,
     );
-    final TextEditingController cityController = TextEditingController();
-    final TextEditingController districtController = TextEditingController();
-    String difficulty = 'EASY';
-
-    if (!mounted) return;
-
-    final shouldUpload = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('上传路线'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: '路线名称',
-                  hintText: '给这条路线起个名字',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: cityController,
-                decoration: const InputDecoration(
-                  labelText: '城市',
-                  hintText: '例如：杭州',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: districtController,
-                decoration: const InputDecoration(
-                  labelText: '区域',
-                  hintText: '例如：西湖区',
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: difficulty,
-                decoration: const InputDecoration(labelText: '难度'),
-                items: const [
-                  DropdownMenuItem(value: 'EASY', child: Text('简单')),
-                  DropdownMenuItem(value: 'MODERATE', child: Text('中等')),
-                  DropdownMenuItem(value: 'HARD', child: Text('困难')),
-                ],
-                onChanged: (value) => difficulty = value!,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('稍后上传'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('上传'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldUpload == true && mounted) {
-      _showSnackBar('正在上传...');
-      
-      final response = await _recordingService.uploadTrail(
-        sessionId: session.id,
-        trailName: nameController.text,
-        city: cityController.text,
-        district: districtController.text,
-        difficulty: difficulty,
-      );
-
-      if (mounted) {
-        if (response?.success == true) {
-          _showSnackBar('上传成功！等待审核后发布');
-        } else {
-          _showSnackBar('上传失败: ${response?.error ?? "未知错误"}', isError: true);
-        }
-      }
-    }
   }
 
   void _focusOnPoi(PoiMarker poi) {
@@ -959,7 +1118,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     if (_trackPoints.length >= 2) {
       _polylines.add(Polyline(
         points: _trackPoints,
-        color: Colors.blue,
+        color: DesignSystem.getPrimary(context),
         width: 5,
       ));
     }
@@ -1019,7 +1178,7 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: isError ? Colors.red : null,
+          backgroundColor: isError ? DesignSystem.getError(context) : null,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
