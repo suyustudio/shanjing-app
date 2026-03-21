@@ -321,4 +321,46 @@ class AmapNaviService {
       }
     }
   }
+  
+  /// 公共通知方法（用于外部触发）
+  
+  /// 通知服务初始化完成
+  void notifyInitialized(bool success) {
+    _notifyListeners((listener) => listener.onServiceInitialized(success));
+  }
+  
+  /// 通知路径规划成功
+  void notifyRouteCalculationSuccess(int routeId) {
+    _notifyListeners((listener) => listener.onRouteCalculationSuccess(routeId));
+  }
+  
+  /// 通知路径规划失败
+  void notifyRouteCalculationFailure(String error) {
+    _notifyListeners((listener) => listener.onRouteCalculationFailure(error));
+  }
+  
+  /// 通知导航信息更新
+  void notifyNaviInfoUpdate(AMapNaviInfo naviInfo) {
+    _notifyListeners((listener) => listener.onNaviInfoUpdate(naviInfo));
+  }
+  
+  /// 通知检测到偏航
+  void notifyOffRouteDetected() {
+    _notifyListeners((listener) => listener.onOffRouteDetected());
+  }
+  
+  /// 通知到达目的地
+  void notifyArrivedDestination() {
+    _notifyListeners((listener) => listener.onArrivedDestination());
+  }
+  
+  /// 通知导航开始
+  void notifyNaviStarted() {
+    _notifyListeners((listener) => listener.onNaviStarted());
+  }
+  
+  /// 通知导航停止
+  void notifyNaviStopped() {
+    _notifyListeners((listener) => listener.onNaviStopped());
+  }
 }
