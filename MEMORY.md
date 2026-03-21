@@ -962,10 +962,12 @@ Firebase Test Lab 测试显示黑屏，应用启动后 3-5 秒被强制停止
 4. **定时恢复**：创建 cron 任务（2026-03-25T01:00:00Z）切换回 kimi-coding/k2p5
 
 ### ✅ 验证结果
-- **main/dev**: 正常（使用默认 deepseek-reasoner）
-- **design**: ✅ 测试通过
+- **main/dev**: ✅ 正常（使用默认 deepseek-reasoner）
+- **design**: ✅ 测试通过（deepseek-reasoner 正常工作）
 - **product**: ✅ 测试通过（阿里云不可用，已切换）
-- **qa**: ⏳ 测试中（本地配置已修复）
+- **qa**: ⚠️ 测试超时（可能配置仍需排查，不影响核心开发）
+- **cron 任务**: ✅ 全部更新为 deepseek/deepseek-reasoner（git-push-nav-fix4, retry-git-push）
+- **配置清理**: ✅ 移除 fallbacks 中的 kimi-k2p5，清理 openai/gpt-5.1-codex 残留
 
 ### 📅 恢复计划
 - **当前**: 所有 agent 使用 deepseek/deepseek-reasoner（付费 token）
