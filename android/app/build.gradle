@@ -77,10 +77,10 @@ flutter {
 repositories {
     google()
     mavenCentral()
-    // 高德地图 SDK 仓库
+    // 高德地图 SDK 仓库（阿里云镜像）
     maven { url 'https://maven.aliyun.com/repository/public' }
-    // 高德官方仓库
-    maven { url 'https://maven.amap.com/nexus/content/repositories/releases/' }
+    // 高德官方仓库（备用，暂时注释掉，避免冲突）
+    // maven { url 'https://maven.amap.com/nexus/content/repositories/releases/' }
 }
 
 dependencies {
