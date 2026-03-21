@@ -16,6 +16,10 @@ enum NavigationPhase {
   /// 状态：已到达路线起点，显示路线预览，等待用户确认开始路线导航
   previewRoute,
   
+  /// 阶段2：规划路线导航
+  /// 状态：正在规划路线导航，准备开始阶段2
+  planningRoute,
+  
   /// 阶段2：沿路线导航
   /// 状态：正在沿预设路线导航，使用高德专业导航服务
   navigatingRoute,
@@ -99,6 +103,8 @@ extension NavigationPhaseExtension on NavigationPhase {
         return const Color(0xFF2D968A); // primary
       case NavigationPhase.previewRoute:
         return const Color(0xFF2196F3); // info
+      case NavigationPhase.planningRoute:
+        return const Color(0xFF2196F3).withOpacity(0.7); // info with opacity
       case NavigationPhase.navigatingRoute:
         return const Color(0xFF4CAF50); // success
       case NavigationPhase.completed:

@@ -34,6 +34,107 @@ import '../models/navigation_phase.dart';
 //   weakSignal,
 // }
 
+/// 高德导航服务监听器
+class _NaviListener implements AmapNaviListener {
+  final _NavigationScreenState _screen;
+
+  _NaviListener(this._screen);
+
+  @override
+  void onServiceInitialized(bool success) {
+    if (!_screen.mounted) return;
+    
+    if (success) {
+      debugPrint('✅ 高德导航服务初始化成功');
+      // 位置权限获取后开始阶段1路径规划
+      _screen._startPhase1Planning();
+    } else {
+      debugPrint('❌ 高德导航服务初始化失败');
+      if (_screen.mounted) {
+        _screen.setState(() => _screen._phase = NavigationPhase.error);
+      }
+    }
+  }
+
+  @override
+  void onRouteCalculationSuccess(int routeId) {
+    if (!_screen.mounted) return;
+    
+    debugPrint('🗺️ 路径规划成功，routeId: $routeId');
+    if (_screen.mounted) {
+      _screen.setState(() {
+        if (_screen._phase == NavigationPhase.planningToStart) {
+          _screen._phase = NavigationPhase.navigatingToStart;
+        }
+      });
+    }
+  }
+
+  @override
+  void onRouteCalculationFailure(String error) {
+    if (!_screen.mounted) return;
+    
+    debugPrint('❌ 路径规划失败: $error');
+    if (_screen.mounted) {
+      _screen.setState(() => _screen._phase = NavigationPhase.error);
+    }
+  }
+
+  @override
+  void onNaviInfoUpdate(AMapNaviInfo naviInfo) {
+    if (!_screen.mounted) return;
+    
+    // 更新导航信息（剩余距离、时间等）
+    if (_screen.mounted) {
+      _screen.setState(() {
+        _screen._remainingDistance = naviInfo.remainingDistance;
+        _screen._estimatedArrivalMinutes = naviInfo.remainingTime ~/ 60;
+      });
+    }
+  }
+
+  @override
+  void onOffRouteDetected() {
+    if (!_screen.mounted) return;
+    
+    debugPrint('⚠️ 检测到偏航');
+    if (_screen.mounted) {
+      _screen.setState(() => _screen._phase = NavigationPhase.offRoute);
+    }
+    _screen._speak('您已偏航，正在重新规划路线');
+  }
+
+  @override
+  void onArrivedDestination() {
+    if (!_screen.mounted) return;
+    
+    debugPrint('✅ 到达目的地');
+    if (_screen.mounted) {
+      _screen.setState(() => _screen._phase = NavigationPhase.completed);
+    }
+    _screen._navigationCompleted = true;
+  }
+
+  @override
+  void onNaviStarted() {
+    if (!_screen.mounted) return;
+    
+    debugPrint('🚀 导航开始');
+  }
+
+  @override
+  void onNaviStopped() {
+    if (!_screen.mounted) return;
+    
+    debugPrint('🛑 导航停止');
+    if (_screen.mounted) {
+      _screen.setState(() {
+        _screen._isRouteNaviStarted = false;
+      });
+    }
+  }
+}
+
 /// GPS 位置点
 class GPSPoint {
   final double latitude;
@@ -273,7 +374,7 @@ class _NavigationScreenState extends State<NavigationScreen>
           // 导航中
           if (_phase == NavigationPhase.planningToStart) {
             setState(() => _phase = NavigationPhase.navigatingToStart);
-          } else if (_phase == NavigationPhase.planningRoute) {
+          } else if (_phase == NavigationPhase.previewRoute) {
             setState(() => _phase = NavigationPhase.navigatingRoute);
           }
           break;
@@ -393,7 +494,7 @@ class _NavigationScreenState extends State<NavigationScreen>
   
   /// 开始阶段2路线导航：路线起点 → 路线终点（使用模拟服务）
   Future<void> _startPhase2RouteNavigation() async {
-    if (!mounted || _phase != NavigationPhase.planningRoute) return;
+    if (!mounted || (_phase != NavigationPhase.planningRoute && _phase != NavigationPhase.navigatingToStart)) return;
     
     debugPrint('🗺️ 开始阶段2路线导航（模拟）：路线起点 → 路线终点');
     
@@ -427,106 +528,6 @@ class _NavigationScreenState extends State<NavigationScreen>
     }
   }
 
-  /// 高德导航服务监听器
-  class _NaviListener implements AmapNaviListener {
-    final _NavigationScreenState _screen;
-
-    _NaviListener(this._screen);
-
-    @override
-    void onServiceInitialized(bool success) {
-      if (!_screen.mounted) return;
-      
-      if (success) {
-        debugPrint('✅ 高德导航服务初始化成功');
-        // 位置权限获取后开始阶段1路径规划
-        _screen._startPhase1Planning();
-      } else {
-        debugPrint('❌ 高德导航服务初始化失败');
-        if (_screen.mounted) {
-          _screen.setState(() => _screen._phase = NavigationPhase.error);
-        }
-      }
-    }
-
-    @override
-    void onRouteCalculationSuccess(int routeId) {
-      if (!_screen.mounted) return;
-      
-      debugPrint('🗺️ 路径规划成功，routeId: $routeId');
-      if (_screen.mounted) {
-        _screen.setState(() {
-          if (_screen._phase == NavigationPhase.planningToStart) {
-            _screen._phase = NavigationPhase.navigatingToStart;
-          }
-        });
-      }
-    }
-
-    @override
-    void onRouteCalculationFailure(String error) {
-      if (!_screen.mounted) return;
-      
-      debugPrint('❌ 路径规划失败: $error');
-      if (_screen.mounted) {
-        _screen.setState(() => _screen._phase = NavigationPhase.error);
-      }
-    }
-
-    @override
-    void onNaviInfoUpdate(AMapNaviInfo naviInfo) {
-      if (!_screen.mounted) return;
-      
-      // 更新导航信息（剩余距离、时间等）
-      if (_screen.mounted) {
-        _screen.setState(() {
-          _screen._remainingDistance = naviInfo.remainingDistance;
-          _screen._estimatedArrivalMinutes = naviInfo.remainingTime ~/ 60;
-        });
-      }
-    }
-
-    @override
-    void onOffRouteDetected() {
-      if (!_screen.mounted) return;
-      
-      debugPrint('⚠️ 检测到偏航');
-      if (_screen.mounted) {
-        _screen.setState(() => _screen._phase = NavigationPhase.offRoute);
-      }
-      _screen._speak('您已偏航，正在重新规划路线');
-    }
-
-    @override
-    void onArrivedDestination() {
-      if (!_screen.mounted) return;
-      
-      debugPrint('✅ 到达目的地');
-      if (_screen.mounted) {
-        _screen.setState(() => _screen._phase = NavigationPhase.completed);
-      }
-      _screen._navigationCompleted = true;
-    }
-
-    @override
-    void onNaviStarted() {
-      if (!_screen.mounted) return;
-      
-      debugPrint('🚀 导航开始');
-    }
-
-    @override
-    void onNaviStopped() {
-      if (!_screen.mounted) return;
-      
-      debugPrint('🛑 导航停止');
-      if (_screen.mounted) {
-        _screen.setState(() {
-          _screen._isRouteNaviStarted = false;
-        });
-      }
-    }
-  }
 
   @override
   void dispose() {
