@@ -35,6 +35,10 @@ enum NavigationPhase {
   /// 错误状态
   /// 状态：导航过程中发生错误
   error,
+  
+  /// 信号弱
+  /// 状态：GPS信号弱，定位精度不足
+  weakSignal,
 }
 
 /// 导航阶段扩展方法
@@ -56,6 +60,8 @@ extension NavigationPhaseExtension on NavigationPhase {
         return '已偏航，重新规划中';
       case NavigationPhase.error:
         return '导航错误';
+      case NavigationPhase.weakSignal:
+        return '信号弱';
     }
   }
   
@@ -76,6 +82,8 @@ extension NavigationPhaseExtension on NavigationPhase {
         return '⚠️';
       case NavigationPhase.error:
         return '❌';
+      case NavigationPhase.weakSignal:
+        return '📶';
     }
   }
   
@@ -113,6 +121,8 @@ extension NavigationPhaseExtension on NavigationPhase {
         return const Color(0xFFFFC107); // warning
       case NavigationPhase.error:
         return const Color(0xFFF44336); // error
+      case NavigationPhase.weakSignal:
+        return const Color(0xFFFF9800); // orange
     }
   }
 }

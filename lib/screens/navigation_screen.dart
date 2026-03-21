@@ -815,7 +815,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     if (!_filterGPSPoint(point)) {
       debugPrint('GPS 精度不足，过滤: accuracy=${point.accuracy}m');
       if (!mounted || _isDisposing) return;
-      setState(() => _status = NavigationStatus.weakSignal);
+      setState(() => _phase = NavigationPhase.weakSignal);
       return;
     }
 
@@ -823,7 +823,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     setState(() {
       _currentPosition = point;
       _currentLatLng = LatLng(latitude, longitude);
-      _status = NavigationStatus.navigating; // 保持兼容
+      // _status = NavigationStatus.navigating; // 保持兼容（已废弃）
       
       // 如果是第一次获取到有效位置，且处于规划阶段，更新阶段状态
       if (_phase == NavigationPhase.planningToStart) {
@@ -988,7 +988,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     // 检查是否到达终点
     if (nearestIndex >= _routePoints.length - 1) {
       if (!mounted || _isDisposing) return;
-      setState(() => _status = NavigationStatus.arrived);
+      setState(() => _phase = NavigationPhase.completed);
       _navigationCompleted = true;
       
       // 上报导航完成事件（符合 data-tracking-spec-v1.2）
@@ -1054,7 +1054,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       _offRouteCount++;
       if (_offRouteCount >= _offRouteConfirmCount) {
         if (!mounted || _isDisposing) return;
-        setState(() => _status = NavigationStatus.offRoute);
+        setState(() => _phase = NavigationPhase.offRoute);
         _totalDeviationCount++; // 统计总偏航次数
         _speak('您已偏离路线，请返回');
         
@@ -1069,9 +1069,9 @@ class _NavigationScreenState extends State<NavigationScreen>
       }
     } else {
       _offRouteCount = 0;
-      if (_status == NavigationStatus.offRoute) {
+      if (_phase == NavigationPhase.offRoute) {
         if (!mounted || _isDisposing) return;
-        setState(() => _status = NavigationStatus.navigating);
+        setState(() => _phase = NavigationPhase.navigatingRoute);
         _speak('已回到正确路线');
         
         // 上报恢复导航事件
@@ -1132,30 +1132,12 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   /// 获取状态颜色
   Color _getStatusColor(BuildContext context) {
-    switch (_status) {
-      case NavigationStatus.navigating:
-        return DesignSystem.getPrimary(context);
-      case NavigationStatus.offRoute:
-        return DesignSystem.getWarning(context);
-      case NavigationStatus.arrived:
-        return DesignSystem.getSuccess(context);
-      case NavigationStatus.weakSignal:
-        return DesignSystem.getTextTertiary(context);
-    }
+    return _phase.getColor(context);
   }
 
   /// 获取状态文本
   String _getStatusText() {
-    switch (_status) {
-      case NavigationStatus.navigating:
-        return '导航中';
-      case NavigationStatus.offRoute:
-        return '已偏航';
-      case NavigationStatus.arrived:
-        return '已到达';
-      case NavigationStatus.weakSignal:
-        return '信号弱';
-    }
+    return _phase.description;
   }
 
   /// 重新规划路线
@@ -1185,7 +1167,7 @@ class _NavigationScreenState extends State<NavigationScreen>
         // 重置导航状态
         _currentRouteIndex = 0;
         _offRouteCount = 0;
-        _status = NavigationStatus.navigating;
+        _phase = NavigationPhase.navigatingRoute;
         
         // 重新计算总距离
         _calculateTotalDistance();
