@@ -10,6 +10,7 @@ import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../models/recording_model.dart';
 import '../services/recording_service.dart';
 import '../widgets/poi_marker_dialog.dart';
@@ -958,10 +959,133 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
   // ========== 控制方法 ==========
 
   Future<void> _startRecording() async {
-    final result = await _recordingService.startRecording();
+    // 显示路线信息预填写对话框（紧急修复）
+    final trailInfo = await _showTrailInfoDialog();
+    if (trailInfo == null) {
+      return; // 用户取消
+    }
+
+    // 检查并申请必要权限
+    final hasPermissions = await _checkAndRequestPermissions();
+    if (!hasPermissions) {
+      _showSnackBar('需要定位、相机和存储权限才能录制', isError: true);
+      return;
+    }
+
+    final result = await _recordingService.startRecording(trailName: trailInfo['name']);
     if (!result && mounted) {
       _showSnackBar('无法开始录制，请检查GPS信号', isError: true);
     }
+  }
+
+  /// 显示路线信息预填写对话框（紧急修复）
+  Future<Map<String, dynamic>?> _showTrailInfoDialog() async {
+    final trailNameController = TextEditingController();
+    final cityController = TextEditingController(text: '上海');
+    final descriptionController = TextEditingController();
+
+    return showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: DesignSystem.getSurface(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('路线信息', style: DesignSystem.getTitleLarge(context)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: trailNameController,
+                decoration: InputDecoration(
+                  labelText: '路线名称*',
+                  hintText: '例如：世纪公园环线',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                maxLength: 50,
+                autofocus: true,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: cityController,
+                decoration: InputDecoration(
+                  labelText: '城市',
+                  hintText: '例如：上海',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: descriptionController,
+                decoration: InputDecoration(
+                  labelText: '路线描述（可选）',
+                  hintText: '简单描述这条路线...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                maxLines: 3,
+                maxLength: 200,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '*为必填项。路线名称将用于保存和识别轨迹。',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: DesignSystem.getTextSecondary(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (trailNameController.text.trim().isEmpty) {
+                _showSnackBar('请填写路线名称', isError: true);
+                return;
+              }
+              Navigator.of(context).pop({
+                'name': trailNameController.text.trim(),
+                'city': cityController.text.trim(),
+                'description': descriptionController.text.trim(),
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DesignSystem.getPrimary(context),
+              foregroundColor: DesignSystem.textInverse,
+            ),
+            child: const Text('开始录制'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 检查并申请必要权限（紧急修复）
+  Future<bool> _checkAndRequestPermissions() async {
+    // 需要定位、相机、存储权限
+    final permissions = [
+      Permission.location,
+      Permission.camera,
+      Permission.storage,
+    ];
+
+    for (final permission in permissions) {
+      final status = await permission.request();
+      if (!status.isGranted) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   Future<void> _pauseRecording() async {
