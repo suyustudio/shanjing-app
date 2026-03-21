@@ -1,0 +1,362 @@
+// collection_enhanced_service.dart
+// 山径APP - 增强版收藏夹服务（M7 P1）
+// 扩展原有服务，添加批量操作和搜索筛选功能
+
+import 'dart:convert';
+import 'api_client.dart';
+import 'api_config.dart';
+import '../models/collection_enhanced_model.dart';
+import 'collection_service.dart';
+
+/// 增强版收藏夹服务
+class CollectionEnhancedService {
+  final ApiClient _apiClient = ApiClient();
+  final CollectionService _collectionService = CollectionService();
+
+  // ==================== 批量操作 ====================
+
+  /// 批量添加路线到收藏夹
+  Future<BatchOperationResult> batchAddTrailsToCollection({
+    required String collectionId,
+    required List<String> trailIds,
+    String? note,
+  }) async {
+    if (trailIds.isEmpty) {
+      return BatchOperationResult(
+        success: true,
+        message: '没有需要添加的路线',
+        successCount: 0,
+        totalCount: 0,
+      );
+    }
+
+    // 限制单次批量操作数量
+    const maxBatchSize = 100;
+    if (trailIds.length > maxBatchSize) {
+      return BatchOperationResult(
+        success: false,
+        message: '单次批量操作不能超过 $maxBatchSize 条路线',
+        successCount: 0,
+        totalCount: trailIds.length,
+      );
+    }
+
+    final response = await _apiClient.post(
+      '${ApiEndpoints.collectionDetail(collectionId)}/trails/batch',
+      body: BatchAddTrailsRequest(trailIds: trailIds, note: note).toJson(),
+      parser: (data) => BatchOperationResult.fromJson(data),
+    );
+
+    if (response.success && response.data != null) {
+      // 清除缓存
+      _collectionService.clearCache();
+      return response.data!;
+    }
+
+    return BatchOperationResult(
+      success: false,
+      message: response.errorMessage ?? '批量添加失败',
+      successCount: 0,
+      totalCount: trailIds.length,
+    );
+  }
+
+  /// 批量从收藏夹移除路线
+  Future<BatchOperationResult> batchRemoveTrailsFromCollection({
+    required String collectionId,
+    required List<String> trailIds,
+  }) async {
+    if (trailIds.isEmpty) {
+      return BatchOperationResult(
+        success: true,
+        message: '没有需要移除的路线',
+        successCount: 0,
+        totalCount: 0,
+      );
+    }
+
+    const maxBatchSize = 100;
+    if (trailIds.length > maxBatchSize) {
+      return BatchOperationResult(
+        success: false,
+        message: '单次批量操作不能超过 $maxBatchSize 条路线',
+        successCount: 0,
+        totalCount: trailIds.length,
+      );
+    }
+
+    final response = await _apiClient.delete(
+      '${ApiEndpoints.collectionDetail(collectionId)}/trails/batch',
+      body: {'trailIds': trailIds},
+      parser: (data) => BatchOperationResult.fromJson(data),
+    );
+
+    if (response.success) {
+      // 清除缓存
+      _collectionService.clearCache();
+      return BatchOperationResult.fromJson(response.data ?? {});
+    }
+
+    return BatchOperationResult(
+      success: false,
+      message: response.errorMessage ?? '批量移除失败',
+      successCount: 0,
+      totalCount: trailIds.length,
+    );
+  }
+
+  /// 批量移动路线到其他收藏夹
+  Future<BatchOperationResult> batchMoveTrails({
+    required String sourceCollectionId,
+    required String targetCollectionId,
+    required List<String> trailIds,
+  }) async {
+    if (trailIds.isEmpty) {
+      return BatchOperationResult(
+        success: true,
+        message: '没有需要移动的路线',
+        successCount: 0,
+        totalCount: 0,
+      );
+    }
+
+    const maxBatchSize = 100;
+    if (trailIds.length > maxBatchSize) {
+      return BatchOperationResult(
+        success: false,
+        message: '单次批量操作不能超过 $maxBatchSize 条路线',
+        successCount: 0,
+        totalCount: trailIds.length,
+      );
+    }
+
+    final response = await _apiClient.post(
+      '${ApiEndpoints.collections}/batch-move',
+      body: BatchMoveTrailsRequest(
+        sourceCollectionId: sourceCollectionId,
+        targetCollectionId: targetCollectionId,
+        trailIds: trailIds,
+      ).toJson(),
+      parser: (data) => BatchOperationResult.fromJson(data),
+    );
+
+    if (response.success && response.data != null) {
+      // 清除缓存（影响两个收藏夹）
+      _collectionService.clearCache();
+      return response.data!;
+    }
+
+    return BatchOperationResult(
+      success: false,
+      message: response.errorMessage ?? '批量移动失败',
+      successCount: 0,
+      totalCount: trailIds.length,
+    );
+  }
+
+  /// 批量删除收藏夹
+  Future<BatchOperationResult> batchDeleteCollections({
+    required List<String> collectionIds,
+  }) async {
+    if (collectionIds.isEmpty) {
+      return BatchOperationResult(
+        success: true,
+        message: '没有需要删除的收藏夹',
+        successCount: 0,
+        totalCount: 0,
+      );
+    }
+
+    const maxBatchSize = 50;
+    if (collectionIds.length > maxBatchSize) {
+      return BatchOperationResult(
+        success: false,
+        message: '单次批量操作不能超过 $maxBatchSize 个收藏夹',
+        successCount: 0,
+        totalCount: collectionIds.length,
+      );
+    }
+
+    final response = await _apiClient.delete(
+      '${ApiEndpoints.collections}/batch',
+      body: {'collectionIds': collectionIds},
+      parser: (data) => BatchOperationResult.fromJson(data),
+    );
+
+    if (response.success) {
+      // 清除缓存
+      _collectionService.clearCache();
+      return BatchOperationResult.fromJson(response.data ?? {});
+    }
+
+    return BatchOperationResult(
+      success: false,
+      message: response.errorMessage ?? '批量删除失败',
+      successCount: 0,
+      totalCount: collectionIds.length,
+    );
+  }
+
+  // ==================== 搜索筛选 ====================
+
+  /// 搜索收藏夹（带筛选条件）
+  Future<List<EnhancedCollection>> searchCollections({
+    required CollectionSearchFilter filter,
+    String? userId,
+    bool forceRefresh = false,
+  }) async {
+    // 构建查询参数
+    final queryParams = filter.toQueryParams();
+    if (userId != null) {
+      queryParams['userId'] = userId;
+    }
+
+    final response = await _apiClient.get(
+      ApiEndpoints.collections,
+      queryParams: queryParams,
+      parser: (data) {
+        if (data is List) {
+          return data.map((e) => EnhancedCollection.fromJson(e)).toList();
+        }
+        if (data is Map && data['data'] is List) {
+          return (data['data'] as List)
+              .map((e) => EnhancedCollection.fromJson(e))
+              .toList();
+        }
+        return <EnhancedCollection>[];
+      },
+    );
+
+    if (response.success && response.data != null) {
+      return response.data!;
+    }
+
+    throw ApiException(
+      message: response.errorMessage ?? '搜索收藏夹失败',
+      code: response.errorCode,
+    );
+  }
+
+  /// 在收藏夹内搜索路线
+  Future<List<CollectionTrail>> searchTrailsInCollection({
+    required String collectionId,
+    required CollectionTrailSearchFilter filter,
+  }) async {
+    final queryParams = filter.toQueryParams();
+
+    final response = await _apiClient.get(
+      ApiEndpoints.collectionDetail(collectionId),
+      queryParams: queryParams,
+      parser: (data) {
+        if (data is Map && data['data'] is Map && data['data']['trails'] is List) {
+          return (data['data']['trails'] as List)
+              .map((e) => CollectionTrail.fromJson(e))
+              .toList();
+        }
+        return <CollectionTrail>[];
+      },
+    );
+
+    if (response.success && response.data != null) {
+      return response.data!;
+    }
+
+    throw ApiException(
+      message: response.errorMessage ?? '搜索路线失败',
+      code: response.errorCode,
+    );
+  }
+
+  // ==================== 标签管理 ====================
+
+  /// 获取所有收藏夹标签（去重）
+  Future<List<String>> getAllCollectionTags({String? userId}) async {
+    final collections = await _collectionService.getCollections(
+      userId: userId,
+      forceRefresh: true,
+    );
+
+    final allTags = <String>{};
+    for (final collection in collections) {
+      // 注意：这里需要API返回tags字段，暂时使用空列表
+      // 实际实现需要后端支持
+      if (collection is EnhancedCollection) {
+        allTags.addAll(collection.tags);
+      }
+    }
+
+    return allTags.toList()..sort();
+  }
+
+  /// 更新收藏夹标签
+  Future<EnhancedCollection> updateCollectionTags({
+    required String collectionId,
+    required List<String> tags,
+  }) async {
+    final response = await _apiClient.put(
+      '${ApiEndpoints.collectionDetail(collectionId)}/tags',
+      body: {'tags': tags},
+      parser: (data) {
+        if (data['data'] != null) {
+          return EnhancedCollection.fromJson(data['data']);
+        }
+        return null;
+      },
+    );
+
+    if (response.success && response.data != null) {
+      // 清除缓存
+      _collectionService.clearCache();
+      return response.data!;
+    }
+
+    throw ApiException(
+      message: response.errorMessage ?? '更新标签失败',
+      code: response.errorCode,
+    );
+  }
+
+  // ==================== 工具方法 ====================
+
+  /// 检查批量操作是否可用
+  bool isBatchOperationAvailable() {
+    // 检查API是否支持批量操作
+    // 可以添加版本检查或特性标志
+    return true;
+  }
+
+  /// 获取推荐标签（基于用户现有收藏夹）
+  Future<List<String>> getSuggestedTags({String? userId}) async {
+    final allTags = await getAllCollectionTags(userId: userId);
+    
+    // 简单的推荐逻辑：返回最常用的标签
+    final tagFrequency = <String, int>{};
+    // TODO: 实现标签频率统计
+    
+    // 临时返回一些示例标签
+    return [
+      '工作',
+      '旅行',
+      '周末',
+      '家庭',
+      '运动',
+      '探索',
+      '摄影',
+      '放松',
+    ].where((tag) => !allTags.contains(tag)).take(5).toList();
+  }
+}
+
+/// API端点扩展
+class ApiEndpointsEnhanced {
+  // 批量操作端点（需要在后端实现）
+  static String collectionTrailsBatch(String collectionId) =>
+      '${ApiEndpoints.collectionDetail(collectionId)}/trails/batch';
+  
+  static String collectionBatchMove = '${ApiEndpoints.collections}/batch-move';
+  
+  static String collectionsBatch = '${ApiEndpoints.collections}/batch';
+  
+  static String collectionTags(String collectionId) =>
+      '${ApiEndpoints.collectionDetail(collectionId)}/tags';
+}
