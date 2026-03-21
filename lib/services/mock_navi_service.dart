@@ -234,28 +234,6 @@ class MockNaviService {
       
       currentStep++;
       
-      // 偏航检测（10%概率）
-      if (Random().nextDouble() < 0.1 && _state == MockNaviState.navigating) {
-        _setState(MockNaviState.offRoute);
-        // 添加偏航提示信息
-        _currentInfo = MockNaviInfo(
-          distance: remainingDistance,
-          time: remainingTime,
-          speed: 1.4,
-          instruction: '检测到偏航，正在重新规划',
-          stepIndex: currentStep,
-          totalSteps: totalSteps,
-        );
-        _infoStreamController.add(_currentInfo!);
-        // 模拟重新规划后继续导航（3秒后恢复）
-        Future.delayed(const Duration(seconds: 3), () {
-          if (_state == MockNaviState.offRoute) {
-            _setState(MockNaviState.navigating);
-          }
-        });
-        // 注意：这里不return，继续正常导航流程
-      }
-      
       // 计算剩余距离（简化）
       double remainingDistance = 0;
       for (int i = currentStep; i < routePoints.length - 1; i++) {
