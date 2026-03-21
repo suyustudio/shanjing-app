@@ -62,11 +62,11 @@ Cron 任务 `git-push-nav-fix4` 自动检查并推送未推送的提交
 **3. GitHub Actions 最新状态**（per_page=5）：
 | Build | 工作流 | 状态 | 结论 | 说明 |
 |-------|--------|------|------|------|
-| #331 | Build APK | 🔄 in_progress | - | **最新构建** |
-| #330 | Build APK | ✅ completed | success | 构建成功 |
-| #209 | APK Pre-check | ✅ completed | success | 预检成功 |
-| #208 | APK Pre-check | ✅ completed | success | 预检成功 |
-| #207 | APK Pre-check | ✅ completed | success | 预检成功 |
+| #333 | Build APK | 🔄 in_progress | - | **最新构建** |
+| #332 | Build APK | ✅ completed | success | 构建成功 |
+| #331 | Build APK | ✅ completed | success | 构建成功 |
+| #211 | APK Pre-check | 🔄 in_progress | - | 最新预检 |
+| #210 | APK Pre-check | ✅ completed | success | 预检成功 |
 
 ### ✅ 结论
 ✅ **分支同步** - 本地与远程已同步，无未推送提交
