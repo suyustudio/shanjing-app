@@ -231,6 +231,82 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
           const SizedBox(height: DesignSystem.spacingLarge),
           // 统计卡片（仅登录显示）
           if (_isLoggedIn) _buildStatsCard(context),
+          const SizedBox(height: DesignSystem.spacingLarge),
+          // 紧急采集入口（下周三上海采集用）
+          if (_isLoggedIn) _buildEmergencyRecordingCard(context),
+        ],
+      ),
+    );
+  }
+
+  /// 紧急采集入口卡片
+  Widget _buildEmergencyRecordingCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(DesignSystem.spacingMedium),
+      decoration: BoxDecoration(
+        color: DesignSystem.getPrimary(context).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(DesignSystem.radius),
+        border: Border.all(
+          color: DesignSystem.getPrimary(context).withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.emergency_recording,
+                color: DesignSystem.getPrimary(context),
+                size: 24,
+              ),
+              const SizedBox(width: DesignSystem.spacingMedium),
+              Expanded(
+                child: Text(
+                  '紧急采集入口（上海采集用）',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: DesignSystem.getTextPrimary(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: DesignSystem.spacingMedium),
+          Text(
+            '下周三上海采集数据使用。跳过审核流程，直接开始录制。',
+            style: TextStyle(
+              fontSize: 13,
+              color: DesignSystem.getTextSecondary(context),
+            ),
+          ),
+          const SizedBox(height: DesignSystem.spacingMedium),
+          ElevatedButton(
+            onPressed: () {
+              // 直接跳转到录制页面，跳过所有检查
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RecordingScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DesignSystem.getPrimary(context),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(DesignSystem.radius),
+              ),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.play_arrow, size: 20),
+                SizedBox(width: 8),
+                Text('开始采集', style: TextStyle(fontSize: 16)),
+              ],
+            ),
+          ),
         ],
       ),
     );
