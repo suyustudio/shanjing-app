@@ -1,6 +1,7 @@
 /// 模拟导航服务 - 替代高德导航 SDK
 /// 用于绕过 SDK 依赖问题，今天完成导航改造任务
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 /// 导航状态枚举
