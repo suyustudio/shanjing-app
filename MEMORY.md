@@ -49,6 +49,19 @@ OSS_BUCKET=...
 OSS_REGION=...
 ```
 
+### 模型配置（OpenClaw 运行时）
+**⚠️ 2026-03-21 紧急变更**:
+- **当前模型**: deepseek/deepseek-reasoner
+- **上下文**: 128k（从默认 4k 手动调整）
+- **Token 类型**: 付费 token（非订阅）
+- **切换原因**: Kimi 额度用尽（HTTP 403 permission_error），DeepSeek-chat 上下文 4k 不够用
+- **恢复计划**: 约 4 天后（2026-03-25 左右）切回 kimi-coding/k2p5
+
+**默认配置**:
+- **首选模型**: kimi-coding/k2p5（订阅 token）
+- **备用模型**: deepseek/deepseek-reasoner（付费 token）
+- **上下文要求**: ≥128k（本项目 workspace 上下文经常到几十k）
+
 ### Agent 技能配置
 ```json
 // dev agent
