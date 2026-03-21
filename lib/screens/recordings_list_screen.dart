@@ -1,10 +1,13 @@
 // recordings_list_screen.dart
 // 山径APP - 轨迹录制列表页面（P0修复版）
 
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import '../constants/design_system.dart';
 import '../models/recording_model.dart';
 import '../services/recording_service.dart';
+import '../services/export_service.dart';
 import 'recording_screen.dart';
 import 'recording_edit_screen.dart';
 import 'recording_preparation_screen.dart';
