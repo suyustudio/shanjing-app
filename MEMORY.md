@@ -946,3 +946,34 @@ Firebase Test Lab 测试显示黑屏，应用启动后 3-5 秒被强制停止
 - 代码修改完成 ✅
 - 等待 commit 和 push ⏳
 
+---
+
+## 2026-03-21 Agent 模型配置紧急修复
+
+### 🚨 问题
+- Kimi 额度用尽（HTTP 403 permission_error）
+- 阿里云模型未配置（无 API 密钥）
+- design/qa/product agent 无法工作
+
+### 🔧 修复措施
+1. **全局配置更新**：所有 agent 切换到 deepseek/deepseek-reasoner（128k 上下文）
+2. **本地配置修复**：更新 qa/design/product agent 的 config.json，model.primary 改为 deepseek/deepseek-reasoner
+3. **模型定义**：在 models.providers.deepseek 中添加 deepseek-reasoner 定义
+4. **定时恢复**：创建 cron 任务（2026-03-25T01:00:00Z）切换回 kimi-coding/k2p5
+
+### ✅ 验证结果
+- **main/dev**: 正常（使用默认 deepseek-reasoner）
+- **design**: ✅ 测试通过
+- **product**: ✅ 测试通过（阿里云不可用，已切换）
+- **qa**: ⏳ 测试中（本地配置已修复）
+
+### 📅 恢复计划
+- **当前**: 所有 agent 使用 deepseek/deepseek-reasoner（付费 token）
+- **恢复时间**: 2026-03-25（约 4 天后）
+- **目标**: 切换回 kimi-coding/k2p5（订阅 token）
+
+### 🧠 关键决策
+1. 优先保证所有 agent 可用性，统一使用 deepseek-reasoner
+2. 本地配置与全局配置保持一致，避免优先级冲突
+3. 设置定时提醒，避免忘记切换回 Kimi
+
