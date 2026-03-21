@@ -237,11 +237,17 @@ class _NavigationScreenState extends State<NavigationScreen>
       // 设置模拟导航监听
       _setupMockNaviListeners();
       
-      // 模拟初始化成功
+      // 初始化导航服务（会设置 isInitialized 并通知监听器）
       if (mounted) {
-        debugPrint('✅ 模拟导航服务初始化成功');
-        // 通知监听器初始化成功
-        _naviService.notifyInitialized(true);
+        final initialized = await _naviService.initialize();
+        if (initialized) {
+          debugPrint('✅ 模拟导航服务初始化成功');
+        } else {
+          debugPrint('❌ 模拟导航服务初始化失败');
+          if (mounted) {
+            setState(() => _phase = NavigationPhase.error);
+          }
+        }
       }
     } catch (e) {
       debugPrint('❌ 导航服务初始化异常: $e');
