@@ -122,7 +122,7 @@ class ExportService {
         return 'Hazard';
       case PoiType.rest:
         return 'Campground';
-      case PoiType.intersection:
+      case PoiType.junction:
         return 'Trailhead';
       default:
         return 'Waypoint';
@@ -131,7 +131,8 @@ class ExportService {
 
   /// 生成文件名
   static String _generateFileName(RecordingSession session, String extension) {
-    final sanitizedName = session.trailName
+    final trailName = session.trailName ?? '未命名路线';
+    final sanitizedName = trailName
         .replaceAll(RegExp(r'[<>:"/\\|?*]'), '_')
         .replaceAll(RegExp(r'\s+'), '_');
     final timestamp = session.startTime.toIso8601String()
@@ -170,7 +171,8 @@ class ExportService {
   }
 
   /// XML转义
-  static String _escapeXml(String text) {
+  static String _escapeXml(String? text) {
+    if (text == null) return '';
     return text
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')

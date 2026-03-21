@@ -645,7 +645,7 @@ class _RecordingsListScreenState extends State<RecordingsListScreen>
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: SelectableText(
-                  filePath,
+                  filePath!,
                   style: TextStyle(
                     fontSize: 12,
                     color: DesignSystem.getTextPrimary(context),

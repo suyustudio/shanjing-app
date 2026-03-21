@@ -7,6 +7,7 @@ import 'login_screen.dart';
 import 'safety_center_screen.dart';
 import 'recordings_list_screen.dart';
 import 'recording_qualification_screen.dart';
+import 'recording_screen.dart';
 
 /// 我的页面
 class ProfileScreen extends StatefulWidget {
