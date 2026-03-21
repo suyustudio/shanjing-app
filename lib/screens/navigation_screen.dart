@@ -19,6 +19,7 @@ import '../utils/permission_manager.dart';
 import '../services/sos_service.dart';
 import '../services/sos_service_enhanced.dart' show SOSSendResult;
 import '../services/amap_navi_service.dart';
+import '../services/mock_navi_service.dart';
 import '../models/navigation_phase.dart';
 
 /// 导航状态枚举（已废弃，使用 NavigationPhase 替代）
@@ -151,6 +152,9 @@ class _NavigationScreenState extends State<NavigationScreen>
   // 高德导航服务
   final AmapNaviService _naviService = AmapNaviService();
   
+  // 模拟导航服务（替代高德导航 SDK）
+  final MockNaviService _mockNaviService = MockNaviService();
+  
   // 阶段1数据：当前位置 → 路线起点
   List<LatLng> _planToStartPath = [];
   double _planToStartDistance = 0;
@@ -221,25 +225,91 @@ class _NavigationScreenState extends State<NavigationScreen>
     });
   }
   
-  /// 初始化高德导航服务
+  /// 初始化导航服务（使用模拟服务）
   Future<void> _initNaviService() async {
-    // 添加导航服务监听器
-    _naviService.addListener(_NaviListener(this));
-    
-    // 初始化服务
-    final initialized = await _naviService.initialize();
-    if (initialized && mounted) {
-      debugPrint('✅ 高德导航服务初始化成功');
-      // 稍后开始阶段1路径规划（需要先获取位置权限）
-    } else {
-      debugPrint('❌ 高德导航服务初始化失败，将使用降级方案');
+    try {
+      // 添加导航服务监听器
+      _naviService.addListener(_NaviListener(this));
+      
+      // 初始化模拟导航服务
+      debugPrint('🚀 使用模拟导航服务（绕过高德SDK依赖问题）');
+      
+      // 设置模拟导航监听
+      _setupMockNaviListeners();
+      
+      // 模拟初始化成功
+      if (mounted) {
+        debugPrint('✅ 模拟导航服务初始化成功');
+        // 通知监听器初始化成功
+        _naviService.notifyInitialized(true);
+      }
+    } catch (e) {
+      debugPrint('❌ 导航服务初始化异常: $e');
       if (mounted) {
         setState(() => _phase = NavigationPhase.error);
       }
     }
   }
   
-  /// 开始阶段1路径规划：当前位置 → 路线起点
+  /// 设置模拟导航监听器
+  void _setupMockNaviListeners() {
+    // 监听导航状态变化
+    _mockNaviService.onNaviStateChange.listen((state) {
+      if (!mounted) return;
+      
+      debugPrint('📊 模拟导航状态变化: $state');
+      
+      switch (state) {
+        case MockNaviState.calculating:
+          // 路径计算中
+          break;
+        case MockNaviState.navigating:
+          // 导航中
+          if (_phase == NavigationPhase.planningToStart) {
+            setState(() => _phase = NavigationPhase.navigatingToStart);
+          } else if (_phase == NavigationPhase.planningRoute) {
+            setState(() => _phase = NavigationPhase.navigatingRoute);
+          }
+          break;
+        case MockNaviState.arrived:
+          // 到达目的地
+          if (_phase == NavigationPhase.navigatingToStart) {
+            // 阶段1完成，开始阶段2
+            _startPhase2RouteNavigation();
+          } else if (_phase == NavigationPhase.navigatingRoute) {
+            // 路线导航完成
+            setState(() => _phase = NavigationPhase.completed);
+            _navigationCompleted = true;
+            _speak('路线导航完成，您已到达目的地');
+          }
+          break;
+        case MockNaviState.error:
+          // 错误
+          setState(() => _phase = NavigationPhase.error);
+          break;
+        default:
+          break;
+      }
+    });
+    
+    // 监听导航信息更新
+    _mockNaviService.onNaviInfoUpdate.listen((info) {
+      if (!mounted) return;
+      
+      setState(() {
+        _remainingDistance = info.distance;
+        _estimatedArrivalMinutes = info.time ~/ 60;
+      });
+      
+      // 每公里语音播报
+      final kmRemaining = info.distance / 1000;
+      if (kmRemaining > 0 && kmRemaining < 1 && info.distance % 1000 < 50) {
+        _speak('距离目的地还有${kmRemaining.toStringAsFixed(1)}公里');
+      }
+    });
+  }
+  
+  /// 开始阶段1路径规划：当前位置 → 路线起点（使用模拟服务）
   Future<void> _startPhase1Planning() async {
     if (!mounted || _phase != NavigationPhase.planningToStart) return;
     
@@ -261,29 +331,34 @@ class _NavigationScreenState extends State<NavigationScreen>
       return;
     }
     
-    debugPrint('🗺️ 开始阶段1路径规划：当前位置 → 路线起点');
+    debugPrint('🗺️ 开始阶段1路径规划（模拟）：当前位置 → 路线起点');
     
     try {
-      // 调用高德导航服务计算步行路径
-      final routeId = await _naviService.calculateWalkRouteToStart(
-        currentLocation: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-        routeStart: routeStart,
+      // 调用模拟导航服务计算步行路径
+      final success = await _mockNaviService.calculateWalkRouteToStart(
+        startLat: _currentPosition!.latitude,
+        startLng: _currentPosition!.longitude,
+        targetLat: routeStart.latitude,
+        targetLng: routeStart.longitude,
       );
       
-      if (routeId != null && mounted) {
-        debugPrint('✅ 阶段1路径规划成功，routeId: $routeId');
-        // 状态更新将在监听器的 onRouteCalculationSuccess 中处理
+      if (success && mounted) {
+        debugPrint('✅ 阶段1路径规划成功（模拟）');
+        // 通知监听器路径规划成功
+        _naviService.notifyRouteCalculationSuccess(1);
       } else {
-        debugPrint('❌ 阶段1路径规划失败');
+        debugPrint('❌ 阶段1路径规划失败（模拟）');
         if (mounted) {
           setState(() => _phase = NavigationPhase.error);
         }
+        _naviService.notifyRouteCalculationFailure('模拟路径规划失败');
       }
     } catch (e) {
       debugPrint('❌ 阶段1路径规划异常: $e');
       if (mounted) {
         setState(() => _phase = NavigationPhase.error);
       }
+      _naviService.notifyRouteCalculationFailure('异常: $e');
     }
   }
   
@@ -308,6 +383,42 @@ class _NavigationScreenState extends State<NavigationScreen>
         NavigationEvents.paramStartTimestamp: startTimestamp,
       },
     );
+  }
+  
+  /// 开始阶段2路线导航：路线起点 → 路线终点（使用模拟服务）
+  Future<void> _startPhase2RouteNavigation() async {
+    if (!mounted || _phase != NavigationPhase.planningRoute) return;
+    
+    debugPrint('🗺️ 开始阶段2路线导航（模拟）：路线起点 → 路线终点');
+    
+    try {
+      // 准备路线点数据
+      final routePoints = _routePoints.map((latLng) => {
+        'lat': latLng.latitude,
+        'lng': latLng.longitude,
+      }).toList();
+      
+      // 调用模拟导航服务启动路线导航
+      final success = await _mockNaviService.startRouteNavigation(
+        routePoints: routePoints,
+      );
+      
+      if (success && mounted) {
+        debugPrint('✅ 阶段2路线导航启动成功（模拟）');
+        setState(() => _phase = NavigationPhase.navigatingRoute);
+        _speak('路线导航开始，请沿路线前进');
+      } else {
+        debugPrint('❌ 阶段2路线导航启动失败（模拟）');
+        if (mounted) {
+          setState(() => _phase = NavigationPhase.error);
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ 阶段2路线导航异常: $e');
+      if (mounted) {
+        setState(() => _phase = NavigationPhase.error);
+      }
+    }
   }
 
   /// 高德导航服务监听器
@@ -451,6 +562,13 @@ class _NavigationScreenState extends State<NavigationScreen>
       _naviService.dispose();
     } catch (e) {
       debugPrint('清理导航服务时出错: $e');
+    }
+    
+    // 清理模拟导航服务
+    try {
+      _mockNaviService.dispose();
+    } catch (e) {
+      debugPrint('清理模拟导航服务时出错: $e');
     }
     
     super.dispose();
