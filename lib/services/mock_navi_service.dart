@@ -11,6 +11,7 @@ enum MockNaviState {
   navigating,    // 导航中
   arrived,       // 已到达
   error,         // 错误
+  offRoute,      // 偏航检测，需要重新规划
 }
 
 /// 导航信息
@@ -233,6 +234,28 @@ class MockNaviService {
       
       currentStep++;
       
+      // 偏航检测（10%概率）
+      if (Random().nextDouble() < 0.1 && _state == MockNaviState.navigating) {
+        _setState(MockNaviState.offRoute);
+        // 添加偏航提示信息
+        _currentInfo = MockNaviInfo(
+          distance: remainingDistance,
+          time: remainingTime,
+          speed: 1.4,
+          instruction: '检测到偏航，正在重新规划',
+          stepIndex: currentStep,
+          totalSteps: totalSteps,
+        );
+        _infoStreamController.add(_currentInfo!);
+        // 模拟重新规划后继续导航（3秒后恢复）
+        Future.delayed(const Duration(seconds: 3), () {
+          if (_state == MockNaviState.offRoute) {
+            _setState(MockNaviState.navigating);
+          }
+        });
+        // 注意：这里不return，继续正常导航流程
+      }
+      
       // 计算剩余距离（简化）
       double remainingDistance = 0;
       for (int i = currentStep; i < routePoints.length - 1; i++) {
@@ -245,6 +268,28 @@ class MockNaviService {
       }
       
       final remainingTime = (remainingDistance / 1.4).round();
+      
+      // 偏航检测（10%概率）- 只在阶段2导航中检测
+      if (Random().nextDouble() < 0.1 && _state == MockNaviState.navigating) {
+        _setState(MockNaviState.offRoute);
+        // 发送偏航提示信息
+        _currentInfo = MockNaviInfo(
+          distance: remainingDistance,
+          time: remainingTime,
+          speed: 1.4,
+          instruction: '检测到偏航，正在重新规划',
+          stepIndex: currentStep,
+          totalSteps: totalSteps,
+        );
+        _infoStreamController.add(_currentInfo!);
+        // 模拟重新规划后继续导航（3秒后恢复）
+        Future.delayed(const Duration(seconds: 3), () {
+          if (_state == MockNaviState.offRoute) {
+            _setState(MockNaviState.navigating);
+          }
+        });
+        // 注意：这里不return，继续正常导航流程（发送偏航信息后仍然发送正常导航信息）
+      }
       
       _currentInfo = MockNaviInfo(
         distance: remainingDistance,
