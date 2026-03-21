@@ -9,6 +9,7 @@ import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'package:amap_flutter_location/amap_location_option.dart';
+import 'package:amap_flutter_navi/amap_flutter_navi.dart';
 import '../analytics/analytics.dart';
 import '../widgets/app_app_bar.dart';
 import '../widgets/sos_button.dart';
@@ -16,18 +17,20 @@ import '../constants/design_system.dart';
 import '../utils/permission_manager.dart';
 import '../services/sos_service.dart';
 import '../services/sos_service_enhanced.dart' show SOSSendResult;
+import '../services/amap_navi_service.dart';
+import '../models/navigation_phase.dart';
 
-/// 导航状态枚举
-enum NavigationStatus {
-  /// 正常导航中
-  navigating,
-  /// 偏航
-  offRoute,
-  /// 到达目的地
-  arrived,
-  /// 信号弱
-  weakSignal,
-}
+/// 导航状态枚举（已废弃，使用 NavigationPhase 替代）
+// enum NavigationStatus {
+//   /// 正常导航中
+//   navigating,
+//   /// 偏航
+//   offRoute,
+//   /// 到达目的地
+//   arrived,
+//   /// 信号弱
+//   weakSignal,
+// }
 
 /// GPS 位置点
 class GPSPoint {
@@ -135,12 +138,26 @@ class _NavigationScreenState extends State<NavigationScreen>
   static const int _maxHistorySize = 5; // 历史位置最大数量
   final List<GPSPoint> _positionHistory = []; // 位置历史
 
-  // 偏航检测
+  // 偏航检测（将由高德SDK处理，保留用于过渡）
   static const double _offRouteThreshold = 50.0; // 偏航阈值（米）
   static const int _offRouteConfirmCount = 3; // 确认偏航所需连续次数
   int _offRouteCount = 0;
   int _totalDeviationCount = 0; // 总偏航次数
-  NavigationStatus _status = NavigationStatus.navigating;
+  
+  // 新的导航阶段管理
+  NavigationPhase _phase = NavigationPhase.planningToStart;
+  
+  // 高德导航服务
+  final AmapNaviService _naviService = AmapNaviService();
+  
+  // 阶段1数据：当前位置 → 路线起点
+  List<LatLng> _planToStartPath = [];
+  double _planToStartDistance = 0;
+  int _planToStartTime = 0;
+  bool _hasStartedPhase1Planning = false;
+  
+  // 阶段2数据：路线起点 → 路线终点
+  bool _isRouteNaviStarted = false;
 
   // 暂停统计
   int _pauseCount = 0;
@@ -194,12 +211,79 @@ class _NavigationScreenState extends State<NavigationScreen>
     _navigationStartTime = DateTime.now();
     _initRoutePoints();
     _initTts();
+    _initNaviService();
     _requestLocationPermission().then((_) {
       // ✅ 埋点：导航初始化完成后触发 navigation_start
       if (mounted && !_navigationCompleted) {
         _trackNavigationStart();
       }
     });
+  }
+  
+  /// 初始化高德导航服务
+  Future<void> _initNaviService() async {
+    // 添加导航服务监听器
+    _naviService.addListener(_NaviListener(this));
+    
+    // 初始化服务
+    final initialized = await _naviService.initialize();
+    if (initialized && mounted) {
+      debugPrint('✅ 高德导航服务初始化成功');
+      // 稍后开始阶段1路径规划（需要先获取位置权限）
+    } else {
+      debugPrint('❌ 高德导航服务初始化失败，将使用降级方案');
+      if (mounted) {
+        setState(() => _phase = NavigationPhase.error);
+      }
+    }
+  }
+  
+  /// 开始阶段1路径规划：当前位置 → 路线起点
+  Future<void> _startPhase1Planning() async {
+    if (!mounted || _phase != NavigationPhase.planningToStart) return;
+    
+    // 检查是否已获取当前位置
+    if (_currentPosition == null) {
+      debugPrint('📍 等待获取当前位置...');
+      return;
+    }
+    
+    // 检查路线起点
+    final routeStart = widget.routeStartPoint ?? 
+        (_routePoints.isNotEmpty ? _routePoints.first : null);
+    
+    if (routeStart == null) {
+      debugPrint('❌ 无法获取路线起点');
+      if (mounted) {
+        setState(() => _phase = NavigationPhase.error);
+      }
+      return;
+    }
+    
+    debugPrint('🗺️ 开始阶段1路径规划：当前位置 → 路线起点');
+    
+    try {
+      // 调用高德导航服务计算步行路径
+      final routeId = await _naviService.calculateWalkRouteToStart(
+        currentLocation: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+        routeStart: routeStart,
+      );
+      
+      if (routeId != null && mounted) {
+        debugPrint('✅ 阶段1路径规划成功，routeId: $routeId');
+        // 状态更新将在监听器的 onRouteCalculationSuccess 中处理
+      } else {
+        debugPrint('❌ 阶段1路径规划失败');
+        if (mounted) {
+          setState(() => _phase = NavigationPhase.error);
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ 阶段1路径规划异常: $e');
+      if (mounted) {
+        setState(() => _phase = NavigationPhase.error);
+      }
+    }
   }
   
   /// 上报 navigation_start 事件
@@ -223,6 +307,107 @@ class _NavigationScreenState extends State<NavigationScreen>
         NavigationEvents.paramStartTimestamp: startTimestamp,
       },
     );
+  }
+
+  /// 高德导航服务监听器
+  class _NaviListener implements AmapNaviListener {
+    final _NavigationScreenState _screen;
+
+    _NaviListener(this._screen);
+
+    @override
+    void onServiceInitialized(bool success) {
+      if (!_screen.mounted) return;
+      
+      if (success) {
+        _screen.debugPrint('✅ 高德导航服务初始化成功');
+        // 位置权限获取后开始阶段1路径规划
+        _screen._startPhase1Planning();
+      } else {
+        _screen.debugPrint('❌ 高德导航服务初始化失败');
+        if (_screen.mounted) {
+          _screen.setState(() => _screen._phase = NavigationPhase.error);
+        }
+      }
+    }
+
+    @override
+    void onRouteCalculationSuccess(int routeId) {
+      if (!_screen.mounted) return;
+      
+      _screen.debugPrint('🗺️ 路径规划成功，routeId: $routeId');
+      if (_screen.mounted) {
+        _screen.setState(() {
+          if (_screen._phase == NavigationPhase.planningToStart) {
+            _screen._phase = NavigationPhase.navigatingToStart;
+          }
+        });
+      }
+    }
+
+    @override
+    void onRouteCalculationFailure(String error) {
+      if (!_screen.mounted) return;
+      
+      _screen.debugPrint('❌ 路径规划失败: $error');
+      if (_screen.mounted) {
+        _screen.setState(() => _screen._phase = NavigationPhase.error);
+      }
+    }
+
+    @override
+    void onNaviInfoUpdate(AMapNaviInfo naviInfo) {
+      if (!_screen.mounted) return;
+      
+      // 更新导航信息（剩余距离、时间等）
+      if (_screen.mounted) {
+        _screen.setState(() {
+          _screen._remainingDistance = naviInfo.remainingDistance;
+          _screen._estimatedArrivalMinutes = naviInfo.remainingTime ~/ 60;
+        });
+      }
+    }
+
+    @override
+    void onOffRouteDetected() {
+      if (!_screen.mounted) return;
+      
+      _screen.debugPrint('⚠️ 检测到偏航');
+      if (_screen.mounted) {
+        _screen.setState(() => _screen._phase = NavigationPhase.offRoute);
+      }
+      _screen._speak('您已偏航，正在重新规划路线');
+    }
+
+    @override
+    void onArrivedDestination() {
+      if (!_screen.mounted) return;
+      
+      _screen.debugPrint('✅ 到达目的地');
+      if (_screen.mounted) {
+        _screen.setState(() => _screen._phase = NavigationPhase.completed);
+      }
+      _screen._navigationCompleted = true;
+    }
+
+    @override
+    void onNaviStarted() {
+      if (!_screen.mounted) return;
+      
+      _screen.debugPrint('🚀 导航开始');
+    }
+
+    @override
+    void onNaviStopped() {
+      if (!_screen.mounted) return;
+      
+      _screen.debugPrint('🛑 导航停止');
+      if (_screen.mounted) {
+        _screen.setState(() {
+          _screen._isRouteNaviStarted = false;
+        });
+      }
+    }
   }
 
   @override
@@ -259,6 +444,13 @@ class _NavigationScreenState extends State<NavigationScreen>
     
     // 释放地图控制器引用（但不销毁，让 Widget 自己处理）
     _mapController = null;
+    
+    // 清理导航服务
+    try {
+      _naviService.dispose();
+    } catch (e) {
+      debugPrint('清理导航服务时出错: $e');
+    }
     
     super.dispose();
   }
@@ -505,8 +697,21 @@ class _NavigationScreenState extends State<NavigationScreen>
     setState(() {
       _currentPosition = point;
       _currentLatLng = LatLng(latitude, longitude);
-      _status = NavigationStatus.navigating;
+      _status = NavigationStatus.navigating; // 保持兼容
+      
+      // 如果是第一次获取到有效位置，且处于规划阶段，更新阶段状态
+      if (_phase == NavigationPhase.planningToStart) {
+        _phase = NavigationPhase.planningToStart; // 状态不变，但触发后续逻辑
+      }
     });
+
+    // 如果是第一次获取到有效位置，且未开始阶段1规划，则开始规划
+    if (!_hasStartedPhase1Planning && 
+        _phase == NavigationPhase.planningToStart &&
+        _naviService.isInitialized) {
+      _hasStartedPhase1Planning = true;
+      _startPhase1Planning();
+    }
 
     // 在导航模式下才移动地图和更新进度
     if (_navigationMode == NavigationMode.navigating) {
