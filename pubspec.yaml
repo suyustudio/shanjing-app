@@ -16,7 +16,7 @@ dependencies:
   amap_flutter_base: ^3.0.0
   amap_flutter_map: ^3.0.0
   amap_flutter_location: ^3.0.0
-  amap_flutter_navi: ^3.0.0  # 高德导航 SDK
+  amap_flutter_navi: ^2.0.0  # 高德导航 SDK (降级以兼容高德SDK 9.6.0)
   permission_handler: ^11.0.0
   cached_network_image: ^3.3.0
   flutter_tts: ^3.8.5
