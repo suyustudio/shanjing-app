@@ -52,6 +52,8 @@ extension NavigationPhaseExtension on NavigationPhase {
         return '前往路线起点';
       case NavigationPhase.previewRoute:
         return '预览路线';
+      case NavigationPhase.planningRoute:
+        return '规划路线';
       case NavigationPhase.navigatingRoute:
         return '沿路线导航';
       case NavigationPhase.completed:
@@ -74,6 +76,8 @@ extension NavigationPhaseExtension on NavigationPhase {
         return '🚶‍♂️';
       case NavigationPhase.previewRoute:
         return '👀';
+      case NavigationPhase.planningRoute:
+        return '📋';
       case NavigationPhase.navigatingRoute:
         return '🗺️';
       case NavigationPhase.completed:
