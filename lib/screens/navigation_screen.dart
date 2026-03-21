@@ -10,7 +10,7 @@ import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'package:amap_flutter_location/amap_location_option.dart';
-import 'package:amap_flutter_navi/amap_flutter_navi.dart';
+// import 'package:amap_flutter_navi/amap_flutter_navi.dart'; // 已移除，使用模拟导航服务
 import '../analytics/analytics.dart';
 import '../widgets/app_app_bar.dart';
 import '../widgets/sos_button.dart';
