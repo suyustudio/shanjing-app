@@ -471,9 +471,6 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
           style: TextStyle(
             fontSize: 32, // 32px (P1修复#7)
             fontWeight: FontWeight.bold,
-            // DIN Alternate Bold 字体 - 在 Flutter 中需要配置字体包
-            // 这里使用系统等宽字体作为替代，实际项目中需要添加字体文件
-            fontFamily: 'DINAlternate', 
             color: DesignSystem.getTextPrimary(context),
           ),
         ),

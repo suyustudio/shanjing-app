@@ -837,10 +837,9 @@ class RecordingService extends ChangeNotifier {
     if (jsonString == null) return null;
 
     final data = LocalRecordingData.fromJsonString(jsonString);
-    return data.sessions.firstWhere(
-      (s) => s.id == sessionId,
-      orElse: () => null as RecordingSession,
-    );
+    final sessions = data.sessions.where((s) => s.id == sessionId);
+    if (sessions.isEmpty) return null;
+    return sessions.first;
   }
 
   /// 标记会话为已上传
