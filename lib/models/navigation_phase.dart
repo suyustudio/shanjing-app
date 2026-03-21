@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import '../constants/design_system.dart';
+
 /// 导航阶段枚举
 /// 定义明确的导航流程阶段，用于实现真正的两阶段导航
 enum NavigationPhase {
