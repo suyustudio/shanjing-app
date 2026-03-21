@@ -451,21 +451,20 @@ class _NavigationScreenState extends State<NavigationScreen>
       
       if (success && mounted) {
         debugPrint('✅ 阶段1路径规划成功（模拟）');
-        // 通知监听器路径规划成功
-        _naviService.notifyRouteCalculationSuccess(1);
+        // 不再调用 _naviService.notifyRouteCalculationSuccess，由 _mockNaviService 流通知
       } else {
         debugPrint('❌ 阶段1路径规划失败（模拟）');
         if (mounted) {
           setState(() => _phase = NavigationPhase.error);
         }
-        _naviService.notifyRouteCalculationFailure('模拟路径规划失败');
+        // 不再调用 _naviService.notifyRouteCalculationFailure，由 _mockNaviService 流通知
       }
     } catch (e) {
       debugPrint('❌ 阶段1路径规划异常: $e');
       if (mounted) {
         setState(() => _phase = NavigationPhase.error);
       }
-      _naviService.notifyRouteCalculationFailure('异常: $e');
+      // 不再调用 _naviService.notifyRouteCalculationFailure，由 _mockNaviService 流通知
     }
   }
   
