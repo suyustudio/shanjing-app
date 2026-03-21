@@ -91,21 +91,22 @@ extension NavigationPhaseExtension on NavigationPhase {
   
   /// 获取阶段的颜色（根据状态）
   Color getColor(BuildContext context) {
+    // 临时使用硬编码颜色，避免 DesignSystem 编译问题
     switch (this) {
       case NavigationPhase.planningToStart:
-        return DesignSystem.getPrimary(context).withOpacity(0.7);
+        return const Color(0xFF2D968A).withOpacity(0.7); // primary with opacity
       case NavigationPhase.navigatingToStart:
-        return DesignSystem.getPrimary(context);
+        return const Color(0xFF2D968A); // primary
       case NavigationPhase.previewRoute:
-        return DesignSystem.getInfo(context);
+        return const Color(0xFF2196F3); // info
       case NavigationPhase.navigatingRoute:
-        return DesignSystem.getSuccess(context);
+        return const Color(0xFF4CAF50); // success
       case NavigationPhase.completed:
-        return DesignSystem.getSuccess(context);
+        return const Color(0xFF4CAF50); // success
       case NavigationPhase.offRoute:
-        return DesignSystem.getWarning(context);
+        return const Color(0xFFFFC107); // warning
       case NavigationPhase.error:
-        return DesignSystem.getError(context);
+        return const Color(0xFFF44336); // error
     }
   }
 }
