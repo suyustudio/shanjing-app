@@ -79,11 +79,13 @@ repositories {
     mavenCentral()
     // 高德地图 SDK 仓库
     maven { url 'https://maven.aliyun.com/repository/public' }
+    // 高德官方仓库
+    maven { url 'https://maven.amap.com/nexus/content/repositories/releases/' }
 }
 
 dependencies {
     // 高德地图 SDK (包含定位功能，不要单独添加location)
-    implementation 'com.amap.api:3dmap:9.7.0'
+    implementation 'com.amap.api:3dmap:9.8.0'
     // 高德导航 SDK (用于 amap_flutter_navi 插件)
-    implementation 'com.amap.api:navi-3dmap:9.7.0'
+    implementation 'com.amap.api:navi-3dmap:9.8.0'
 }

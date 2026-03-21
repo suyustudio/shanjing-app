@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_navi/amap_flutter_navi.dart';
 

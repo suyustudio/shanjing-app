@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -320,11 +321,11 @@ class _NavigationScreenState extends State<NavigationScreen>
       if (!_screen.mounted) return;
       
       if (success) {
-        _screen.debugPrint('✅ 高德导航服务初始化成功');
+        debugPrint('✅ 高德导航服务初始化成功');
         // 位置权限获取后开始阶段1路径规划
         _screen._startPhase1Planning();
       } else {
-        _screen.debugPrint('❌ 高德导航服务初始化失败');
+        debugPrint('❌ 高德导航服务初始化失败');
         if (_screen.mounted) {
           _screen.setState(() => _screen._phase = NavigationPhase.error);
         }
@@ -335,7 +336,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     void onRouteCalculationSuccess(int routeId) {
       if (!_screen.mounted) return;
       
-      _screen.debugPrint('🗺️ 路径规划成功，routeId: $routeId');
+      debugPrint('🗺️ 路径规划成功，routeId: $routeId');
       if (_screen.mounted) {
         _screen.setState(() {
           if (_screen._phase == NavigationPhase.planningToStart) {
@@ -349,7 +350,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     void onRouteCalculationFailure(String error) {
       if (!_screen.mounted) return;
       
-      _screen.debugPrint('❌ 路径规划失败: $error');
+      debugPrint('❌ 路径规划失败: $error');
       if (_screen.mounted) {
         _screen.setState(() => _screen._phase = NavigationPhase.error);
       }
@@ -372,7 +373,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     void onOffRouteDetected() {
       if (!_screen.mounted) return;
       
-      _screen.debugPrint('⚠️ 检测到偏航');
+      debugPrint('⚠️ 检测到偏航');
       if (_screen.mounted) {
         _screen.setState(() => _screen._phase = NavigationPhase.offRoute);
       }
@@ -383,7 +384,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     void onArrivedDestination() {
       if (!_screen.mounted) return;
       
-      _screen.debugPrint('✅ 到达目的地');
+      debugPrint('✅ 到达目的地');
       if (_screen.mounted) {
         _screen.setState(() => _screen._phase = NavigationPhase.completed);
       }
@@ -394,14 +395,14 @@ class _NavigationScreenState extends State<NavigationScreen>
     void onNaviStarted() {
       if (!_screen.mounted) return;
       
-      _screen.debugPrint('🚀 导航开始');
+      debugPrint('🚀 导航开始');
     }
 
     @override
     void onNaviStopped() {
       if (!_screen.mounted) return;
       
-      _screen.debugPrint('🛑 导航停止');
+      debugPrint('🛑 导航停止');
       if (_screen.mounted) {
         _screen.setState(() {
           _screen._isRouteNaviStarted = false;
