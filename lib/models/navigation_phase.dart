@@ -91,22 +91,21 @@ extension NavigationPhaseExtension on NavigationPhase {
   
   /// 获取阶段的颜色（根据状态）
   Color getColor(BuildContext context) {
-    final designSystem = DesignSystem();
     switch (this) {
       case NavigationPhase.planningToStart:
-        return designSystem.getPrimary(context).withOpacity(0.7);
+        return DesignSystem.getPrimary(context).withOpacity(0.7);
       case NavigationPhase.navigatingToStart:
-        return designSystem.getPrimary(context);
+        return DesignSystem.getPrimary(context);
       case NavigationPhase.previewRoute:
-        return designSystem.getInfo(context);
+        return DesignSystem.getInfo(context);
       case NavigationPhase.navigatingRoute:
-        return designSystem.getSuccess(context);
+        return DesignSystem.getSuccess(context);
       case NavigationPhase.completed:
-        return designSystem.getSuccess(context);
+        return DesignSystem.getSuccess(context);
       case NavigationPhase.offRoute:
-        return designSystem.getWarning(context);
+        return DesignSystem.getWarning(context);
       case NavigationPhase.error:
-        return designSystem.getError(context);
+        return DesignSystem.getError(context);
     }
   }
 }
