@@ -23,6 +23,9 @@ import {
   UpdateCollectionDto,
   AddTrailToCollectionDto,
   BatchAddTrailsDto,
+  BatchRemoveTrailsDto,
+  BatchMoveTrailsDto,
+  SearchCollectionTrailsDto,
   QueryCollectionsDto,
   CollectionDto,
   CollectionDetailDto,
@@ -217,5 +220,75 @@ export class CollectionsController {
       trailId,
     );
     return wrapResponse({ message: '移除成功' });
+  }
+
+  /**
+   * 批量从收藏夹移除路线
+   * DELETE /v1/collections/:id/trails/batch
+   */
+  @Delete('collections/:id/trails/batch')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '批量从收藏夹移除路线' })
+  @ApiParam({ name: 'id', description: '收藏夹ID' })
+  @ApiResponse({ status: 200, description: '移除成功' })
+  async batchRemoveTrails(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() dto: BatchRemoveTrailsDto,
+  ) {
+    await this.collectionsService.batchRemoveTrails(
+      req.user.userId,
+      id,
+      dto,
+    );
+    return wrapResponse({ message: '移除成功' });
+  }
+
+  /**
+   * 批量移动路线到其他收藏夹
+   * POST /v1/collections/:id/trails/move
+   */
+  @Post('collections/:id/trails/move')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '批量移动路线到其他收藏夹' })
+  @ApiParam({ name: 'id', description: '收藏夹ID' })
+  @ApiResponse({ status: 200, description: '移动成功', type: CollectionDetailDto })
+  async batchMoveTrails(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() dto: BatchMoveTrailsDto,
+  ) {
+    const collection = await this.collectionsService.batchMoveTrails(
+      req.user.userId,
+      id,
+      dto,
+    );
+    return wrapResponse(collection);
+  }
+
+  /**
+   * 搜索收藏夹内路线
+   * GET /v1/collections/:id/search
+   */
+  @Get('collections/:id/search')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '搜索收藏夹内路线' })
+  @ApiParam({ name: 'id', description: '收藏夹ID' })
+  @ApiResponse({ status: 200, description: '搜索成功', type: CollectionDetailDto })
+  async searchCollectionTrails(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Query() dto: SearchCollectionTrailsDto,
+  ) {
+    const collection = await this.collectionsService.searchCollectionTrails(
+      req.user.userId,
+      id,
+      dto,
+    );
+    return wrapResponse(collection);
   }
 }

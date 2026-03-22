@@ -9,6 +9,9 @@ import {
   UpdateCollectionDto,
   AddTrailToCollectionDto,
   BatchAddTrailsDto,
+  BatchRemoveTrailsDto,
+  BatchMoveTrailsDto,
+  SearchCollectionTrailsDto,
   QueryCollectionsDto,
   CollectionDto,
   CollectionDetailDto,
@@ -33,6 +36,7 @@ export class CollectionsService {
         description: dto.description || null,
         coverUrl: dto.coverUrl || null,
         isPublic: dto.isPublic ?? true,
+        tags: dto.tags || [],
       },
       include: {
         user: {
@@ -206,6 +210,7 @@ export class CollectionsService {
         coverUrl: dto.coverUrl,
         isPublic: dto.isPublic,
         sortOrder: dto.sortOrder,
+        tags: dto.tags,
       },
       include: {
         user: {
@@ -403,6 +408,259 @@ export class CollectionsService {
     }
 
     return this.getCollectionDetail(collectionId, userId);
+  }
+
+  /**
+   * 批量从收藏夹移除路线
+   */
+  async batchRemoveTrails(
+    userId: string,
+    collectionId: string,
+    dto: BatchRemoveTrailsDto,
+  ): Promise<void> {
+    const collection = await this.prisma.collection.findUnique({
+      where: { id: collectionId },
+    });
+
+    if (!collection) {
+      throw new NotFoundException('收藏夹不存在');
+    }
+
+    if (collection.userId !== userId) {
+      throw new ForbiddenException('无权修改此收藏夹');
+    }
+
+    // 批量删除
+    const deleteResult = await this.prisma.collectionTrail.deleteMany({
+      where: {
+        collectionId,
+        trailId: { in: dto.trailIds },
+      },
+    });
+
+    // 更新路线数
+    if (deleteResult.count > 0) {
+      await this.prisma.collection.update({
+        where: { id: collectionId },
+        data: { trailCount: { decrement: deleteResult.count } },
+      });
+    }
+  }
+
+  /**
+   * 批量移动路线到其他收藏夹
+   */
+  async batchMoveTrails(
+    userId: string,
+    collectionId: string,
+    dto: BatchMoveTrailsDto,
+  ): Promise<CollectionDetailDto> {
+    const sourceCollection = await this.prisma.collection.findUnique({
+      where: { id: collectionId },
+    });
+
+    if (!sourceCollection) {
+      throw new NotFoundException('源收藏夹不存在');
+    }
+
+    if (sourceCollection.userId !== userId) {
+      throw new ForbiddenException('无权修改此收藏夹');
+    }
+
+    const targetCollection = await this.prisma.collection.findUnique({
+      where: { id: dto.targetCollectionId },
+    });
+
+    if (!targetCollection) {
+      throw new NotFoundException('目标收藏夹不存在');
+    }
+
+    if (targetCollection.userId !== userId) {
+      throw new ForbiddenException('无权操作目标收藏夹');
+    }
+
+    // 获取目标收藏夹当前最大排序值
+    const maxSortOrder = await this.prisma.collectionTrail.findFirst({
+      where: { collectionId: dto.targetCollectionId },
+      orderBy: { sortOrder: 'desc' },
+      select: { sortOrder: true },
+    });
+
+    let currentSortOrder = (maxSortOrder?.sortOrder || 0) + 1;
+
+    // 查询源收藏夹中存在的关联记录
+    const sourceTrails = await this.prisma.collectionTrail.findMany({
+      where: {
+        collectionId,
+        trailId: { in: dto.trailIds },
+      },
+    });
+
+    if (sourceTrails.length === 0) {
+      // 没有需要移动的路线，直接返回目标收藏夹详情
+      return this.getCollectionDetail(dto.targetCollectionId, userId);
+    }
+
+    // 批量创建到目标收藏夹，忽略已存在的（使用事务确保一致性）
+    const trailIdsToMove = sourceTrails.map(st => st.trailId);
+    const existingInTarget = await this.prisma.collectionTrail.findMany({
+      where: {
+        collectionId: dto.targetCollectionId,
+        trailId: { in: trailIdsToMove },
+      },
+      select: { trailId: true },
+    });
+
+    const existingTrailIds = existingInTarget.map(et => et.trailId);
+    const newTrailIds = trailIdsToMove.filter(id => !existingTrailIds.includes(id));
+
+    // 使用事务确保原子性
+    await this.prisma.$transaction(async (tx) => {
+      // 从源收藏夹删除
+      await tx.collectionTrail.deleteMany({
+        where: {
+          collectionId,
+          trailId: { in: trailIdsToMove },
+        },
+      });
+
+      // 添加到目标收藏夹（仅新路线）
+      if (newTrailIds.length > 0) {
+        await tx.collectionTrail.createMany({
+          data: newTrailIds.map(trailId => ({
+            collectionId: dto.targetCollectionId,
+            trailId,
+            sortOrder: currentSortOrder++,
+          })),
+        });
+      }
+
+      // 更新两个收藏夹的路线数
+      await tx.collection.update({
+        where: { id: collectionId },
+        data: { trailCount: { decrement: sourceTrails.length } },
+      });
+
+      if (newTrailIds.length > 0) {
+        await tx.collection.update({
+          where: { id: dto.targetCollectionId },
+          data: { trailCount: { increment: newTrailIds.length } },
+        });
+      }
+    });
+
+    // 返回更新后的源收藏夹详情（移动后）
+    return this.getCollectionDetail(collectionId, userId);
+  }
+
+  /**
+   * 搜索收藏夹内路线
+   */
+  async searchCollectionTrails(
+    userId: string,
+    collectionId: string,
+    dto: SearchCollectionTrailsDto,
+  ): Promise<CollectionDetailDto> {
+    const collection = await this.prisma.collection.findUnique({
+      where: { id: collectionId },
+    });
+
+    if (!collection) {
+      throw new NotFoundException('收藏夹不存在');
+    }
+
+    if (!collection.isPublic && collection.userId !== userId) {
+      throw new ForbiddenException('无权查看此收藏夹');
+    }
+
+    // 构建筛选条件
+    const where: any = {
+      collectionId,
+    };
+
+    if (dto.q) {
+      where.trail = {
+        OR: [
+          { name: { contains: dto.q, mode: 'insensitive' } },
+          { description: { contains: dto.q, mode: 'insensitive' } },
+          { tags: { has: dto.q } },
+        ],
+      };
+    }
+
+    if (dto.difficulty) {
+      where.trail = {
+        ...where.trail,
+        difficulty: dto.difficulty,
+      };
+    }
+
+    if (dto.minDistance !== undefined || dto.maxDistance !== undefined) {
+      where.trail = {
+        ...where.trail,
+        distanceKm: {
+          ...(dto.minDistance !== undefined && { gte: dto.minDistance }),
+          ...(dto.maxDistance !== undefined && { lte: dto.maxDistance }),
+        },
+      };
+    }
+
+    if (dto.minRating !== undefined) {
+      where.trail = {
+        ...where.trail,
+        avgRating: { gte: dto.minRating },
+      };
+    }
+
+    if (dto.tags && dto.tags.length > 0) {
+      where.trail = {
+        ...where.trail,
+        tags: { hasEvery: dto.tags },
+      };
+    }
+
+    // 查询符合条件的收藏夹路线
+    const trails = await this.prisma.collectionTrail.findMany({
+      where,
+      orderBy: { sortOrder: 'asc' },
+      include: {
+        trail: {
+          select: {
+            id: true,
+            name: true,
+            coverImages: true,
+            distanceKm: true,
+            durationMin: true,
+            difficulty: true,
+            avgRating: true,
+            reviewCount: true,
+            rating5Count: true,
+            rating4Count: true,
+            rating3Count: true,
+            rating2Count: true,
+            rating1Count: true,
+            isPublished: true,
+          },
+        },
+      },
+      skip: (dto.page - 1) * dto.limit,
+      take: dto.limit,
+    });
+
+    // 过滤已发布的路线
+    const publishedTrails = trails.filter(t => t.trail.isPublished !== false);
+
+    // 返回收藏夹详情结构，但只包含搜索到的路线
+    const collectionDetail = {
+      ...collection,
+      trails: publishedTrails,
+      user: await this.prisma.user.findUnique({
+        where: { id: collection.userId },
+        select: { id: true, nickname: true, avatarUrl: true },
+      }),
+    };
+
+    return this.mapToCollectionDetailDto(collectionDetail);
   }
 
   // ==================== 数据映射 ====================

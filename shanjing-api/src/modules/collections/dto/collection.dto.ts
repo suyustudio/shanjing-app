@@ -27,6 +27,11 @@ export class CreateCollectionDto {
   @IsBoolean()
   @IsOptional()
   isPublic?: boolean = true;
+
+  @ApiPropertyOptional({ description: '标签数组，用于分类管理', type: [String], example: ['亲子', '摄影'] })
+  @IsArray()
+  @IsOptional()
+  tags?: string[];
 }
 
 // ==================== 更新收藏夹 ====================
@@ -56,6 +61,11 @@ export class UpdateCollectionDto {
   @ApiPropertyOptional({ description: '排序权重', example: 0 })
   @IsOptional()
   sortOrder?: number;
+
+  @ApiPropertyOptional({ description: '标签数组，用于分类管理', type: [String], example: ['亲子', '摄影'] })
+  @IsArray()
+  @IsOptional()
+  tags?: string[];
 }
 
 // ==================== 添加路线到收藏夹 ====================
@@ -78,12 +88,68 @@ export class BatchAddTrailsDto {
   trailIds: string[];
 }
 
+// ==================== 批量移除路线 ====================
+export class BatchRemoveTrailsDto {
+  @ApiProperty({ description: '路线ID列表', type: [String], example: ['trail1', 'trail2'] })
+  @IsArray()
+  trailIds: string[];
+}
+
+// ==================== 批量移动路线 ====================
+export class BatchMoveTrailsDto {
+  @ApiProperty({ description: '路线ID列表', type: [String], example: ['trail1', 'trail2'] })
+  @IsArray()
+  trailIds: string[];
+
+  @ApiProperty({ description: '目标收藏夹ID' })
+  @IsString()
+  targetCollectionId: string;
+}
+
 // ==================== 查询参数 ====================
 export class QueryCollectionsDto {
   @ApiPropertyOptional({ description: '用户ID (不填则查询当前用户)' })
   @IsString()
   @IsOptional()
   userId?: string;
+
+  @ApiPropertyOptional({ description: '页码', default: 1 })
+  @IsOptional()
+  page?: number = 1;
+
+  @ApiPropertyOptional({ description: '每页数量', default: 20 })
+  @IsOptional()
+  limit?: number = 20;
+}
+
+// ==================== 收藏夹内搜索参数 ====================
+export class SearchCollectionTrailsDto {
+  @ApiPropertyOptional({ description: '搜索关键词', example: '西湖' })
+  @IsString()
+  @IsOptional()
+  q?: string;
+
+  @ApiPropertyOptional({ description: '难度筛选', example: 'EASY' })
+  @IsString()
+  @IsOptional()
+  difficulty?: string;
+
+  @ApiPropertyOptional({ description: '最小距离 (km)', example: 0 })
+  @IsOptional()
+  minDistance?: number;
+
+  @ApiPropertyOptional({ description: '最大距离 (km)', example: 10 })
+  @IsOptional()
+  maxDistance?: number;
+
+  @ApiPropertyOptional({ description: '最小评分', example: 4.0 })
+  @IsOptional()
+  minRating?: number;
+
+  @ApiPropertyOptional({ description: '标签筛选', type: [String], example: ['亲子'] })
+  @IsArray()
+  @IsOptional()
+  tags?: string[];
 
   @ApiPropertyOptional({ description: '页码', default: 1 })
   @IsOptional()
