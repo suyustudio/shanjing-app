@@ -157,14 +157,45 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     if (_detail == null || _detail!.trails.isEmpty) return;
     
     setState(() {
-      _selectedTrailIds.addAll(_detail!.trails.map((trail) => trail.trailId));
+      // 如果有搜索过滤，只选中过滤后的路线；否则选中所有路线
+      final trailsToSelect = _searchQuery.isNotEmpty 
+          ? _filteredTrails 
+          : _detail!.trails;
+      _selectedTrailIds.addAll(trailsToSelect.map((trail) => trail.trailId));
     });
+  }
+
+  /// 检查是否所有过滤后的路线都已选中
+  bool _isAllFilteredTrailsSelected() {
+    if (_detail == null || _detail!.trails.isEmpty) return false;
+    
+    final trailsToCheck = _searchQuery.isNotEmpty 
+        ? _filteredTrails 
+        : _detail!.trails;
+    
+    if (trailsToCheck.isEmpty) return false;
+    
+    return trailsToCheck.every((trail) => _selectedTrailIds.contains(trail.trailId));
   }
 
   /// 取消全选
   void _deselectAllTrails() {
     setState(() {
       _selectedTrailIds.clear();
+    });
+  }
+
+  /// 取消选中所有过滤后的路线
+  void _deselectAllFilteredTrails() {
+    if (_detail == null || _detail!.trails.isEmpty) return;
+    
+    setState(() {
+      final trailsToDeselect = _searchQuery.isNotEmpty 
+          ? _filteredTrails 
+          : _detail!.trails;
+      for (final trail in trailsToDeselect) {
+        _selectedTrailIds.remove(trail.trailId);
+      }
     });
   }
 
@@ -489,10 +520,10 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
           ? [
               IconButton(
                 icon: const Icon(Icons.check_box),
-                onPressed: _selectedTrailIds.length == (_detail?.trails.length ?? 0)
-                    ? _deselectAllTrails
+                onPressed: _isAllFilteredTrailsSelected()
+                    ? _deselectAllFilteredTrails
                     : _selectAllTrails,
-                tooltip: _selectedTrailIds.length == (_detail?.trails.length ?? 0)
+                tooltip: _isAllFilteredTrailsSelected()
                     ? '取消全选'
                     : '全选',
               ),

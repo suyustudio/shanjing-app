@@ -72,7 +72,7 @@ class CollectionSearchController {
     if (immediate) {
       _performSearch();
     } else {
-      _debounceTimer = Timer(const Duration(milliseconds: 500), _performSearch);
+      _debounceTimer = Timer(const Duration(milliseconds: 300), _performSearch);
     }
   }
 
