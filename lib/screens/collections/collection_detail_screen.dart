@@ -236,22 +236,75 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     
     if (!confirmed) return;
     
-    // TODO: 调用批量删除API
-    // 暂时逐个删除
-    for (final trailId in _selectedTrailIds) {
-      await _collectionService.removeTrailFromCollection(
+    try {
+      // 调用批量删除API
+      final result = await _collectionEnhancedService.batchRemoveTrailsFromCollection(
         collectionId: _collection.id,
-        trailId: trailId,
+        trailIds: _selectedTrailIds.toList(),
       );
-    }
-    
-    _exitMultiSelectMode();
-    _loadDetail();
-    
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('已删除 ${_selectedTrailIds.length} 条路线')),
-      );
+      
+      // 处理结果
+      if (result.success) {
+        // 全部成功或部分成功
+        if (result.failedIds != null && result.failedIds!.isNotEmpty) {
+          // 部分成功场景
+          final successCount = result.successCount;
+          final failedCount = result.totalCount - result.successCount;
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('已删除 $successCount 条路线，$failedCount 条删除失败'),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+          
+          // 从选中列表中移除成功删除的ID（保留失败的ID）
+          setState(() {
+            _selectedTrailIds.removeWhere((id) => !result.failedIds!.contains(id));
+          });
+          
+          // 如果还有失败的项，保持在多选模式，让用户重试
+          if (_selectedTrailIds.isNotEmpty) {
+            return;
+          }
+        } else {
+          // 全部成功
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('已删除 ${_selectedTrailIds.length} 条路线'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        }
+        
+        // 退出多选模式并刷新数据
+        _exitMultiSelectMode();
+        _loadDetail();
+      } else {
+        // 批量操作失败
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result.message.isEmpty ? '删除失败' : result.message),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // 异常处理
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('删除失败: $e'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
