@@ -376,6 +376,11 @@ class _NavigationScreenState extends State<NavigationScreen>
             setState(() => _phase = NavigationPhase.navigatingToStart);
           } else if (_phase == NavigationPhase.previewRoute) {
             setState(() => _phase = NavigationPhase.navigatingRoute);
+          } else if (_phase == NavigationPhase.offRoute) {
+            // 从偏航状态恢复，重新规划路线
+            if (mounted) {
+              _recalculateRoute();
+            }
           }
           break;
         case MockNaviState.arrived:
@@ -404,8 +409,8 @@ class _NavigationScreenState extends State<NavigationScreen>
           if (mounted) {
             setState(() => _phase = NavigationPhase.offRoute);
             _speak('检测到偏航，正在重新规划路线');
-            // 调用重新规划
-            _recalculateRoute();
+            // 不再立即重新规划，等待模拟服务3秒后恢复navigating状态
+            // 重新规划将在收到MockNaviState.navigating时执行
           }
           break;
         case MockNaviState.error:
