@@ -79,6 +79,17 @@ class CollectionEnhancedService {
     throw lastException ?? Exception('API调用失败，达到最大重试次数');
   }
 
+  /// 检查是否是权限错误
+  bool _isPermissionError(ApiException e) {
+    return e.statusCode == 403 || 
+           e.code?.contains('FORBIDDEN') == true ||
+           e.code?.contains('PERMISSION') == true ||
+           e.message.toLowerCase().contains('permission') ||
+           e.message.toLowerCase().contains('forbidden') ||
+           e.message.toLowerCase().contains('无权') ||
+           e.message.toLowerCase().contains('权限');
+  }
+
   // ==================== 批量操作 ====================
 
   /// 批量添加路线到收藏夹
@@ -147,7 +158,17 @@ class CollectionEnhancedService {
         failedIds: trailIds,
       );
     } on ApiException catch (e) {
-      // 网络或API异常
+      // 检查权限错误
+      if (_isPermissionError(e)) {
+        return BatchOperationResult(
+          success: false,
+          message: '您没有权限修改此收藏夹',
+          successCount: 0,
+          totalCount: trailIds.length,
+          failedIds: trailIds,
+        );
+      }
+      // 其他网络或API异常
       return BatchOperationResult(
         success: false,
         message: e.message,
@@ -232,7 +253,17 @@ class CollectionEnhancedService {
         failedIds: trailIds,
       );
     } on ApiException catch (e) {
-      // 网络或API异常
+      // 检查权限错误
+      if (_isPermissionError(e)) {
+        return BatchOperationResult(
+          success: false,
+          message: '您没有权限修改此收藏夹',
+          successCount: 0,
+          totalCount: trailIds.length,
+          failedIds: trailIds,
+        );
+      }
+      // 其他网络或API异常
       return BatchOperationResult(
         success: false,
         message: e.message,
@@ -321,7 +352,17 @@ class CollectionEnhancedService {
         failedIds: trailIds,
       );
     } on ApiException catch (e) {
-      // 网络或API异常
+      // 检查权限错误
+      if (_isPermissionError(e)) {
+        return BatchOperationResult(
+          success: false,
+          message: '您没有权限修改此收藏夹',
+          successCount: 0,
+          totalCount: trailIds.length,
+          failedIds: trailIds,
+        );
+      }
+      // 其他网络或API异常
       return BatchOperationResult(
         success: false,
         message: e.message,
@@ -405,7 +446,17 @@ class CollectionEnhancedService {
         failedIds: collectionIds,
       );
     } on ApiException catch (e) {
-      // 网络或API异常
+      // 检查权限错误
+      if (_isPermissionError(e)) {
+        return BatchOperationResult(
+          success: false,
+          message: '您没有权限修改此收藏夹',
+          successCount: 0,
+          totalCount: collectionIds.length,
+          failedIds: collectionIds,
+        );
+      }
+      // 其他网络或API异常
       return BatchOperationResult(
         success: false,
         message: e.message,
