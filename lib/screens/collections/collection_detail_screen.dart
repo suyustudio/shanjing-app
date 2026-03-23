@@ -312,22 +312,53 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
   Future<void> _batchMoveTrails() async {
     if (_selectedTrailIds.isEmpty) return;
     
-    // TODO: 获取用户的其他收藏夹列表
-    final collections = <CollectionItem>[
-      CollectionItem(id: '1', name: '我的收藏', trailCount: 5, isDefault: true),
-      CollectionItem(id: '2', name: '周末徒步', trailCount: 3),
-      CollectionItem(id: '3', name: '长途旅行', trailCount: 7),
-    ];
+    List<CollectionItem> collections;
+    String targetCollectionId;
+    CollectionItem targetCollection;
     
-    final targetCollectionId = await CollectionBatchActionMenu.showMoveToCollectionSelector(
+    try {
+      // 获取用户的所有收藏夹列表
+      final userCollections = await _collectionService.getCollections();
+      
+      // 过滤掉当前收藏夹，并转换为CollectionItem格式
+      collections = userCollections
+          .where((collection) => collection.id != _collection.id)
+          .map((collection) => CollectionItem(
+                id: collection.id,
+                name: collection.name,
+                trailCount: collection.trailCount,
+                isDefault: collection.isDefault,
+              ))
+          .toList();
+      
+      // 如果没有其他收藏夹，提示用户
+      if (collections.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('您还没有其他收藏夹，请先创建收藏夹')),
+          );
+        }
+        return;
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('获取收藏夹列表失败: $e')),
+        );
+      }
+      return;
+    }
+    
+    final selectedTargetCollectionId = await CollectionBatchActionMenu.showMoveToCollectionSelector(
       context: context,
       collections: collections,
       currentCollectionId: _collection.id,
     );
     
-    if (targetCollectionId == null) return;
+    if (selectedTargetCollectionId == null) return;
     
-    final targetCollection = collections.firstWhere(
+    targetCollectionId = selectedTargetCollectionId;
+    targetCollection = collections.firstWhere(
       (c) => c.id == targetCollectionId,
       orElse: () => collections.first,
     );
