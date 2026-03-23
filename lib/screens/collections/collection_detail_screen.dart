@@ -1148,6 +1148,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                 onRemove: _isMultiSelectMode
                     ? null
                     : () => _removeTrail(trail.trailId),
+                searchQuery: _searchQuery.isNotEmpty ? _searchQuery : null,
               ),
             );
           }),

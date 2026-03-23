@@ -11,12 +11,14 @@ class CollectionTrailCard extends StatelessWidget {
   final CollectionTrail trail;
   final VoidCallback onTap;
   final VoidCallback? onRemove;
+  final String? searchQuery;
 
   const CollectionTrailCard({
     Key? key,
     required this.trail,
     required this.onTap,
     this.onRemove,
+    this.searchQuery,
   }) : super(key: key);
 
   @override
@@ -58,14 +60,12 @@ class CollectionTrailCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    _buildHighlightedText(
                       trail.name,
-                      style: const TextStyle(
+                      const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -111,15 +111,13 @@ class CollectionTrailCard extends StatelessWidget {
                     ),
                     if (trail.note != null && trail.note!.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Text(
+                      _buildHighlightedText(
                         trail.note!,
-                        style: TextStyle(
+                        TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade500,
                           fontStyle: FontStyle.italic,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                     if (trail.tags.isNotEmpty) ...[
@@ -149,6 +147,75 @@ class CollectionTrailCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// 构建高亮文本（如果searchQuery不为空且匹配）
+  Widget _buildHighlightedText(String text, TextStyle style) {
+    if (searchQuery == null || searchQuery!.isEmpty) {
+      return Text(
+        text,
+        style: style,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+    
+    final query = searchQuery!.toLowerCase();
+    final lowerText = text.toLowerCase();
+    final matches = <TextSpan>[];
+    int lastMatchEnd = 0;
+    
+    // 查找所有匹配位置
+    for (int i = 0; i <= lowerText.length - query.length; i++) {
+      if (lowerText.substring(i, i + query.length) == query) {
+        // 添加非匹配部分
+        if (i > lastMatchEnd) {
+          matches.add(TextSpan(
+            text: text.substring(lastMatchEnd, i),
+            style: style,
+          ));
+        }
+        
+        // 添加匹配部分（高亮）
+        matches.add(TextSpan(
+          text: text.substring(i, i + query.length),
+          style: style.copyWith(
+            backgroundColor: Colors.yellow.withOpacity(0.3),
+            fontWeight: FontWeight.bold,
+          ),
+        ));
+        
+        lastMatchEnd = i + query.length;
+        i += query.length - 1; // 跳过已匹配的部分
+      }
+    }
+    
+    // 添加剩余部分
+    if (lastMatchEnd < text.length) {
+      matches.add(TextSpan(
+        text: text.substring(lastMatchEnd),
+        style: style,
+      ));
+    }
+    
+    // 如果没有匹配，返回普通文本
+    if (matches.isEmpty) {
+      return Text(
+        text,
+        style: style,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+    
+    return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        children: matches,
+        style: style,
       ),
     );
   }
