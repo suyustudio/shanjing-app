@@ -104,6 +104,7 @@ class CollectionTrail {
   final String? note;
   final DateTime addedAt;
   final int sortOrder;
+  final List<String> tags; // 路线标签
 
   CollectionTrail({
     required this.id,
@@ -118,6 +119,7 @@ class CollectionTrail {
     this.note,
     required this.addedAt,
     required this.sortOrder,
+    this.tags = const [],
   });
 
   factory CollectionTrail.fromJson(Map<String, dynamic> json) {
@@ -136,6 +138,9 @@ class CollectionTrail {
           ? DateTime.parse(json['addedAt'])
           : DateTime.now(),
       sortOrder: json['sortOrder'] ?? 0,
+      tags: (json['tags'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
     );
   }
 
@@ -153,7 +158,40 @@ class CollectionTrail {
       'note': note,
       'addedAt': addedAt.toIso8601String(),
       'sortOrder': sortOrder,
+      'tags': tags,
     };
+  }
+
+  CollectionTrail copyWith({
+    String? id,
+    String? trailId,
+    String? name,
+    String? coverImage,
+    double? distanceKm,
+    int? durationMin,
+    String? difficulty,
+    double? rating,
+    int? reviewCount,
+    String? note,
+    DateTime? addedAt,
+    int? sortOrder,
+    List<String>? tags,
+  }) {
+    return CollectionTrail(
+      id: id ?? this.id,
+      trailId: trailId ?? this.trailId,
+      name: name ?? this.name,
+      coverImage: coverImage ?? this.coverImage,
+      distanceKm: distanceKm ?? this.distanceKm,
+      durationMin: durationMin ?? this.durationMin,
+      difficulty: difficulty ?? this.difficulty,
+      rating: rating ?? this.rating,
+      reviewCount: reviewCount ?? this.reviewCount,
+      note: note ?? this.note,
+      addedAt: addedAt ?? this.addedAt,
+      sortOrder: sortOrder ?? this.sortOrder,
+      tags: tags ?? this.tags,
+    );
   }
 }
 

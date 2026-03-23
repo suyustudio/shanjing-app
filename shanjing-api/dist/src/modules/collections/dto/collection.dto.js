@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CollectionListResponseDto = exports.CollectionDetailDto = exports.CollectionDto = exports.CollectionTrailDto = exports.CollectionUserDto = exports.QueryCollectionsDto = exports.BatchAddTrailsDto = exports.AddTrailToCollectionDto = exports.UpdateCollectionDto = exports.CreateCollectionDto = void 0;
+exports.CollectionListResponseDto = exports.CollectionDetailDto = exports.CollectionDto = exports.CollectionTrailDto = exports.CollectionUserDto = exports.SearchCollectionTrailsDto = exports.QueryCollectionsDto = exports.BatchMoveTrailsDto = exports.BatchRemoveTrailsDto = exports.BatchAddTrailsDto = exports.AddTrailToCollectionDto = exports.UpdateCollectionDto = exports.CreateCollectionDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 class CreateCollectionDto {
@@ -43,6 +43,12 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Boolean)
 ], CreateCollectionDto.prototype, "isPublic", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '标签数组，用于分类管理', type: [String], example: ['亲子', '摄影'] }),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Array)
+], CreateCollectionDto.prototype, "tags", void 0);
 class UpdateCollectionDto {
 }
 exports.UpdateCollectionDto = UpdateCollectionDto;
@@ -77,6 +83,12 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], UpdateCollectionDto.prototype, "sortOrder", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '标签数组，用于分类管理', type: [String], example: ['亲子', '摄影'] }),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Array)
+], UpdateCollectionDto.prototype, "tags", void 0);
 class AddTrailToCollectionDto {
 }
 exports.AddTrailToCollectionDto = AddTrailToCollectionDto;
@@ -100,6 +112,27 @@ __decorate([
     (0, class_validator_1.IsArray)(),
     __metadata("design:type", Array)
 ], BatchAddTrailsDto.prototype, "trailIds", void 0);
+class BatchRemoveTrailsDto {
+}
+exports.BatchRemoveTrailsDto = BatchRemoveTrailsDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: '路线ID列表', type: [String], example: ['trail1', 'trail2'] }),
+    (0, class_validator_1.IsArray)(),
+    __metadata("design:type", Array)
+], BatchRemoveTrailsDto.prototype, "trailIds", void 0);
+class BatchMoveTrailsDto {
+}
+exports.BatchMoveTrailsDto = BatchMoveTrailsDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: '路线ID列表', type: [String], example: ['trail1', 'trail2'] }),
+    (0, class_validator_1.IsArray)(),
+    __metadata("design:type", Array)
+], BatchMoveTrailsDto.prototype, "trailIds", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: '目标收藏夹ID' }),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], BatchMoveTrailsDto.prototype, "targetCollectionId", void 0);
 class QueryCollectionsDto {
     constructor() {
         this.page = 1;
@@ -123,6 +156,56 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], QueryCollectionsDto.prototype, "limit", void 0);
+class SearchCollectionTrailsDto {
+    constructor() {
+        this.page = 1;
+        this.limit = 20;
+    }
+}
+exports.SearchCollectionTrailsDto = SearchCollectionTrailsDto;
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '搜索关键词', example: '西湖' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], SearchCollectionTrailsDto.prototype, "q", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '难度筛选', example: 'EASY' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], SearchCollectionTrailsDto.prototype, "difficulty", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '最小距离 (km)', example: 0 }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], SearchCollectionTrailsDto.prototype, "minDistance", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '最大距离 (km)', example: 10 }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], SearchCollectionTrailsDto.prototype, "maxDistance", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '最小评分', example: 4.0 }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], SearchCollectionTrailsDto.prototype, "minRating", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '标签筛选', type: [String], example: ['亲子'] }),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Array)
+], SearchCollectionTrailsDto.prototype, "tags", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '页码', default: 1 }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], SearchCollectionTrailsDto.prototype, "page", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: '每页数量', default: 20 }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], SearchCollectionTrailsDto.prototype, "limit", void 0);
 class CollectionUserDto {
 }
 exports.CollectionUserDto = CollectionUserDto;

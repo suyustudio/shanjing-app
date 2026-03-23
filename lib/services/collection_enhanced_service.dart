@@ -131,12 +131,11 @@ class CollectionEnhancedService {
     }
 
     final response = await _apiClient.post(
-      '${ApiEndpoints.collections}/batch-move',
-      body: BatchMoveTrailsRequest(
-        sourceCollectionId: sourceCollectionId,
-        targetCollectionId: targetCollectionId,
-        trailIds: trailIds,
-      ).toJson(),
+      '${ApiEndpoints.collectionDetail(sourceCollectionId)}/trails/move',
+      body: {
+        'trailIds': trailIds,
+        'targetCollectionId': targetCollectionId,
+      },
       parser: (data) => BatchOperationResult.fromJson(data),
     );
 
@@ -242,12 +241,37 @@ class CollectionEnhancedService {
     required String collectionId,
     required CollectionTrailSearchFilter filter,
   }) async {
-    final queryParams = filter.toQueryParams();
+    // 构建查询参数，映射到后端期望的字段名
+    final queryParams = <String, String>{};
+    if (filter.searchQuery != null && filter.searchQuery!.isNotEmpty) {
+      queryParams['q'] = filter.searchQuery!;
+    }
+    if (filter.difficulties != null && filter.difficulties!.isNotEmpty) {
+      queryParams['difficulty'] = filter.difficulties!.join(',');
+    }
+    if (filter.minDistance != null) {
+      queryParams['minDistance'] = filter.minDistance!.toString();
+    }
+    if (filter.maxDistance != null) {
+      queryParams['maxDistance'] = filter.maxDistance!.toString();
+    }
+    if (filter.minDuration != null) {
+      queryParams['minDuration'] = filter.minDuration!.toString();
+    }
+    if (filter.maxDuration != null) {
+      queryParams['maxDuration'] = filter.maxDuration!.toString();
+    }
+    if (filter.sortBy != null) {
+      queryParams['sort'] = filter.sortBy!;
+    }
+    queryParams['page'] = filter.page.toString();
+    queryParams['limit'] = filter.limit.toString();
 
     final response = await _apiClient.get(
-      ApiEndpoints.collectionDetail(collectionId),
+      '${ApiEndpoints.collectionDetail(collectionId)}/search',
       queryParams: queryParams,
       parser: (data) {
+        // 后端返回的是CollectionDetailDto，我们需要提取trails
         if (data is Map && data['data'] is Map && data['data']['trails'] is List) {
           return (data['data']['trails'] as List)
               .map((e) => CollectionTrail.fromJson(e))
@@ -316,6 +340,96 @@ class CollectionEnhancedService {
     );
   }
 
+  /// 批量添加标签到路线
+  Future<BatchOperationResult> batchAddTagsToTrails({
+    required String collectionId,
+    required List<String> trailIds,
+    required List<String> tagIds,
+  }) async {
+    if (trailIds.isEmpty || tagIds.isEmpty) {
+      return BatchOperationResult(
+        success: true,
+        message: trailIds.isEmpty ? '没有需要添加标签的路线' : '没有需要添加的标签',
+        successCount: 0,
+        totalCount: trailIds.length,
+      );
+    }
+
+    const maxBatchSize = 100;
+    if (trailIds.length > maxBatchSize) {
+      return BatchOperationResult(
+        success: false,
+        message: '单次批量操作不能超过 $maxBatchSize 条路线',
+        successCount: 0,
+        totalCount: trailIds.length,
+      );
+    }
+
+    final response = await _apiClient.post(
+      ApiEndpointsEnhanced.collectionTrailsBatchTags(collectionId),
+      body: BatchAddTagsRequest(trailIds: trailIds, tagIds: tagIds).toJson(),
+      parser: (data) => BatchOperationResult.fromJson(data),
+    );
+
+    if (response.success && response.data != null) {
+      // 清除缓存
+      _collectionService.clearCache();
+      return response.data!;
+    }
+
+    return BatchOperationResult(
+      success: false,
+      message: response.errorMessage ?? '批量添加标签失败',
+      successCount: 0,
+      totalCount: trailIds.length,
+    );
+  }
+
+  /// 批量从路线移除标签
+  Future<BatchOperationResult> batchRemoveTagsFromTrails({
+    required String collectionId,
+    required List<String> trailIds,
+    required List<String> tagIds,
+  }) async {
+    if (trailIds.isEmpty || tagIds.isEmpty) {
+      return BatchOperationResult(
+        success: true,
+        message: trailIds.isEmpty ? '没有需要移除标签的路线' : '没有需要移除的标签',
+        successCount: 0,
+        totalCount: trailIds.length,
+      );
+    }
+
+    const maxBatchSize = 100;
+    if (trailIds.length > maxBatchSize) {
+      return BatchOperationResult(
+        success: false,
+        message: '单次批量操作不能超过 $maxBatchSize 条路线',
+        successCount: 0,
+        totalCount: trailIds.length,
+      );
+    }
+
+    final response = await _apiClient.delete(
+      ApiEndpointsEnhanced.collectionTrailsBatchTags(collectionId),
+      body: BatchRemoveTagsRequest(trailIds: trailIds, tagIds: tagIds).toJson(),
+      parser: (data) => BatchOperationResult.fromJson(data),
+    );
+
+    if (response.success && response.data != null) {
+      // 清除缓存
+      _collectionService.clearCache();
+      return response.data!;
+    }
+
+    return BatchOperationResult(
+      success: false,
+      message: response.errorMessage ?? '批量移除标签失败',
+      successCount: 0,
+      totalCount: trailIds.length,
+    );
+  }
+
   // ==================== 工具方法 ====================
 
   /// 检查批量操作是否可用
@@ -359,4 +473,8 @@ class ApiEndpointsEnhanced {
   
   static String collectionTags(String collectionId) =>
       '${ApiEndpoints.collectionDetail(collectionId)}/tags';
+  
+  // 批量标签操作端点
+  static String collectionTrailsBatchTags(String collectionId) =>
+      '${ApiEndpoints.collectionDetail(collectionId)}/trails/batch-tags';
 }

@@ -211,6 +211,7 @@ model Collection {
   isPublic     Boolean  @default(true) @map("is_public")
   isDefault    Boolean  @default(false) @map("is_default")
   sortOrder    Int      @default(0) @map("sort_order")
+  tags         String[] @default([])  // 分类标签，用于增强分类管理
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
   
@@ -221,6 +222,7 @@ model Collection {
   @@index([userId, sortOrder])
   @@index([userId, isDefault])
   @@index([isPublic, createdAt])
+  @@index([tags])  // 为标签搜索添加GIN索引
   @@map("collections")
 }
 

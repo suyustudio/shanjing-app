@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import '../../models/collection_model.dart';
 import '../../utils/format_utils.dart';
+import '../collections/tag_chip.dart';
 
 /// 收藏夹内路线卡片
 class CollectionTrailCard extends StatelessWidget {
@@ -119,6 +120,19 @@ class CollectionTrailCard extends StatelessWidget {
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if (trail.tags.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 2,
+                        children: trail.tags.map((tag) => TagChip(
+                          tag: tag,
+                          style: TagChipStyle.normal,
+                          fontSize: 10,
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        )).toList(),
                       ),
                     ],
                   ],

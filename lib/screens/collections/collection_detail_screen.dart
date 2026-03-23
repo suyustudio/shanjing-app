@@ -356,40 +356,188 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
   Future<void> _batchAddTags() async {
     if (_selectedTrailIds.isEmpty) return;
     
-    // TODO: 实现批量添加标签界面
-    showDialog(
+    // 显示批量添加标签对话框
+    final selectedTagIds = await showDialog<List<String>>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('批量添加标签'),
-        content: const Text('此功能即将上线'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('确定'),
-          ),
-        ],
+      builder: (context) => _BatchAddTagsDialog(
+        collectionId: _collection.id,
+        trailIds: _selectedTrailIds.toList(),
+        tagService: _tagService,
+        collectionEnhancedService: _collectionEnhancedService,
       ),
     );
+    
+    if (selectedTagIds != null && selectedTagIds.isNotEmpty) {
+      // 调用批量添加标签API
+      await _performBatchAddTags(selectedTagIds);
+    }
+  }
+  
+  Future<void> _performBatchAddTags(List<String> tagIds) async {
+    if (_selectedTrailIds.isEmpty || tagIds.isEmpty) return;
+    
+    // 显示进度指示器
+    final overlay = OverlayEntry(
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    Overlay.of(context).insert(overlay);
+    
+    try {
+      final result = await _collectionEnhancedService.batchAddTagsToTrails(
+        collectionId: _collection.id,
+        trailIds: _selectedTrailIds.toList(),
+        tagIds: tagIds,
+      );
+      
+      overlay.remove();
+      
+      if (result.success) {
+        // 显示成功消息
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('成功为 ${result.successCount} 条路线添加标签'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        
+        // 如果部分失败，显示详细信息
+        if (result.failedIds != null && result.failedIds!.isNotEmpty) {
+          final failedCount = result.totalCount - result.successCount;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${failedCount} 条路线标签添加失败，请重试'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          
+          // 保留失败的ID，让用户重试
+          setState(() {
+            _selectedTrailIds.retainAll(result.failedIds!);
+          });
+          
+          if (_selectedTrailIds.isNotEmpty) {
+            // 保持在多选模式
+            return;
+          }
+        } else {
+          // 全部成功，退出多选模式并刷新
+          _exitMultiSelectMode();
+          _loadDetail();
+        }
+      } else {
+        // 显示错误消息
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message.isEmpty ? '添加标签失败' : result.message),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      overlay.remove();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('添加标签失败: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   /// 批量移除标签从选中路线
   Future<void> _batchRemoveTags() async {
     if (_selectedTrailIds.isEmpty) return;
     
-    // TODO: 实现批量移除标签界面
-    showDialog(
+    // 显示批量移除标签对话框
+    final selectedTagIds = await showDialog<List<String>>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('批量移除标签'),
-        content: const Text('此功能即将上线'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('确定'),
-          ),
-        ],
+      builder: (context) => _BatchRemoveTagsDialog(
+        collectionId: _collection.id,
+        trailIds: _selectedTrailIds.toList(),
+        tagService: _tagService,
+        collectionEnhancedService: _collectionEnhancedService,
       ),
     );
+    
+    if (selectedTagIds != null && selectedTagIds.isNotEmpty) {
+      // 调用批量移除标签API
+      await _performBatchRemoveTags(selectedTagIds);
+    }
+  }
+  
+  Future<void> _performBatchRemoveTags(List<String> tagIds) async {
+    if (_selectedTrailIds.isEmpty || tagIds.isEmpty) return;
+    
+    // 显示进度指示器
+    final overlay = OverlayEntry(
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    Overlay.of(context).insert(overlay);
+    
+    try {
+      final result = await _collectionEnhancedService.batchRemoveTagsFromTrails(
+        collectionId: _collection.id,
+        trailIds: _selectedTrailIds.toList(),
+        tagIds: tagIds,
+      );
+      
+      overlay.remove();
+      
+      if (result.success) {
+        // 显示成功消息
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('成功从 ${result.successCount} 条路线移除标签'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        
+        // 如果部分失败，显示详细信息
+        if (result.failedIds != null && result.failedIds!.isNotEmpty) {
+          final failedCount = result.totalCount - result.successCount;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${failedCount} 条路线标签移除失败，请重试'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          
+          // 保留失败的ID，让用户重试
+          setState(() {
+            _selectedTrailIds.retainAll(result.failedIds!);
+          });
+          
+          if (_selectedTrailIds.isNotEmpty) {
+            // 保持在多选模式
+            return;
+          }
+        } else {
+          // 全部成功，退出多选模式并刷新
+          _exitMultiSelectMode();
+          _loadDetail();
+        }
+      } else {
+        // 显示错误消息
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message.isEmpty ? '移除标签失败' : result.message),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      overlay.remove();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('移除标签失败: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   /// 将CollectionBatchAction转换为CollectionBatchActionType
@@ -545,6 +693,11 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                   CollectionBatchActionType.share,
                 ],
                 onActionSelected: _handleBatchAction,
+                onActionLongPressed: (action) {
+                  if (action == CollectionBatchActionType.tag) {
+                    _batchRemoveTags();
+                  }
+                },
                 onCancel: _exitMultiSelectMode,
                 showAtTop: false,
                 showAnimation: true,
@@ -977,5 +1130,378 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+}
+
+/// 批量添加标签对话框
+class _BatchAddTagsDialog extends StatefulWidget {
+  final String collectionId;
+  final List<String> trailIds;
+  final TagService tagService;
+  final CollectionEnhancedService collectionEnhancedService;
+
+  const _BatchAddTagsDialog({
+    required this.collectionId,
+    required this.trailIds,
+    required this.tagService,
+    required this.collectionEnhancedService,
+  });
+
+  @override
+  State<_BatchAddTagsDialog> createState() => __BatchAddTagsDialogState();
+}
+
+class __BatchAddTagsDialogState extends State<_BatchAddTagsDialog> {
+  final List<CollectionTag> _availableTags = [];
+  final Set<String> _selectedTagIds = {};
+  bool _isLoading = true;
+  String? _errorMessage;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  final TextEditingController _newTagController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTags();
+  }
+
+  Future<void> _loadTags() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    
+    try {
+      final tags = await widget.tagService.getAllTags();
+      setState(() {
+        _availableTags.clear();
+        _availableTags.addAll(tags);
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = '加载标签失败: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<CollectionTag> get _filteredTags {
+    if (_searchQuery.isEmpty) return _availableTags;
+    return _availableTags.where((tag) => 
+      tag.name.toLowerCase().contains(_searchQuery.toLowerCase())
+    ).toList();
+  }
+
+  void _toggleTagSelection(CollectionTag tag) {
+    setState(() {
+      if (_selectedTagIds.contains(tag.id)) {
+        _selectedTagIds.remove(tag.id);
+      } else {
+        _selectedTagIds.add(tag.id);
+      }
+    });
+  }
+
+  Future<void> _createNewTag() async {
+    final tagName = _newTagController.text.trim();
+    if (tagName.isEmpty) return;
+    
+    try {
+      final newTag = await widget.tagService.createTag(name: tagName);
+      setState(() {
+        _availableTags.add(newTag);
+        _selectedTagIds.add(newTag.id);
+      });
+      _newTagController.clear();
+      // 清除搜索
+      _searchQuery = '';
+      _searchController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('创建标签失败: $e'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return AlertDialog(
+      title: Text('为 ${widget.trailIds.length} 条路线添加标签'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 搜索框
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: '搜索标签...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (value) => setState(() => _searchQuery = value),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // 新标签创建
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _newTagController,
+                    decoration: const InputDecoration(
+                      hintText: '新建标签...',
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                    onSubmitted: (_) => _createNewTag(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _createNewTag,
+                  child: const Text('创建'),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // 标签选择区域
+            Text(
+              '选择标签',
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (_errorMessage != null)
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red))
+            else if (_filteredTags.isEmpty)
+              const Text('暂无标签', style: TextStyle(color: Colors.grey))
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _filteredTags.map((tag) {
+                  final isSelected = _selectedTagIds.contains(tag.id);
+                  return FilterChip(
+                    label: Text(tag.name),
+                    selected: isSelected,
+                    onSelected: (_) => _toggleTagSelection(tag),
+                    backgroundColor: tag.color.withOpacity(0.1),
+                    selectedColor: tag.color.withOpacity(0.3),
+                    checkmarkColor: tag.color,
+                    labelStyle: TextStyle(
+                      color: isSelected ? tag.color : theme.colorScheme.onSurface,
+                    ),
+                  );
+                }).toList(),
+              ),
+            
+            const SizedBox(height: 8),
+            
+            if (_selectedTagIds.isNotEmpty)
+              Text(
+                '已选择 ${_selectedTagIds.length} 个标签',
+                style: theme.textTheme.bodySmall,
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        ElevatedButton(
+          onPressed: _selectedTagIds.isEmpty
+              ? null
+              : () => Navigator.of(context).pop(_selectedTagIds.toList()),
+          child: const Text('添加'),
+        ),
+      ],
+    );
+  }
+}
+
+/// 批量移除标签对话框
+class _BatchRemoveTagsDialog extends StatefulWidget {
+  final String collectionId;
+  final List<String> trailIds;
+  final TagService tagService;
+  final CollectionEnhancedService collectionEnhancedService;
+
+  const _BatchRemoveTagsDialog({
+    required this.collectionId,
+    required this.trailIds,
+    required this.tagService,
+    required this.collectionEnhancedService,
+  });
+
+  @override
+  State<_BatchRemoveTagsDialog> createState() => __BatchRemoveTagsDialogState();
+}
+
+class __BatchRemoveTagsDialogState extends State<_BatchRemoveTagsDialog> {
+  final List<CollectionTag> _availableTags = [];
+  final Set<String> _selectedTagIds = {};
+  bool _isLoading = true;
+  String? _errorMessage;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTags();
+  }
+
+  Future<void> _loadTags() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    
+    try {
+      // TODO: 实际应该获取选中路线共有的标签，这里先获取所有标签
+      final tags = await widget.tagService.getAllTags();
+      setState(() {
+        _availableTags.clear();
+        _availableTags.addAll(tags);
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = '加载标签失败: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<CollectionTag> get _filteredTags {
+    if (_searchQuery.isEmpty) return _availableTags;
+    return _availableTags.where((tag) => 
+      tag.name.toLowerCase().contains(_searchQuery.toLowerCase())
+    ).toList();
+  }
+
+  void _toggleTagSelection(CollectionTag tag) {
+    setState(() {
+      if (_selectedTagIds.contains(tag.id)) {
+        _selectedTagIds.remove(tag.id);
+      } else {
+        _selectedTagIds.add(tag.id);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return AlertDialog(
+      title: Text('从 ${widget.trailIds.length} 条路线移除标签'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 搜索框
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: '搜索标签...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (value) => setState(() => _searchQuery = value),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // 标签选择区域
+            Text(
+              '选择要移除的标签',
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (_errorMessage != null)
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red))
+            else if (_filteredTags.isEmpty)
+              const Text('暂无标签', style: TextStyle(color: Colors.grey))
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _filteredTags.map((tag) {
+                  final isSelected = _selectedTagIds.contains(tag.id);
+                  return FilterChip(
+                    label: Text(tag.name),
+                    selected: isSelected,
+                    onSelected: (_) => _toggleTagSelection(tag),
+                    backgroundColor: tag.color.withOpacity(0.1),
+                    selectedColor: tag.color.withOpacity(0.3),
+                    checkmarkColor: tag.color,
+                    labelStyle: TextStyle(
+                      color: isSelected ? tag.color : theme.colorScheme.onSurface,
+                    ),
+                  );
+                }).toList(),
+              ),
+            
+            const SizedBox(height: 8),
+            
+            if (_selectedTagIds.isNotEmpty)
+              Text(
+                '已选择 ${_selectedTagIds.length} 个标签',
+                style: theme.textTheme.bodySmall,
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        ElevatedButton(
+          onPressed: _selectedTagIds.isEmpty
+              ? null
+              : () => Navigator.of(context).pop(_selectedTagIds.toList()),
+          child: const Text('移除'),
+        ),
+      ],
+    );
   }
 }

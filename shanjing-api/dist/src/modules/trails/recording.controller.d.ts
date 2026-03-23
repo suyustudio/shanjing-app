@@ -6,60 +6,90 @@ export declare class RecordingController {
     uploadRecording(dto: UploadRecordingDto, userId: string): Promise<{
         success: boolean;
         data: {
-            recordingId: any;
-            trailName: any;
-            status: any;
+            recordingId: string;
+            trailName: string;
+            status: import(".prisma/client").$Enums.RecordingStatus;
             message: string;
         };
     }>;
     getMyRecordings(query: RecordingListQueryDto, userId: string): Promise<{
         success: boolean;
-        data: any;
+        data: {
+            id: string;
+            trailName: string;
+            status: import(".prisma/client").$Enums.RecordingStatus;
+            city: string;
+            district: string;
+            difficulty: import(".prisma/client").$Enums.TrailDifficulty;
+            distanceKm: string;
+            durationMin: number;
+            pointCount: number;
+            poiCount: number;
+            trailId: string;
+            createdAt: Date;
+        }[];
         meta: {
             page: number;
             limit: number;
-            total: any;
+            total: number;
             totalPages: number;
         };
     }>;
     getRecordingDetail(recordingId: string, userId: string): Promise<{
         success: boolean;
         data: {
-            id: any;
-            trailName: any;
-            description: any;
-            status: any;
-            city: any;
-            district: any;
-            difficulty: any;
-            tags: any;
-            distanceMeters: any;
-            durationSeconds: any;
-            elevationGain: any;
-            elevationLoss: any;
-            pointCount: any;
-            poiCount: any;
-            trackData: any;
-            trailId: any;
-            reviewComment: any;
-            createdAt: any;
-            updatedAt: any;
+            id: string;
+            trailName: string;
+            description: string;
+            status: import(".prisma/client").$Enums.RecordingStatus;
+            city: string;
+            district: string;
+            difficulty: import(".prisma/client").$Enums.TrailDifficulty;
+            tags: string[];
+            distanceMeters: number;
+            durationSeconds: number;
+            elevationGain: number;
+            elevationLoss: number;
+            pointCount: number;
+            poiCount: number;
+            trackData: import("@prisma/client/runtime/library").JsonValue;
+            trailId: string;
+            reviewComment: string;
+            createdAt: Date;
+            updatedAt: Date;
         };
     }>;
     getPendingRecordings(query: RecordingListQueryDto): Promise<{
         success: boolean;
-        data: any;
+        data: {
+            id: string;
+            trailName: string;
+            description: string;
+            city: string;
+            district: string;
+            difficulty: import(".prisma/client").$Enums.TrailDifficulty;
+            distanceMeters: number;
+            durationSeconds: number;
+            pointCount: number;
+            poiCount: number;
+            createdAt: Date;
+            user: {
+                id: string;
+                nickname: string;
+                avatarUrl: string;
+            };
+        }[];
         meta: {
             page: number;
             limit: number;
-            total: any;
+            total: number;
             totalPages: number;
         };
     }>;
     approveRecording(recordingId: string, dto: ApproveRecordingDto): Promise<{
         success: boolean;
         data: {
-            recordingId: any;
+            recordingId: string;
             trailId: string;
             trailName: string;
             message: string;
@@ -68,7 +98,7 @@ export declare class RecordingController {
     rejectRecording(recordingId: string, reason?: string): Promise<{
         success: boolean;
         data: {
-            recordingId: any;
+            recordingId: string;
             message: string;
             reason: string;
         };

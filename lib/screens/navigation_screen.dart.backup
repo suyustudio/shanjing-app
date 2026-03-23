@@ -374,20 +374,38 @@ class _NavigationScreenState extends State<NavigationScreen>
           // 导航中
           if (_phase == NavigationPhase.planningToStart) {
             setState(() => _phase = NavigationPhase.navigatingToStart);
-          } else if (_phase == NavigationPhase.planningRoute) {
+          } else if (_phase == NavigationPhase.previewRoute) {
             setState(() => _phase = NavigationPhase.navigatingRoute);
           }
           break;
         case MockNaviState.arrived:
           // 到达目的地
           if (_phase == NavigationPhase.navigatingToStart) {
-            // 阶段1完成，开始阶段2
-            _startPhase2RouteNavigation();
+            // 阶段1完成，显示路线预览，等待用户确认
+            if (mounted) {
+              setState(() => _phase = NavigationPhase.previewRoute);
+              _speak('已到达路线起点，请预览路线并确认开始导航');
+              // 自动显示预览界面，3秒后自动开始导航（简化流程）
+              Future.delayed(const Duration(seconds: 3), () {
+                if (mounted && _phase == NavigationPhase.previewRoute) {
+                  _startPhase2RouteNavigation();
+                }
+              });
+            }
           } else if (_phase == NavigationPhase.navigatingRoute) {
             // 路线导航完成
             setState(() => _phase = NavigationPhase.completed);
             _navigationCompleted = true;
             _speak('路线导航完成，您已到达目的地');
+          }
+          break;
+        case MockNaviState.offRoute:
+          // 偏航检测
+          if (mounted) {
+            setState(() => _phase = NavigationPhase.offRoute);
+            _speak('检测到偏航，正在重新规划路线');
+            // 调用重新规划
+            _recalculateRoute();
           }
           break;
         case MockNaviState.error:
@@ -451,21 +469,20 @@ class _NavigationScreenState extends State<NavigationScreen>
       
       if (success && mounted) {
         debugPrint('✅ 阶段1路径规划成功（模拟）');
-        // 通知监听器路径规划成功
-        _naviService.notifyRouteCalculationSuccess(1);
+        // 不再调用 _naviService.notifyRouteCalculationSuccess，由 _mockNaviService 流通知
       } else {
         debugPrint('❌ 阶段1路径规划失败（模拟）');
         if (mounted) {
           setState(() => _phase = NavigationPhase.error);
         }
-        _naviService.notifyRouteCalculationFailure('模拟路径规划失败');
+        // 不再调用 _naviService.notifyRouteCalculationFailure，由 _mockNaviService 流通知
       }
     } catch (e) {
       debugPrint('❌ 阶段1路径规划异常: $e');
       if (mounted) {
         setState(() => _phase = NavigationPhase.error);
       }
-      _naviService.notifyRouteCalculationFailure('异常: $e');
+      // 不再调用 _naviService.notifyRouteCalculationFailure，由 _mockNaviService 流通知
     }
   }
   
@@ -494,7 +511,7 @@ class _NavigationScreenState extends State<NavigationScreen>
   
   /// 开始阶段2路线导航：路线起点 → 路线终点（使用模拟服务）
   Future<void> _startPhase2RouteNavigation() async {
-    if (!mounted || _phase != NavigationPhase.planningRoute) return;
+    if (!mounted || (_phase != NavigationPhase.planningRoute && _phase != NavigationPhase.navigatingToStart)) return;
     
     debugPrint('🗺️ 开始阶段2路线导航（模拟）：路线起点 → 路线终点');
     
@@ -528,106 +545,6 @@ class _NavigationScreenState extends State<NavigationScreen>
     }
   }
 
-  /// 高德导航服务监听器
-  class _NaviListener implements AmapNaviListener {
-    final _NavigationScreenState _screen;
-
-    _NaviListener(this._screen);
-
-    @override
-    void onServiceInitialized(bool success) {
-      if (!_screen.mounted) return;
-      
-      if (success) {
-        debugPrint('✅ 高德导航服务初始化成功');
-        // 位置权限获取后开始阶段1路径规划
-        _screen._startPhase1Planning();
-      } else {
-        debugPrint('❌ 高德导航服务初始化失败');
-        if (_screen.mounted) {
-          _screen.setState(() => _screen._phase = NavigationPhase.error);
-        }
-      }
-    }
-
-    @override
-    void onRouteCalculationSuccess(int routeId) {
-      if (!_screen.mounted) return;
-      
-      debugPrint('🗺️ 路径规划成功，routeId: $routeId');
-      if (_screen.mounted) {
-        _screen.setState(() {
-          if (_screen._phase == NavigationPhase.planningToStart) {
-            _screen._phase = NavigationPhase.navigatingToStart;
-          }
-        });
-      }
-    }
-
-    @override
-    void onRouteCalculationFailure(String error) {
-      if (!_screen.mounted) return;
-      
-      debugPrint('❌ 路径规划失败: $error');
-      if (_screen.mounted) {
-        _screen.setState(() => _screen._phase = NavigationPhase.error);
-      }
-    }
-
-    @override
-    void onNaviInfoUpdate(AMapNaviInfo naviInfo) {
-      if (!_screen.mounted) return;
-      
-      // 更新导航信息（剩余距离、时间等）
-      if (_screen.mounted) {
-        _screen.setState(() {
-          _screen._remainingDistance = naviInfo.remainingDistance;
-          _screen._estimatedArrivalMinutes = naviInfo.remainingTime ~/ 60;
-        });
-      }
-    }
-
-    @override
-    void onOffRouteDetected() {
-      if (!_screen.mounted) return;
-      
-      debugPrint('⚠️ 检测到偏航');
-      if (_screen.mounted) {
-        _screen.setState(() => _screen._phase = NavigationPhase.offRoute);
-      }
-      _screen._speak('您已偏航，正在重新规划路线');
-    }
-
-    @override
-    void onArrivedDestination() {
-      if (!_screen.mounted) return;
-      
-      debugPrint('✅ 到达目的地');
-      if (_screen.mounted) {
-        _screen.setState(() => _screen._phase = NavigationPhase.completed);
-      }
-      _screen._navigationCompleted = true;
-    }
-
-    @override
-    void onNaviStarted() {
-      if (!_screen.mounted) return;
-      
-      debugPrint('🚀 导航开始');
-    }
-
-    @override
-    void onNaviStopped() {
-      if (!_screen.mounted) return;
-      
-      debugPrint('🛑 导航停止');
-      if (_screen.mounted) {
-        _screen.setState(() {
-          _screen._isRouteNaviStarted = false;
-        });
-      }
-    }
-  }
 
   @override
   void dispose() {
@@ -915,7 +832,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     if (!_filterGPSPoint(point)) {
       debugPrint('GPS 精度不足，过滤: accuracy=${point.accuracy}m');
       if (!mounted || _isDisposing) return;
-      setState(() => _status = NavigationStatus.weakSignal);
+      setState(() => _phase = NavigationPhase.weakSignal);
       return;
     }
 
@@ -923,7 +840,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     setState(() {
       _currentPosition = point;
       _currentLatLng = LatLng(latitude, longitude);
-      _status = NavigationStatus.navigating; // 保持兼容
+      // _status = NavigationStatus.navigating; // 保持兼容（已废弃）
       
       // 如果是第一次获取到有效位置，且处于规划阶段，更新阶段状态
       if (_phase == NavigationPhase.planningToStart) {
@@ -1088,7 +1005,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     // 检查是否到达终点
     if (nearestIndex >= _routePoints.length - 1) {
       if (!mounted || _isDisposing) return;
-      setState(() => _status = NavigationStatus.arrived);
+      setState(() => _phase = NavigationPhase.completed);
       _navigationCompleted = true;
       
       // 上报导航完成事件（符合 data-tracking-spec-v1.2）
@@ -1154,7 +1071,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       _offRouteCount++;
       if (_offRouteCount >= _offRouteConfirmCount) {
         if (!mounted || _isDisposing) return;
-        setState(() => _status = NavigationStatus.offRoute);
+        setState(() => _phase = NavigationPhase.offRoute);
         _totalDeviationCount++; // 统计总偏航次数
         _speak('您已偏离路线，请返回');
         
@@ -1169,9 +1086,9 @@ class _NavigationScreenState extends State<NavigationScreen>
       }
     } else {
       _offRouteCount = 0;
-      if (_status == NavigationStatus.offRoute) {
+      if (_phase == NavigationPhase.offRoute) {
         if (!mounted || _isDisposing) return;
-        setState(() => _status = NavigationStatus.navigating);
+        setState(() => _phase = NavigationPhase.navigatingRoute);
         _speak('已回到正确路线');
         
         // 上报恢复导航事件
@@ -1232,30 +1149,12 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   /// 获取状态颜色
   Color _getStatusColor(BuildContext context) {
-    switch (_status) {
-      case NavigationStatus.navigating:
-        return DesignSystem.getPrimary(context);
-      case NavigationStatus.offRoute:
-        return DesignSystem.getWarning(context);
-      case NavigationStatus.arrived:
-        return DesignSystem.getSuccess(context);
-      case NavigationStatus.weakSignal:
-        return DesignSystem.getTextTertiary(context);
-    }
+    return _phase.getColor(context);
   }
 
   /// 获取状态文本
   String _getStatusText() {
-    switch (_status) {
-      case NavigationStatus.navigating:
-        return '导航中';
-      case NavigationStatus.offRoute:
-        return '已偏航';
-      case NavigationStatus.arrived:
-        return '已到达';
-      case NavigationStatus.weakSignal:
-        return '信号弱';
-    }
+    return _phase.description;
   }
 
   /// 重新规划路线
@@ -1285,7 +1184,7 @@ class _NavigationScreenState extends State<NavigationScreen>
         // 重置导航状态
         _currentRouteIndex = 0;
         _offRouteCount = 0;
-        _status = NavigationStatus.navigating;
+        _phase = NavigationPhase.navigatingRoute;
         
         // 重新计算总距离
         _calculateTotalDistance();

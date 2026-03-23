@@ -13,9 +13,11 @@ export declare class AchievementsService {
     markAllAchievementsViewed(userId: string): Promise<void>;
     checkAchievements(userId: string, dto: CheckAchievementsRequestDto): Promise<CheckAchievementsResponseDto>;
     getOrCreateUserStats(userId: string): Promise<{
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
+        preferredDifficulty: string | null;
+        preferredTags: string[];
         totalDistanceM: number;
         totalDurationSec: number;
         totalElevationGainM: number;
@@ -33,8 +35,6 @@ export declare class AchievementsService {
         totalLikesReceived: number;
         avgDistanceKm: number | null;
         avgDurationMin: number | null;
-        preferredDifficulty: string | null;
-        preferredTags: string[];
     }>;
     getUserStats(userId: string): Promise<UserStatsDto>;
     private updateStatsAfterTrailTx;

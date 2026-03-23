@@ -24,6 +24,7 @@ let CollectionsService = class CollectionsService {
                 description: dto.description || null,
                 coverUrl: dto.coverUrl || null,
                 isPublic: dto.isPublic ?? true,
+                tags: dto.tags || [],
             },
             include: {
                 user: {
@@ -153,6 +154,7 @@ let CollectionsService = class CollectionsService {
                 coverUrl: dto.coverUrl,
                 isPublic: dto.isPublic,
                 sortOrder: dto.sortOrder,
+                tags: dto.tags,
             },
             include: {
                 user: {
@@ -286,6 +288,188 @@ let CollectionsService = class CollectionsService {
             });
         }
         return this.getCollectionDetail(collectionId, userId);
+    }
+    async batchRemoveTrails(userId, collectionId, dto) {
+        const collection = await this.prisma.collection.findUnique({
+            where: { id: collectionId },
+        });
+        if (!collection) {
+            throw new common_1.NotFoundException('收藏夹不存在');
+        }
+        if (collection.userId !== userId) {
+            throw new common_1.ForbiddenException('无权修改此收藏夹');
+        }
+        const deleteResult = await this.prisma.collectionTrail.deleteMany({
+            where: {
+                collectionId,
+                trailId: { in: dto.trailIds },
+            },
+        });
+        if (deleteResult.count > 0) {
+            await this.prisma.collection.update({
+                where: { id: collectionId },
+                data: { trailCount: { decrement: deleteResult.count } },
+            });
+        }
+    }
+    async batchMoveTrails(userId, collectionId, dto) {
+        const sourceCollection = await this.prisma.collection.findUnique({
+            where: { id: collectionId },
+        });
+        if (!sourceCollection) {
+            throw new common_1.NotFoundException('源收藏夹不存在');
+        }
+        if (sourceCollection.userId !== userId) {
+            throw new common_1.ForbiddenException('无权修改此收藏夹');
+        }
+        const targetCollection = await this.prisma.collection.findUnique({
+            where: { id: dto.targetCollectionId },
+        });
+        if (!targetCollection) {
+            throw new common_1.NotFoundException('目标收藏夹不存在');
+        }
+        if (targetCollection.userId !== userId) {
+            throw new common_1.ForbiddenException('无权操作目标收藏夹');
+        }
+        const maxSortOrder = await this.prisma.collectionTrail.findFirst({
+            where: { collectionId: dto.targetCollectionId },
+            orderBy: { sortOrder: 'desc' },
+            select: { sortOrder: true },
+        });
+        let currentSortOrder = (maxSortOrder?.sortOrder || 0) + 1;
+        const sourceTrails = await this.prisma.collectionTrail.findMany({
+            where: {
+                collectionId,
+                trailId: { in: dto.trailIds },
+            },
+        });
+        if (sourceTrails.length === 0) {
+            return this.getCollectionDetail(dto.targetCollectionId, userId);
+        }
+        const trailIdsToMove = sourceTrails.map(st => st.trailId);
+        const existingInTarget = await this.prisma.collectionTrail.findMany({
+            where: {
+                collectionId: dto.targetCollectionId,
+                trailId: { in: trailIdsToMove },
+            },
+            select: { trailId: true },
+        });
+        const existingTrailIds = existingInTarget.map(et => et.trailId);
+        const newTrailIds = trailIdsToMove.filter(id => !existingTrailIds.includes(id));
+        await this.prisma.$transaction(async (tx) => {
+            await tx.collectionTrail.deleteMany({
+                where: {
+                    collectionId,
+                    trailId: { in: trailIdsToMove },
+                },
+            });
+            if (newTrailIds.length > 0) {
+                await tx.collectionTrail.createMany({
+                    data: newTrailIds.map(trailId => ({
+                        collectionId: dto.targetCollectionId,
+                        trailId,
+                        sortOrder: currentSortOrder++,
+                    })),
+                });
+            }
+            await tx.collection.update({
+                where: { id: collectionId },
+                data: { trailCount: { decrement: sourceTrails.length } },
+            });
+            if (newTrailIds.length > 0) {
+                await tx.collection.update({
+                    where: { id: dto.targetCollectionId },
+                    data: { trailCount: { increment: newTrailIds.length } },
+                });
+            }
+        });
+        return this.getCollectionDetail(collectionId, userId);
+    }
+    async searchCollectionTrails(userId, collectionId, dto) {
+        const collection = await this.prisma.collection.findUnique({
+            where: { id: collectionId },
+        });
+        if (!collection) {
+            throw new common_1.NotFoundException('收藏夹不存在');
+        }
+        if (!collection.isPublic && collection.userId !== userId) {
+            throw new common_1.ForbiddenException('无权查看此收藏夹');
+        }
+        const where = {
+            collectionId,
+        };
+        if (dto.q) {
+            where.trail = {
+                OR: [
+                    { name: { contains: dto.q, mode: 'insensitive' } },
+                    { description: { contains: dto.q, mode: 'insensitive' } },
+                    { tags: { has: dto.q } },
+                ],
+            };
+        }
+        if (dto.difficulty) {
+            where.trail = {
+                ...where.trail,
+                difficulty: dto.difficulty,
+            };
+        }
+        if (dto.minDistance !== undefined || dto.maxDistance !== undefined) {
+            where.trail = {
+                ...where.trail,
+                distanceKm: {
+                    ...(dto.minDistance !== undefined && { gte: dto.minDistance }),
+                    ...(dto.maxDistance !== undefined && { lte: dto.maxDistance }),
+                },
+            };
+        }
+        if (dto.minRating !== undefined) {
+            where.trail = {
+                ...where.trail,
+                avgRating: { gte: dto.minRating },
+            };
+        }
+        if (dto.tags && dto.tags.length > 0) {
+            where.trail = {
+                ...where.trail,
+                tags: { hasEvery: dto.tags },
+            };
+        }
+        const trails = await this.prisma.collectionTrail.findMany({
+            where,
+            orderBy: { sortOrder: 'asc' },
+            include: {
+                trail: {
+                    select: {
+                        id: true,
+                        name: true,
+                        coverImages: true,
+                        distanceKm: true,
+                        durationMin: true,
+                        difficulty: true,
+                        avgRating: true,
+                        reviewCount: true,
+                        rating5Count: true,
+                        rating4Count: true,
+                        rating3Count: true,
+                        rating2Count: true,
+                        rating1Count: true,
+                        isPublished: true,
+                    },
+                },
+            },
+            skip: (dto.page - 1) * dto.limit,
+            take: dto.limit,
+        });
+        const publishedTrails = trails.filter(t => t.trail.isPublished !== false);
+        const collectionDetail = {
+            ...collection,
+            trails: publishedTrails,
+            user: await this.prisma.user.findUnique({
+                where: { id: collection.userId },
+                select: { id: true, nickname: true, avatarUrl: true },
+            }),
+        };
+        return this.mapToCollectionDetailDto(collectionDetail);
     }
     mapToCollectionDto(collection) {
         return {

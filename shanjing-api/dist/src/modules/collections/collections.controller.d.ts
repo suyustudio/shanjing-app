@@ -1,5 +1,5 @@
 import { CollectionsService } from './collections.service';
-import { CreateCollectionDto, UpdateCollectionDto, AddTrailToCollectionDto, BatchAddTrailsDto, QueryCollectionsDto, CollectionDto, CollectionDetailDto, CollectionListResponseDto } from './dto/collection.dto';
+import { CreateCollectionDto, UpdateCollectionDto, AddTrailToCollectionDto, BatchAddTrailsDto, BatchRemoveTrailsDto, BatchMoveTrailsDto, SearchCollectionTrailsDto, QueryCollectionsDto, CollectionDto, CollectionDetailDto, CollectionListResponseDto } from './dto/collection.dto';
 import { Request } from 'express';
 interface RequestWithUser extends Request {
     user: {
@@ -51,6 +51,23 @@ export declare class CollectionsController {
         data: {
             message: string;
         };
+        meta: any;
+    }>;
+    batchRemoveTrails(req: RequestWithUser, id: string, dto: BatchRemoveTrailsDto): Promise<{
+        success: boolean;
+        data: {
+            message: string;
+        };
+        meta: any;
+    }>;
+    batchMoveTrails(req: RequestWithUser, id: string, dto: BatchMoveTrailsDto): Promise<{
+        success: boolean;
+        data: CollectionDetailDto;
+        meta: any;
+    }>;
+    searchCollectionTrails(req: RequestWithUser, id: string, dto: SearchCollectionTrailsDto): Promise<{
+        success: boolean;
+        data: CollectionDetailDto;
         meta: any;
     }>;
 }

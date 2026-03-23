@@ -4,14 +4,14 @@ export declare class UserProfileService {
     private prisma;
     constructor(prisma: PrismaService);
     getOrCreateProfile(userId: string): Promise<{
+        userId: string;
         id: string;
         createdAt: Date;
-        userId: string;
-        preferredDifficulty: string | null;
-        preferredTags: string[];
         updatedAt: Date;
+        preferredDifficulty: string | null;
         preferredMinDistanceKm: number | null;
         preferredMaxDistanceKm: number | null;
+        preferredTags: string[];
         totalCompletedTrails: number;
         totalDistanceKm: number;
         totalDurationMin: number;

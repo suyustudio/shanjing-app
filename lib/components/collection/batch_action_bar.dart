@@ -19,6 +19,7 @@ class CollectionBatchActionBar extends StatefulWidget {
   final int selectedCount;
   final List<CollectionBatchActionType> availableActions;
   final Function(CollectionBatchActionType) onActionSelected;
+  final Function(CollectionBatchActionType)? onActionLongPressed;
   final VoidCallback onCancel;
   final String? title;
   final bool showAtTop;
@@ -33,6 +34,7 @@ class CollectionBatchActionBar extends StatefulWidget {
       CollectionBatchActionType.tag,
     ],
     required this.onActionSelected,
+    this.onActionLongPressed,
     required this.onCancel,
     this.title,
     this.showAtTop = false,
@@ -186,6 +188,9 @@ class _CollectionBatchActionBarState extends State<CollectionBatchActionBar>
               fontWeight: FontWeight.w500,
             ),
             onPressed: () => widget.onActionSelected(action),
+            onLongPress: widget.onActionLongPressed != null
+                ? () => widget.onActionLongPressed!(action)
+                : null,
           ),
         ),
       );

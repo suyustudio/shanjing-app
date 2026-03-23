@@ -68,6 +68,7 @@ model User {
   following         Follow[] @relation("Follower")
   activities        UserActivity[]
   collections       Collection[]
+  trailRecordings   TrailRecording[]
 
   @@index([phone])
   @@index([wxOpenid])
@@ -117,6 +118,9 @@ model Trail {
   pois              TrailPoi[]
   favorites         Favorite[]
   recordings        TrailRecording[]
+  reviews           Review[]
+  photos            Photo[]
+  collectionTrails  CollectionTrail[]
 }
 
 model TrailPoi {
@@ -584,6 +588,7 @@ model Collection {
   isPublic      Boolean            @default(true) @map("is_public")
   sortOrder     Int                @default(0) @map("sort_order")
   trailCount    Int                @default(0) @map("trail_count")
+  tags          String[]           @default([])  // M7 P1: 收藏夹分类标签
   createdAt     DateTime           @default(now()) @map("created_at")
   updatedAt     DateTime           @updatedAt @map("updated_at")
 
@@ -592,6 +597,7 @@ model Collection {
 
   @@index([userId, sortOrder])
   @@index([isPublic, createdAt])
+  @@index([tags])  // M7 P1: 为标签搜索添加GIN索引
   @@map("collections")
 }
 

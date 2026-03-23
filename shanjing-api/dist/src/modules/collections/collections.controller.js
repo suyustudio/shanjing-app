@@ -67,6 +67,18 @@ let CollectionsController = class CollectionsController {
         await this.collectionsService.removeTrailFromCollection(req.user.userId, collectionId, trailId);
         return wrapResponse({ message: '移除成功' });
     }
+    async batchRemoveTrails(req, id, dto) {
+        await this.collectionsService.batchRemoveTrails(req.user.userId, id, dto);
+        return wrapResponse({ message: '移除成功' });
+    }
+    async batchMoveTrails(req, id, dto) {
+        const collection = await this.collectionsService.batchMoveTrails(req.user.userId, id, dto);
+        return wrapResponse(collection);
+    }
+    async searchCollectionTrails(req, id, dto) {
+        const collection = await this.collectionsService.searchCollectionTrails(req.user.userId, id, dto);
+        return wrapResponse(collection);
+    }
 };
 exports.CollectionsController = CollectionsController;
 __decorate([
@@ -176,6 +188,49 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], CollectionsController.prototype, "removeTrailFromCollection", null);
+__decorate([
+    (0, common_1.Delete)('collections/:id/trails/batch'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: '批量从收藏夹移除路线' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: '收藏夹ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: '移除成功' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, collection_dto_1.BatchRemoveTrailsDto]),
+    __metadata("design:returntype", Promise)
+], CollectionsController.prototype, "batchRemoveTrails", null);
+__decorate([
+    (0, common_1.Post)('collections/:id/trails/move'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: '批量移动路线到其他收藏夹' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: '收藏夹ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: '移动成功', type: collection_dto_1.CollectionDetailDto }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, collection_dto_1.BatchMoveTrailsDto]),
+    __metadata("design:returntype", Promise)
+], CollectionsController.prototype, "batchMoveTrails", null);
+__decorate([
+    (0, common_1.Get)('collections/:id/search'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: '搜索收藏夹内路线' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: '收藏夹ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: '搜索成功', type: collection_dto_1.CollectionDetailDto }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, collection_dto_1.SearchCollectionTrailsDto]),
+    __metadata("design:returntype", Promise)
+], CollectionsController.prototype, "searchCollectionTrails", null);
 exports.CollectionsController = CollectionsController = __decorate([
     (0, swagger_1.ApiTags)('收藏夹系统'),
     (0, common_1.Controller)('v1'),

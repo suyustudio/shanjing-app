@@ -6,16 +6,16 @@ export declare class AdminTrailsService {
     createTrail(dto: CreateTrailDto, adminId: string): Promise<{
         success: boolean;
         data: {
-            tags: string[];
-            id: string;
             name: string;
             description: string | null;
+            tags: string[];
+            difficulty: import(".prisma/client").$Enums.TrailDifficulty;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
             distanceKm: number;
             durationMin: number;
             elevationGainM: number;
-            difficulty: import(".prisma/client").$Enums.TrailDifficulty;
             coverImages: string[];
             gpxUrl: string | null;
             city: string;
@@ -29,8 +29,14 @@ export declare class AdminTrailsService {
             boundsEast: number | null;
             boundsWest: number | null;
             isActive: boolean;
+            isPublished: boolean;
             avgRating: number | null;
             reviewCount: number;
+            rating5Count: number;
+            rating4Count: number;
+            rating3Count: number;
+            rating2Count: number;
+            rating1Count: number;
             createdBy: string;
             deletedAt: Date | null;
         };
@@ -38,16 +44,16 @@ export declare class AdminTrailsService {
     updateTrail(trailId: string, dto: UpdateTrailDto): Promise<{
         success: boolean;
         data: {
-            tags: string[];
-            id: string;
             name: string;
             description: string | null;
+            tags: string[];
+            difficulty: import(".prisma/client").$Enums.TrailDifficulty;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
             distanceKm: number;
             durationMin: number;
             elevationGainM: number;
-            difficulty: import(".prisma/client").$Enums.TrailDifficulty;
             coverImages: string[];
             gpxUrl: string | null;
             city: string;
@@ -61,8 +67,14 @@ export declare class AdminTrailsService {
             boundsEast: number | null;
             boundsWest: number | null;
             isActive: boolean;
+            isPublished: boolean;
             avgRating: number | null;
             reviewCount: number;
+            rating5Count: number;
+            rating4Count: number;
+            rating3Count: number;
+            rating2Count: number;
+            rating1Count: number;
             createdBy: string;
             deletedAt: Date | null;
         };
@@ -81,26 +93,26 @@ export declare class AdminTrailsService {
                 favorites: number;
             };
             pois: {
-                id: string;
                 name: string;
-                description: string | null;
-                createdAt: Date;
                 type: string;
+                description: string | null;
                 trailId: string;
+                id: string;
+                createdAt: Date;
+                order: number;
                 lat: number;
                 lng: number;
-                order: number;
             }[];
-            tags: string[];
-            id: string;
             name: string;
             description: string | null;
+            tags: string[];
+            difficulty: import(".prisma/client").$Enums.TrailDifficulty;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
             distanceKm: number;
             durationMin: number;
             elevationGainM: number;
-            difficulty: import(".prisma/client").$Enums.TrailDifficulty;
             coverImages: string[];
             gpxUrl: string | null;
             city: string;
@@ -114,8 +126,14 @@ export declare class AdminTrailsService {
             boundsEast: number | null;
             boundsWest: number | null;
             isActive: boolean;
+            isPublished: boolean;
             avgRating: number | null;
             reviewCount: number;
+            rating5Count: number;
+            rating4Count: number;
+            rating3Count: number;
+            rating2Count: number;
+            rating1Count: number;
             createdBy: string;
             deletedAt: Date | null;
         };
@@ -124,15 +142,15 @@ export declare class AdminTrailsService {
         success: boolean;
         data: {
             favoriteCount: number;
-            id: string;
             name: string;
+            difficulty: import(".prisma/client").$Enums.TrailDifficulty;
+            id: string;
             createdAt: Date;
             _count: {
                 favorites: number;
             };
             distanceKm: number;
             durationMin: number;
-            difficulty: import(".prisma/client").$Enums.TrailDifficulty;
             city: string;
             district: string;
             isActive: boolean;

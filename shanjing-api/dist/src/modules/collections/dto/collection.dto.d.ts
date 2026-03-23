@@ -3,6 +3,7 @@ export declare class CreateCollectionDto {
     description?: string;
     coverUrl?: string;
     isPublic?: boolean;
+    tags?: string[];
 }
 export declare class UpdateCollectionDto {
     name?: string;
@@ -10,6 +11,7 @@ export declare class UpdateCollectionDto {
     coverUrl?: string;
     isPublic?: boolean;
     sortOrder?: number;
+    tags?: string[];
 }
 export declare class AddTrailToCollectionDto {
     trailId: string;
@@ -18,8 +20,25 @@ export declare class AddTrailToCollectionDto {
 export declare class BatchAddTrailsDto {
     trailIds: string[];
 }
+export declare class BatchRemoveTrailsDto {
+    trailIds: string[];
+}
+export declare class BatchMoveTrailsDto {
+    trailIds: string[];
+    targetCollectionId: string;
+}
 export declare class QueryCollectionsDto {
     userId?: string;
+    page?: number;
+    limit?: number;
+}
+export declare class SearchCollectionTrailsDto {
+    q?: string;
+    difficulty?: string;
+    minDistance?: number;
+    maxDistance?: number;
+    minRating?: number;
+    tags?: string[];
     page?: number;
     limit?: number;
 }

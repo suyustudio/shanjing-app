@@ -1,5 +1,5 @@
 import { PrismaService } from '../../database/prisma.service';
-import { CreateCollectionDto, UpdateCollectionDto, AddTrailToCollectionDto, BatchAddTrailsDto, QueryCollectionsDto, CollectionDto, CollectionDetailDto, CollectionListResponseDto } from './dto/collection.dto';
+import { CreateCollectionDto, UpdateCollectionDto, AddTrailToCollectionDto, BatchAddTrailsDto, BatchRemoveTrailsDto, BatchMoveTrailsDto, SearchCollectionTrailsDto, QueryCollectionsDto, CollectionDto, CollectionDetailDto, CollectionListResponseDto } from './dto/collection.dto';
 export declare class CollectionsService {
     private prisma;
     constructor(prisma: PrismaService);
@@ -11,6 +11,9 @@ export declare class CollectionsService {
     addTrailToCollection(userId: string, collectionId: string, dto: AddTrailToCollectionDto): Promise<CollectionDetailDto>;
     removeTrailFromCollection(userId: string, collectionId: string, trailId: string): Promise<void>;
     batchAddTrails(userId: string, collectionId: string, dto: BatchAddTrailsDto): Promise<CollectionDetailDto>;
+    batchRemoveTrails(userId: string, collectionId: string, dto: BatchRemoveTrailsDto): Promise<void>;
+    batchMoveTrails(userId: string, collectionId: string, dto: BatchMoveTrailsDto): Promise<CollectionDetailDto>;
+    searchCollectionTrails(userId: string, collectionId: string, dto: SearchCollectionTrailsDto): Promise<CollectionDetailDto>;
     private mapToCollectionDto;
     private mapToCollectionDetailDto;
 }

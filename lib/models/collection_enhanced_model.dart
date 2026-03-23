@@ -227,6 +227,64 @@ class BatchMoveTrailsRequest {
   }
 }
 
+/// 批量添加标签请求
+class BatchAddTagsRequest {
+  final List<String> trailIds;
+  final List<String> tagIds;
+
+  BatchAddTagsRequest({
+    required this.trailIds,
+    required this.tagIds,
+  });
+
+  factory BatchAddTagsRequest.fromJson(Map<String, dynamic> json) {
+    return BatchAddTagsRequest(
+      trailIds: (json['trailIds'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
+      tagIds: (json['tagIds'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'trailIds': trailIds,
+      'tagIds': tagIds,
+    };
+  }
+}
+
+/// 批量移除标签请求
+class BatchRemoveTagsRequest {
+  final List<String> trailIds;
+  final List<String> tagIds;
+
+  BatchRemoveTagsRequest({
+    required this.trailIds,
+    required this.tagIds,
+  });
+
+  factory BatchRemoveTagsRequest.fromJson(Map<String, dynamic> json) {
+    return BatchRemoveTagsRequest(
+      trailIds: (json['trailIds'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
+      tagIds: (json['tagIds'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'trailIds': trailIds,
+      'tagIds': tagIds,
+    };
+  }
+}
+
 /// 批量操作结果
 class BatchOperationResult {
   final bool success;
