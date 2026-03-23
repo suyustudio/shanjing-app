@@ -8,6 +8,7 @@ import 'api_client.dart';
 import 'api_config.dart';
 import '../models/collection_enhanced_model.dart';
 import 'collection_service.dart';
+import 'share_service_enhanced.dart';
 
 /// 增强版收藏夹服务
 class CollectionEnhancedService {
@@ -838,6 +839,120 @@ class CollectionEnhancedService {
       return BatchOperationResult(
         success: false,
         message: '操作失败: $e',
+        successCount: 0,
+        totalCount: trailIds.length,
+        failedIds: trailIds,
+      );
+    }
+  }
+
+  /// 批量分享路线
+  Future<BatchOperationResult> batchShareTrails({
+    required String collectionId,
+    required List<String> trailIds,
+    String shareChannel = 'wechat_session',
+    String templateType = 'nature',
+  }) async {
+    // 1. 基本验证
+    if (trailIds.isEmpty) {
+      return BatchOperationResult(
+        success: true,
+        message: '没有需要分享的路线',
+        successCount: 0,
+        totalCount: 0,
+      );
+    }
+
+    // 2. 批量大小限制
+    const maxBatchSize = 100;
+    if (trailIds.length > maxBatchSize) {
+      return BatchOperationResult(
+        success: false,
+        message: '单次批量操作不能超过 $maxBatchSize 条路线',
+        successCount: 0,
+        totalCount: trailIds.length,
+      );
+    }
+
+    // 3. 网络连接检查
+    final hasNetwork = await _checkNetworkConnectivity();
+    if (!hasNetwork) {
+      return BatchOperationResult(
+        success: false,
+        message: '网络连接不可用，请检查网络设置',
+        successCount: 0,
+        totalCount: trailIds.length,
+        failedIds: trailIds,
+      );
+    }
+
+    try {
+      final shareService = ShareService();
+      int successCount = 0;
+      final List<String> failedIds = [];
+      
+      // 4. 执行批量分享（带进度回调）
+      for (int i = 0; i < trailIds.length; i++) {
+        final trailId = trailIds[i];
+        try {
+          // 执行分享（使用默认参数）
+          // TODO: 获取路线名称，暂时使用占位符
+          final response = await shareService.shareTrail(
+            trailId: trailId,
+            trailName: '路线 $trailId', // 临时占位符
+            shareChannel: shareChannel,
+            templateType: templateType,
+            posterData: [], // 空数据，实际需要生成海报
+            startTime: DateTime.now(),
+            generationDurationMs: 0,
+          );
+          
+          successCount++;
+          
+          // 可选：添加延迟以避免过载
+          if (i < trailIds.length - 1) {
+            await Future.delayed(const Duration(milliseconds: 100));
+          }
+        } catch (e) {
+          failedIds.add(trailId);
+          // 继续处理其他路线
+        }
+      }
+      
+      // 5. 返回结果
+      return BatchOperationResult(
+        success: successCount > 0,
+        message: successCount == trailIds.length 
+            ? '成功分享 $successCount 条路线'
+            : '成功分享 $successCount 条路线，失败 ${failedIds.length} 条',
+        successCount: successCount,
+        totalCount: trailIds.length,
+        failedIds: failedIds.isEmpty ? null : failedIds,
+      );
+    } on ApiException catch (e) {
+      // 检查权限错误
+      if (_isPermissionError(e)) {
+        return BatchOperationResult(
+          success: false,
+          message: '您没有权限分享此收藏夹的内容',
+          successCount: 0,
+          totalCount: trailIds.length,
+          failedIds: trailIds,
+        );
+      }
+      // 其他网络或API异常
+      return BatchOperationResult(
+        success: false,
+        message: e.message,
+        successCount: 0,
+        totalCount: trailIds.length,
+        failedIds: trailIds,
+      );
+    } catch (e) {
+      // 其他未知异常
+      return BatchOperationResult(
+        success: false,
+        message: '分享失败: $e',
         successCount: 0,
         totalCount: trailIds.length,
         failedIds: trailIds,

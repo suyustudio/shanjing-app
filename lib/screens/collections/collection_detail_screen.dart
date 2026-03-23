@@ -16,6 +16,7 @@ import '../../components/collection/tag_management.dart';
 import '../../widgets/collections/collection_trail_card.dart';
 import '../../widgets/collections/collection_form_dialog.dart';
 import '../trail_detail_screen.dart';
+import '../../services/share_service_enhanced.dart';
 
 /// 收藏夹详情页
 class CollectionDetailScreen extends StatefulWidget {
@@ -529,6 +530,137 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     }
   }
 
+  /// 批量分享选中路线
+  Future<void> _batchShareTrails() async {
+    if (_selectedTrailIds.isEmpty) return;
+    
+    // 1. 显示分享渠道选择器
+    final shareChannel = await _showShareChannelSelector();
+    if (shareChannel == null) return;
+    
+    // 2. 显示确认对话框
+    final confirmed = await CollectionBatchActionMenu.showShareConfirmationDialog(
+      context: context,
+      selectedCount: _selectedTrailIds.length,
+      shareChannel: shareChannel,
+    );
+    if (!confirmed) return;
+    
+    // 3. 执行批量分享（显示进度指示器）
+    OverlayEntry? overlay;
+    try {
+      overlay = OverlayEntry(
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+      Overlay.of(context).insert(overlay);
+      
+      final result = await _collectionEnhancedService.batchShareTrails(
+        collectionId: _collection.id,
+        trailIds: _selectedTrailIds.toList(),
+        shareChannel: shareChannel,
+        templateType: 'nature', // 默认使用自然模板
+      );
+      
+      overlay.remove();
+      overlay = null;
+      
+      if (!result.success) {
+        throw Exception(result.message);
+      }
+      
+      // 4. 显示结果
+      if (result.successCount == result.totalCount) {
+        // 全部成功
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('成功分享 ${result.successCount} 条路线'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        _exitMultiSelectMode();
+      } else if (result.successCount > 0) {
+        // 部分成功
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('成功分享 ${result.successCount} 条路线，失败 ${result.totalCount - result.successCount} 条'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        // 保留失败的ID，让用户重试
+        if (result.failedIds != null && result.failedIds!.isNotEmpty) {
+          setState(() {
+            _selectedTrailIds.retainAll(result.failedIds!);
+          });
+          // 保持在多选模式
+          return;
+        }
+      } else {
+        // 全部失败
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('分享失败: ${result.message}'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      // 清理覆盖层
+      if (overlay != null) {
+        overlay.remove();
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('分享失败: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  /// 显示分享渠道选择器
+  Future<String?> _showShareChannelSelector() async {
+    final selectedChannel = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('选择分享渠道'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.wechat),
+              title: const Text('微信好友'),
+              onTap: () => Navigator.pop(context, 'wechat_session'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('朋友圈'),
+              onTap: () => Navigator.pop(context, 'wechat_timeline'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.download),
+              title: const Text('保存图片'),
+              onTap: () => Navigator.pop(context, 'save_local'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text('复制链接'),
+              onTap: () => Navigator.pop(context, 'copy_link'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+        ],
+      ),
+    );
+    return selectedChannel;
+  }
+
   /// 批量移除标签从选中路线
   Future<void> _batchRemoveTags() async {
     if (_selectedTrailIds.isEmpty) return;
@@ -656,7 +788,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
         _batchAddTags();
         break;
       case CollectionBatchActionType.share:
-        // TODO: 批量分享
+        _batchShareTrails();
         break;
       case CollectionBatchActionType.cancel:
         _exitMultiSelectMode();

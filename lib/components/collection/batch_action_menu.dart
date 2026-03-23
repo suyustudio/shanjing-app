@@ -136,6 +136,58 @@ class CollectionBatchActionMenu {
         ) ??
         false;
   }
+
+  /// 显示批量分享确认对话框
+  static Future<bool> showShareConfirmationDialog({
+    required BuildContext context,
+    required int selectedCount,
+    required String shareChannel,
+    String title = '确认分享',
+    String? message,
+    String confirmText = '分享',
+    String cancelText = '取消',
+  }) async {
+    // 将分享渠道转换为中文显示
+    String channelDisplayName;
+    switch (shareChannel) {
+      case 'wechat_session':
+        channelDisplayName = '微信好友';
+        break;
+      case 'wechat_timeline':
+        channelDisplayName = '朋友圈';
+        break;
+      case 'save_local':
+        channelDisplayName = '本地保存';
+        break;
+      case 'copy_link':
+        channelDisplayName = '复制链接';
+        break;
+      default:
+        channelDisplayName = shareChannel;
+    }
+    
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text(title),
+              content: Text(
+                  message ?? '确定要将 $selectedCount 项分享到 "$channelDisplayName" 吗？'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(cancelText),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text(confirmText),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
 }
 
 /// 批量操作类型（用于菜单）
