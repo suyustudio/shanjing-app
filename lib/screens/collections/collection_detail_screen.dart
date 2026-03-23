@@ -236,12 +236,24 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     
     if (!confirmed) return;
     
+    // 显示进度指示器
+    OverlayEntry? overlay;
     try {
+      overlay = OverlayEntry(
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+      Overlay.of(context).insert(overlay);
+      
       // 调用批量删除API
       final result = await _collectionEnhancedService.batchRemoveTrailsFromCollection(
         collectionId: _collection.id,
         trailIds: _selectedTrailIds.toList(),
       );
+      
+      overlay.remove();
+      overlay = null;
       
       // 处理结果
       if (result.success) {
@@ -296,11 +308,16 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
         }
       }
     } catch (e) {
+      // 清理覆盖层
+      if (overlay != null) {
+        overlay.remove();
+      }
+      
       // 异常处理
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('删除失败: $e'),
+            content: Text('删除失败: ${e.toString()}'),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -372,12 +389,24 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     if (!confirmed) return;
     
     // 调用批量移动API
+    // 显示进度指示器
+    OverlayEntry? overlay;
     try {
+      overlay = OverlayEntry(
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+      Overlay.of(context).insert(overlay);
+      
       final result = await _collectionEnhancedService.batchMoveTrails(
         sourceCollectionId: _collection.id,
         targetCollectionId: targetCollectionId,
         trailIds: _selectedTrailIds.toList(),
       );
+      
+      overlay.remove();
+      overlay = null;
       
       if (!result.success) {
         throw Exception(result.message);
@@ -392,10 +421,15 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
         );
       }
     } catch (e) {
+      // 清理覆盖层
+      if (overlay != null) {
+        overlay.remove();
+      }
+      
       _exitMultiSelectMode();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('移动失败: $e')),
+          SnackBar(content: Text('移动失败: ${e.toString()}')),
         );
       }
     }

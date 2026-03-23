@@ -26,17 +26,25 @@ class CollectionEnhancedService {
     }
   }
 
-  /// 执行带有重试的API调用
+  /// 执行带有重试和超时控制的API调用
   Future<ApiResponse<T>> _executeWithRetry<T>(
     Future<ApiResponse<T>> Function() apiCall,
-    {int maxRetries = 2, Duration retryDelay = const Duration(seconds: 1)}
+    {int maxRetries = 2, 
+     Duration baseDelay = const Duration(seconds: 1),
+     Duration? timeout,
+     String operationName = 'API操作'}
   ) async {
     ApiResponse<T>? lastResponse;
     Exception? lastException;
     
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        final response = await apiCall();
+        // 应用超时控制
+        final Future<ApiResponse<T>> apiCallFuture = apiCall();
+        final response = timeout != null
+            ? await apiCallFuture.timeout(timeout)
+            : await apiCallFuture;
+            
         lastResponse = response;
         
         // 如果成功，直接返回
@@ -46,21 +54,32 @@ class CollectionEnhancedService {
         
         // 如果是服务器错误且可重试（5xx），则重试
         if (response.errorCode?.startsWith('5') == true && attempt < maxRetries) {
-          await Future.delayed(retryDelay * (attempt + 1));
+          // 指数退避：1s, 2s, 4s, 8s...
+          final delay = Duration(milliseconds: baseDelay.inMilliseconds * (1 << attempt));
+          await Future.delayed(delay);
           continue;
         }
         
         // 其他错误不重试
         return response;
+      } on TimeoutException catch (e) {
+        lastException = e;
+        if (attempt < maxRetries) {
+          // 超时错误，指数退避重试
+          final delay = Duration(milliseconds: baseDelay.inMilliseconds * (1 << attempt));
+          await Future.delayed(delay);
+          continue;
+        }
+        throw ApiException(message: '$operationName 超时（${timeout?.inSeconds ?? 30}秒）', code: 'TIMEOUT');
       } on ApiException catch (e) {
         lastException = e;
         
-        // 如果是网络错误且可重试，则重试
-        if (e.code == 'NETWORK_ERROR' || e.code == 'TIMEOUT') {
-          if (attempt < maxRetries) {
-            await Future.delayed(retryDelay * (attempt + 1));
-            continue;
-          }
+        // 如果是网络错误或超时错误且可重试，则重试
+        if ((e.code == 'NETWORK_ERROR' || e.code == 'TIMEOUT') && attempt < maxRetries) {
+          // 指数退避：1s, 2s, 4s, 8s...
+          final delay = Duration(milliseconds: baseDelay.inMilliseconds * (1 << attempt));
+          await Future.delayed(delay);
+          continue;
         }
         
         // 其他异常或达到重试次数上限，抛出异常
@@ -68,7 +87,9 @@ class CollectionEnhancedService {
       } catch (e) {
         lastException = e as Exception;
         if (attempt < maxRetries) {
-          await Future.delayed(retryDelay * (attempt + 1));
+          // 指数退避：1s, 2s, 4s, 8s...
+          final delay = Duration(milliseconds: baseDelay.inMilliseconds * (1 << attempt));
+          await Future.delayed(delay);
           continue;
         }
         rethrow;
@@ -76,7 +97,7 @@ class CollectionEnhancedService {
     }
     
     // 理论上不会执行到这里
-    throw lastException ?? Exception('API调用失败，达到最大重试次数');
+    throw lastException ?? Exception('$operationName 失败，达到最大重试次数（$maxRetries次）');
   }
 
   /// 检查是否是权限错误
@@ -132,7 +153,7 @@ class CollectionEnhancedService {
     }
 
     try {
-      // 4. 执行API调用（带重试）
+      // 4. 执行API调用（带重试和超时控制）
       final response = await _executeWithRetry<BatchOperationResult>(
         () => _apiClient.post(
           '${ApiEndpoints.collectionDetail(collectionId)}/trails/batch',
@@ -140,7 +161,9 @@ class CollectionEnhancedService {
           parser: (data) => BatchOperationResult.fromJson(data),
         ),
         maxRetries: 2,
-        retryDelay: Duration(seconds: 1),
+        baseDelay: Duration(seconds: 1),
+        timeout: Duration(seconds: 45), // 批量操作需要更长超时
+        operationName: '批量添加路线',
       );
 
       if (response.success && response.data != null) {
@@ -227,7 +250,7 @@ class CollectionEnhancedService {
     }
 
     try {
-      // 4. 执行API调用（带重试）
+      // 4. 执行API调用（带重试和超时控制）
       final response = await _executeWithRetry<BatchOperationResult>(
         () => _apiClient.delete(
           '${ApiEndpoints.collectionDetail(collectionId)}/trails/batch',
@@ -235,7 +258,9 @@ class CollectionEnhancedService {
           parser: (data) => BatchOperationResult.fromJson(data),
         ),
         maxRetries: 2,
-        retryDelay: Duration(seconds: 1),
+        baseDelay: Duration(seconds: 1),
+        timeout: Duration(seconds: 45), // 批量操作需要更长超时
+        operationName: '批量删除路线',
       );
 
       if (response.success && response.data != null) {
@@ -323,7 +348,7 @@ class CollectionEnhancedService {
     }
 
     try {
-      // 4. 执行API调用（带重试）
+      // 4. 执行API调用（带重试和超时控制）
       final response = await _executeWithRetry<BatchOperationResult>(
         () => _apiClient.post(
           '${ApiEndpoints.collectionDetail(sourceCollectionId)}/trails/move',
@@ -334,7 +359,9 @@ class CollectionEnhancedService {
           parser: (data) => BatchOperationResult.fromJson(data),
         ),
         maxRetries: 2,
-        retryDelay: Duration(seconds: 1),
+        baseDelay: Duration(seconds: 1),
+        timeout: Duration(seconds: 45), // 批量操作需要更长超时
+        operationName: '批量移动路线',
       );
 
       if (response.success && response.data != null) {
@@ -420,7 +447,7 @@ class CollectionEnhancedService {
     }
 
     try {
-      // 4. 执行API调用（带重试）
+      // 4. 执行API调用（带重试和超时控制）
       final response = await _executeWithRetry<BatchOperationResult>(
         () => _apiClient.delete(
           '${ApiEndpoints.collections}/batch',
@@ -428,7 +455,9 @@ class CollectionEnhancedService {
           parser: (data) => BatchOperationResult.fromJson(data),
         ),
         maxRetries: 2,
-        retryDelay: Duration(seconds: 1),
+        baseDelay: Duration(seconds: 1),
+        timeout: Duration(seconds: 45), // 批量操作需要更长超时
+        operationName: '批量删除收藏夹',
       );
 
       if (response.success && response.data != null) {
@@ -626,6 +655,7 @@ class CollectionEnhancedService {
     required List<String> trailIds,
     required List<String> tagIds,
   }) async {
+    // 1. 基本验证
     if (trailIds.isEmpty || tagIds.isEmpty) {
       return BatchOperationResult(
         success: true,
@@ -635,6 +665,7 @@ class CollectionEnhancedService {
       );
     }
 
+    // 2. 批量大小限制
     const maxBatchSize = 100;
     if (trailIds.length > maxBatchSize) {
       return BatchOperationResult(
@@ -645,24 +676,75 @@ class CollectionEnhancedService {
       );
     }
 
-    final response = await _apiClient.post(
-      ApiEndpointsEnhanced.collectionTrailsBatchTags(collectionId),
-      body: BatchAddTagsRequest(trailIds: trailIds, tagIds: tagIds).toJson(),
-      parser: (data) => BatchOperationResult.fromJson(data),
-    );
-
-    if (response.success && response.data != null) {
-      // 清除缓存
-      _collectionService.clearCache();
-      return response.data!;
+    // 3. 网络连接检查
+    final hasNetwork = await _checkNetworkConnectivity();
+    if (!hasNetwork) {
+      return BatchOperationResult(
+        success: false,
+        message: '网络连接不可用，请检查网络设置',
+        successCount: 0,
+        totalCount: trailIds.length,
+        failedIds: trailIds,
+      );
     }
 
-    return BatchOperationResult(
-      success: false,
-      message: response.errorMessage ?? '批量添加标签失败',
-      successCount: 0,
-      totalCount: trailIds.length,
-    );
+    try {
+      // 4. 执行API调用（带重试和超时控制）
+      final response = await _executeWithRetry<BatchOperationResult>(
+        () => _apiClient.post(
+          ApiEndpointsEnhanced.collectionTrailsBatchTags(collectionId),
+          body: BatchAddTagsRequest(trailIds: trailIds, tagIds: tagIds).toJson(),
+          parser: (data) => BatchOperationResult.fromJson(data),
+        ),
+        maxRetries: 2,
+        baseDelay: Duration(seconds: 1),
+        timeout: Duration(seconds: 45), // 批量操作需要更长超时
+        operationName: '批量添加标签',
+      );
+
+      if (response.success && response.data != null) {
+        // 清除缓存
+        _collectionService.clearCache();
+        return response.data!;
+      }
+
+      // API返回业务错误
+      return BatchOperationResult(
+        success: false,
+        message: response.errorMessage ?? '批量添加标签失败',
+        successCount: 0,
+        totalCount: trailIds.length,
+        failedIds: trailIds,
+      );
+    } on ApiException catch (e) {
+      // 检查权限错误
+      if (_isPermissionError(e)) {
+        return BatchOperationResult(
+          success: false,
+          message: '您没有权限修改此收藏夹',
+          successCount: 0,
+          totalCount: trailIds.length,
+          failedIds: trailIds,
+        );
+      }
+      // 其他网络或API异常
+      return BatchOperationResult(
+        success: false,
+        message: e.message,
+        successCount: 0,
+        totalCount: trailIds.length,
+        failedIds: trailIds,
+      );
+    } catch (e) {
+      // 其他未知异常
+      return BatchOperationResult(
+        success: false,
+        message: '操作失败: $e',
+        successCount: 0,
+        totalCount: trailIds.length,
+        failedIds: trailIds,
+      );
+    }
   }
 
   /// 批量从路线移除标签
@@ -671,6 +753,7 @@ class CollectionEnhancedService {
     required List<String> trailIds,
     required List<String> tagIds,
   }) async {
+    // 1. 基本验证
     if (trailIds.isEmpty || tagIds.isEmpty) {
       return BatchOperationResult(
         success: true,
@@ -680,6 +763,7 @@ class CollectionEnhancedService {
       );
     }
 
+    // 2. 批量大小限制
     const maxBatchSize = 100;
     if (trailIds.length > maxBatchSize) {
       return BatchOperationResult(
@@ -690,24 +774,75 @@ class CollectionEnhancedService {
       );
     }
 
-    final response = await _apiClient.delete(
-      ApiEndpointsEnhanced.collectionTrailsBatchTags(collectionId),
-      body: BatchRemoveTagsRequest(trailIds: trailIds, tagIds: tagIds).toJson(),
-      parser: (data) => BatchOperationResult.fromJson(data),
-    );
-
-    if (response.success && response.data != null) {
-      // 清除缓存
-      _collectionService.clearCache();
-      return response.data!;
+    // 3. 网络连接检查
+    final hasNetwork = await _checkNetworkConnectivity();
+    if (!hasNetwork) {
+      return BatchOperationResult(
+        success: false,
+        message: '网络连接不可用，请检查网络设置',
+        successCount: 0,
+        totalCount: trailIds.length,
+        failedIds: trailIds,
+      );
     }
 
-    return BatchOperationResult(
-      success: false,
-      message: response.errorMessage ?? '批量移除标签失败',
-      successCount: 0,
-      totalCount: trailIds.length,
-    );
+    try {
+      // 4. 执行API调用（带重试和超时控制）
+      final response = await _executeWithRetry<BatchOperationResult>(
+        () => _apiClient.delete(
+          ApiEndpointsEnhanced.collectionTrailsBatchTags(collectionId),
+          body: BatchRemoveTagsRequest(trailIds: trailIds, tagIds: tagIds).toJson(),
+          parser: (data) => BatchOperationResult.fromJson(data),
+        ),
+        maxRetries: 2,
+        baseDelay: Duration(seconds: 1),
+        timeout: Duration(seconds: 45), // 批量操作需要更长超时
+        operationName: '批量移除标签',
+      );
+
+      if (response.success && response.data != null) {
+        // 清除缓存
+        _collectionService.clearCache();
+        return response.data!;
+      }
+
+      // API返回业务错误
+      return BatchOperationResult(
+        success: false,
+        message: response.errorMessage ?? '批量移除标签失败',
+        successCount: 0,
+        totalCount: trailIds.length,
+        failedIds: trailIds,
+      );
+    } on ApiException catch (e) {
+      // 检查权限错误
+      if (_isPermissionError(e)) {
+        return BatchOperationResult(
+          success: false,
+          message: '您没有权限修改此收藏夹',
+          successCount: 0,
+          totalCount: trailIds.length,
+          failedIds: trailIds,
+        );
+      }
+      // 其他网络或API异常
+      return BatchOperationResult(
+        success: false,
+        message: e.message,
+        successCount: 0,
+        totalCount: trailIds.length,
+        failedIds: trailIds,
+      );
+    } catch (e) {
+      // 其他未知异常
+      return BatchOperationResult(
+        success: false,
+        message: '操作失败: $e',
+        successCount: 0,
+        totalCount: trailIds.length,
+        failedIds: trailIds,
+      );
+    }
   }
 
   // ==================== 工具方法 ====================
