@@ -340,15 +340,33 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     
     if (!confirmed) return;
     
-    // TODO: 调用批量移动API
-    
-    _exitMultiSelectMode();
-    _loadDetail();
-    
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('已移动 ${_selectedTrailIds.length} 条路线到 "${targetCollection.name}"')),
+    // 调用批量移动API
+    try {
+      final result = await _collectionEnhancedService.batchMoveTrails(
+        sourceCollectionId: _collection.id,
+        targetCollectionId: targetCollectionId,
+        trailIds: _selectedTrailIds.toList(),
       );
+      
+      if (!result.success) {
+        throw Exception(result.message);
+      }
+      
+      _exitMultiSelectMode();
+      _loadDetail();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('已移动 ${result.successCount} 条路线到 "${targetCollection.name}"')),
+        );
+      }
+    } catch (e) {
+      _exitMultiSelectMode();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('移动失败: $e')),
+        );
+      }
     }
   }
 
