@@ -696,4 +696,244 @@ export class CollectionsService {
       })),
     };
   }
+
+  // ==================== 标签管理 ====================
+
+  /**
+   * 生成标签颜色（基于标签名哈希）
+   */
+  private generateTagColor(tagName: string): string {
+    // 简单哈希函数
+    let hash = 0;
+    for (let i = 0; i < tagName.length; i++) {
+      hash = ((hash << 5) - hash) + tagName.charCodeAt(i);
+      hash |= 0; // 转换为32位整数
+    }
+    hash = Math.abs(hash);
+    
+    // 使用HSL颜色空间生成柔和颜色
+    const hue = hash % 360;
+    const saturation = 60 + (hash % 20); // 60-80%
+    const lightness = 50 + (hash % 10); // 50-60%
+    
+    // HSL转RGB（简化版）
+    const h = hue / 360;
+    const s = saturation / 100;
+    const l = lightness / 100;
+    
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    
+    const r = Math.round(this.hueToRgb(p, q, h + 1/3) * 255);
+    const g = Math.round(this.hueToRgb(p, q, h) * 255);
+    const b = Math.round(this.hueToRgb(p, q, h - 1/3) * 255);
+    
+    // 返回Hex颜色
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+  }
+
+  /**
+   * HSL转RGB辅助函数
+   */
+  private hueToRgb(p: number, q: number, t: number): number {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  }
+
+  /**
+   * 生成标签ID（基于标签名哈希）
+   */
+  private generateTagId(tagName: string): string {
+    let hash = 0;
+    for (let i = 0; i < tagName.length; i++) {
+      hash = ((hash << 5) - hash) + tagName.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash).toString();
+  }
+
+  /**
+   * 获取所有标签（从所有收藏夹中聚合）
+   */
+  async getAllTags(userId?: string): Promise<Array<{id: string, name: string, color: string, count: number}>> {
+    // 构建查询条件
+    const where: any = {};
+    if (userId) {
+      where.userId = userId;
+    }
+    
+    const collections = await this.prisma.collection.findMany({
+      where,
+      select: { tags: true },
+    });
+
+    // 聚合标签计数
+    const tagCounts = new Map<string, number>();
+    collections.forEach(collection => {
+      collection.tags.forEach(tag => {
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      });
+    });
+
+    // 转换为数组并排序，添加id和color
+    return Array.from(tagCounts.entries())
+      .map(([name, count]) => ({
+        id: this.generateTagId(name),
+        name,
+        color: this.generateTagColor(name),
+        count,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  /**
+   * 创建标签（验证标签名，不实际存储独立实体）
+   */
+  async createTag(userId: string, tagName: string, color?: string): Promise<{id: string, name: string, color: string, count: number}> {
+    // 标签名验证
+    if (!tagName || tagName.trim().length === 0) {
+      throw new Error('标签名不能为空');
+    }
+    if (tagName.length > 20) {
+      throw new Error('标签名不能超过20个字符');
+    }
+
+    // 检查标签是否已存在（在用户的收藏夹中）
+    const userCollections = await this.prisma.collection.findMany({
+      where: { userId },
+      select: { tags: true },
+    });
+
+    const existingTags = new Set<string>();
+    userCollections.forEach(collection => {
+      collection.tags.forEach(tag => existingTags.add(tag));
+    });
+
+    if (existingTags.has(tagName)) {
+      // 标签已存在，返回现有统计
+      const allTags = await this.getAllTags(userId);
+      const existingTag = allTags.find(t => t.name === tagName);
+      return existingTag || {
+        id: this.generateTagId(tagName),
+        name: tagName,
+        color: color || this.generateTagColor(tagName),
+        count: 0,
+      };
+    }
+
+    // 新标签，返回0计数
+    return {
+      id: this.generateTagId(tagName),
+      name: tagName,
+      color: color || this.generateTagColor(tagName),
+      count: 0,
+    };
+  }
+
+  /**
+   * 删除标签（从所有收藏夹中移除）
+   */
+  async deleteTag(userId: string, tagName: string): Promise<void> {
+    // 获取用户所有包含此标签的收藏夹
+    const collections = await this.prisma.collection.findMany({
+      where: {
+        userId,
+        tags: { has: tagName },
+      },
+    });
+
+    // 从每个收藏夹中移除标签
+    for (const collection of collections) {
+      const updatedTags = collection.tags.filter(t => t !== tagName);
+      await this.prisma.collection.update({
+        where: { id: collection.id },
+        data: { tags: updatedTags },
+      });
+    }
+  }
+
+  /**
+   * 获取收藏夹的标签
+   */
+  async getCollectionTags(collectionId: string, userId?: string): Promise<string[]> {
+    const collection = await this.prisma.collection.findUnique({
+      where: { id: collectionId },
+      select: { tags: true, userId: true },
+    });
+
+    if (!collection) {
+      throw new NotFoundException('收藏夹不存在');
+    }
+
+    // 检查权限（非公开收藏夹只能所有者查看）
+    if (collection.userId !== userId) {
+      const publicCollection = await this.prisma.collection.findFirst({
+        where: { id: collectionId, isPublic: true },
+      });
+      if (!publicCollection) {
+        throw new ForbiddenException('无权访问此收藏夹');
+      }
+    }
+
+    return collection.tags;
+  }
+
+  /**
+   * 更新收藏夹标签
+   */
+  async updateCollectionTags(
+    userId: string,
+    collectionId: string,
+    tags: string[],
+  ): Promise<CollectionDto> {
+    const collection = await this.prisma.collection.findUnique({
+      where: { id: collectionId },
+    });
+
+    if (!collection) {
+      throw new NotFoundException('收藏夹不存在');
+    }
+
+    if (collection.userId !== userId) {
+      throw new ForbiddenException('无权修改此收藏夹');
+    }
+
+    // 验证标签
+    const validatedTags = tags
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0 && tag.length <= 20)
+      .slice(0, 10); // 最多10个标签
+
+    const updatedCollection = await this.prisma.collection.update({
+      where: { id: collectionId },
+      data: { tags: validatedTags },
+      include: {
+        user: {
+          select: {
+            id: true,
+            nickname: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    return this.mapToCollectionDto(updatedCollection);
+  }
+
+  /**
+   * 搜索标签
+   */
+  async searchTags(query: string, userId?: string): Promise<Array<{id: string, name: string, color: string, count: number}>> {
+    const allTags = await this.getAllTags(userId);
+    const lowerQuery = query.toLowerCase();
+    
+    return allTags.filter(tag => 
+      tag.name.toLowerCase().includes(lowerQuery)
+    );
+  }
 }

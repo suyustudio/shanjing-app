@@ -16,7 +16,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { CollectionsService } from './collections.service';
 import {
   CreateCollectionDto,
@@ -290,5 +290,123 @@ export class CollectionsController {
       dto,
     );
     return wrapResponse(collection);
+  }
+
+  // ==================== 标签管理 ====================
+
+  /**
+   * 获取所有标签
+   * GET /v1/collections/tags
+   */
+  @Get('collections/tags')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取所有标签' })
+  @ApiQuery({ name: 'userId', required: false, description: '用户ID（可选，不传则获取当前用户）' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getAllTags(
+    @Req() req: RequestWithUser,
+    @Query('userId') userId?: string,
+  ) {
+    const targetUserId = userId || req.user.userId;
+    const tags = await this.collectionsService.getAllTags(targetUserId);
+    return wrapResponse(tags);
+  }
+
+  /**
+   * 创建标签
+   * POST /v1/collections/tags
+   */
+  @Post('collections/tags')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '创建标签' })
+  @ApiResponse({ status: 200, description: '创建成功' })
+  async createTag(
+    @Req() req: RequestWithUser,
+    @Body() body: { name: string, color?: string },
+  ) {
+    const tag = await this.collectionsService.createTag(req.user.userId, body.name, body.color);
+    return wrapResponse(tag);
+  }
+
+  /**
+   * 删除标签
+   * DELETE /v1/collections/tags/:name
+   */
+  @Delete('collections/tags/:name')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '删除标签' })
+  @ApiParam({ name: 'name', description: '标签名' })
+  @ApiResponse({ status: 200, description: '删除成功' })
+  async deleteTag(
+    @Req() req: RequestWithUser,
+    @Param('name') tagName: string,
+  ) {
+    await this.collectionsService.deleteTag(req.user.userId, tagName);
+    return wrapResponse({ message: '删除成功' });
+  }
+
+  /**
+   * 获取收藏夹的标签
+   * GET /v1/collections/:id/tags
+   */
+  @Get('collections/:id/tags')
+  @ApiOperation({ summary: '获取收藏夹的标签' })
+  @ApiParam({ name: 'id', description: '收藏夹ID' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  async getCollectionTags(
+    @Req() req: RequestWithUser,
+    @Param('id') collectionId: string,
+  ) {
+    const userId = req.user?.userId;
+    const tags = await this.collectionsService.getCollectionTags(collectionId, userId);
+    return wrapResponse(tags);
+  }
+
+  /**
+   * 更新收藏夹标签
+   * PUT /v1/collections/:id/tags
+   */
+  @Put('collections/:id/tags')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '更新收藏夹标签' })
+  @ApiParam({ name: 'id', description: '收藏夹ID' })
+  @ApiResponse({ status: 200, description: '更新成功', type: CollectionDto })
+  async updateCollectionTags(
+    @Req() req: RequestWithUser,
+    @Param('id') collectionId: string,
+    @Body() body: { tags: string[] },
+  ) {
+    const collection = await this.collectionsService.updateCollectionTags(
+      req.user.userId,
+      collectionId,
+      body.tags,
+    );
+    return wrapResponse(collection);
+  }
+
+  /**
+   * 搜索标签
+   * GET /v1/collections/tags/search
+   */
+  @Get('collections/tags/search')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '搜索标签' })
+  @ApiQuery({ name: 'q', description: '搜索关键词' })
+  @ApiQuery({ name: 'userId', required: false, description: '用户ID（可选）' })
+  @ApiResponse({ status: 200, description: '搜索成功' })
+  async searchTags(
+    @Req() req: RequestWithUser,
+    @Query('q') query: string,
+    @Query('userId') userId?: string,
+  ) {
+    const targetUserId = userId || req.user.userId;
+    const tags = await this.collectionsService.searchTags(query, targetUserId);
+    return wrapResponse(tags);
   }
 }
