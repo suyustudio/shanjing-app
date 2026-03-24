@@ -144,10 +144,15 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     _isFavorite = _trailData['isFavorite'] ?? false;
     _tabController = TabController(length: 4, vsync: this);
     
-    // P2: 加载天气数据
-    _loadWeatherData();
-    // P2: 加载用户历史（用于个性化难度提示）
-    _loadUserHistory();
+    // 使用 postFrameCallback 延迟加载异步数据，避免页面快速切换时崩溃
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        // P2: 加载天气数据
+        _loadWeatherData();
+        // P2: 加载用户历史（用于个性化难度提示）
+        _loadUserHistory();
+      }
+    });
   }
 
   @override
@@ -158,6 +163,9 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
 
   /// P2: 加载天气数据
   Future<void> _loadWeatherData() async {
+    // 检查 mounted，避免页面销毁后调用 setState
+    if (!mounted) return;
+    
     setState(() {
       _isLoadingWeather = true;
     });
