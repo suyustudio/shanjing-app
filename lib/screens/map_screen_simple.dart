@@ -26,6 +26,17 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   LatLng? _currentPosition;
   bool _isLocating = false;
   
+  /// 获取初始地图中心位置
+  /// 优先使用当前位置，否则使用中国地理中心
+  LatLng _getInitialMapTarget() {
+    // 如果已经有当前位置，使用它
+    if (_currentPosition != null) {
+      return _currentPosition!;
+    }
+    // 否则使用中国地理中心（西安附近）
+    return const LatLng(34.5, 109.5);
+  }
+  
   // 显示模式：true=显示全部路线，false=只显示附近路线
   bool _showAllRoutes = false;
   static const double _nearbyDistanceThreshold = 50000; // 50km
@@ -359,7 +370,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
         // 计算路线中心点（取第一个坐标作为位置）
         final LatLng position = path.isNotEmpty 
             ? path.first 
-            : const LatLng(30.25, 120.15);
+            : const LatLng(34.5, 109.5); // 中国地理中心
         
         return {
           'id': trail['id']?.toString() ?? '',
@@ -1067,8 +1078,8 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
               hasShow: true,
               hasAgree: true,
             ),
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(30.25, 120.15), // 杭州西湖
+            initialCameraPosition: CameraPosition(
+              target: _getInitialMapTarget(),
               zoom: 14,
             ),
             onMapCreated: (controller) {

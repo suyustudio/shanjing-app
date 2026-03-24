@@ -1346,6 +1346,17 @@ class _NavigationScreenState extends State<NavigationScreen>
   /// 处理返回键
   Future<bool> _onWillPop() async {
     if (_navigationMode == NavigationMode.navigating) {
+      // 在显示对话框前先暂停定位，防止对话框期间回调触发
+      bool wasLocating = false;
+      try {
+        wasLocating = _locationPlugin != null;
+        _locationPlugin?.stopLocation();
+        _locationSubscription?.cancel();
+        debugPrint('🗺️ 暂停定位，等待用户确认...');
+      } catch (e) {
+        debugPrint('暂停定位时出错: $e');
+      }
+      
       // 导航中返回，显示确认对话框
       final shouldPop = await showDialog<bool>(
         context: context,
@@ -1374,7 +1385,7 @@ class _NavigationScreenState extends State<NavigationScreen>
         // 提前标记正在销毁，阻止后续所有回调
         _isDisposing = true;
         
-        // 用户确认结束导航，先停止定位
+        // 用户确认结束导航，彻底停止所有资源
         try {
           _locationPlugin?.stopLocation();
           _locationSubscription?.cancel();
@@ -1386,6 +1397,26 @@ class _NavigationScreenState extends State<NavigationScreen>
         }
         
         debugPrint('🗺️ 导航资源清理完成，准备退出页面');
+      } else {
+        // 用户选择继续导航，恢复定位
+        debugPrint('🗺️ 用户选择继续导航，恢复定位...');
+        if (wasLocating && mounted && !_isDisposing) {
+          try {
+            _locationSubscription = _locationPlugin?.onLocationChanged().listen(
+              _onLocationUpdate,
+              onError: (error) {
+                debugPrint('定位错误: $error');
+              },
+              onDone: () {
+                debugPrint('定位流已关闭');
+              },
+            );
+            _locationPlugin?.startLocation();
+            debugPrint('🗺️ 定位已恢复');
+          } catch (e) {
+            debugPrint('恢复定位时出错: $e');
+          }
+        }
       }
       
       return shouldPop ?? false;
