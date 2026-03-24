@@ -1346,15 +1346,35 @@ class _NavigationScreenState extends State<NavigationScreen>
   /// 处理返回键
   Future<bool> _onWillPop() async {
     if (_navigationMode == NavigationMode.navigating) {
-      // 在显示对话框前先暂停定位，防止对话框期间回调触发
+      debugPrint('🗺️ _onWillPop() 开始 - 当前 _isDisposing: $_isDisposing');
+      
+      // 在显示对话框前先暂停所有可能触发回调的操作
       bool wasLocating = false;
       try {
-        wasLocating = _locationPlugin != null;
+        // 记录定位状态
+        wasLocating = _locationPlugin != null && _locationSubscription != null;
+        
+        // 1. 停止所有定位相关
+        debugPrint('🗺️ 停止定位和取消订阅...');
         _locationPlugin?.stopLocation();
         _locationSubscription?.cancel();
-        debugPrint('🗺️ 暂停定位，等待用户确认...');
+        _locationSubscription = null;
+        
+        // 2. 暂停 TTS（如果正在播报）
+        if (_isTtsInitialized && _flutterTts != null) {
+          try {
+            _flutterTts!.stop();
+          } catch (e) {
+            debugPrint('暂停 TTS 时出错: $e');
+          }
+        }
+        
+        // 3. 标记对话框显示中，阻止其他回调
+        _isDisposing = true;
+        
+        debugPrint('🗺️ 所有资源已暂停，显示确认对话框...');
       } catch (e) {
-        debugPrint('暂停定位时出错: $e');
+        debugPrint('暂停资源时出错: $e');
       }
       
       // 导航中返回，显示确认对话框
@@ -1380,28 +1400,60 @@ class _NavigationScreenState extends State<NavigationScreen>
         ),
       );
       
+      debugPrint('🗺️ 对话框返回: shouldPop = $shouldPop');
+      
       if (shouldPop == true) {
-        debugPrint('🗺️ 用户确认结束导航，开始清理资源...');
-        // 提前标记正在销毁，阻止后续所有回调
-        _isDisposing = true;
+        debugPrint('🗺️ 用户确认结束导航，彻底清理所有资源...');
         
-        // 用户确认结束导航，彻底停止所有资源
+        // 用户确认结束导航，彻底清理所有资源
         try {
+          // 确保定位完全停止
           _locationPlugin?.stopLocation();
           _locationSubscription?.cancel();
+          _locationSubscription = null;
+          
+          // 停止 TTS
           if (_isTtsInitialized && _flutterTts != null) {
             _flutterTts!.stop();
           }
+          
+          // 清理导航服务
+          try {
+            _naviService.dispose();
+          } catch (e) {
+            debugPrint('清理导航服务时出错: $e');
+          }
+          
+          // 清理模拟导航服务
+          try {
+            _mockNaviService.dispose();
+          } catch (e) {
+            debugPrint('清理模拟导航服务时出错: $e');
+          }
+          
+          // 移除生命周期观察器
+          try {
+            WidgetsBinding.instance.removeObserver(this);
+          } catch (e) {
+            debugPrint('移除观察器时出错: $e');
+          }
+          
         } catch (e) {
-          debugPrint('停止导航资源时出错: $e');
+          debugPrint('清理资源时出错: $e');
         }
         
-        debugPrint('🗺️ 导航资源清理完成，准备退出页面');
+        debugPrint('🗺️ 所有资源清理完成，准备退出页面');
+        return true;
       } else {
-        // 用户选择继续导航，恢复定位
-        debugPrint('🗺️ 用户选择继续导航，恢复定位...');
-        if (wasLocating && mounted && !_isDisposing) {
+        // 用户选择继续导航，恢复所有资源
+        debugPrint('🗺️ 用户选择继续导航，恢复所有资源...');
+        
+        // 先重置 _isDisposing 标志
+        _isDisposing = false;
+        
+        if (wasLocating && mounted) {
           try {
+            // 重新创建定位订阅
             _locationSubscription = _locationPlugin?.onLocationChanged().listen(
               _onLocationUpdate,
               onError: (error) {
@@ -1417,9 +1469,20 @@ class _NavigationScreenState extends State<NavigationScreen>
             debugPrint('恢复定位时出错: $e');
           }
         }
+        
+        // 恢复其他服务
+        try {
+          // 导航服务可能需要在恢复时重新初始化
+          if (_naviService != null) {
+            _naviService.resume();
+          }
+        } catch (e) {
+          debugPrint('恢复导航服务时出错: $e');
+        }
+        
+        debugPrint('🗺️ 所有资源已恢复，继续导航');
+        return false;
       }
-      
-      return shouldPop ?? false;
     }
     return true;
   }
