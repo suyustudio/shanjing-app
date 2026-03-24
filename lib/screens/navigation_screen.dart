@@ -632,14 +632,19 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   /// 初始化路线点
   void _initRoutePoints() {
-    debugPrint('🗺️ NavigationScreen 初始化路线点');
-    debugPrint('🗺️ widget.routePoints: ${widget.routePoints}');
+    debugPrint('🗺️ === NavigationScreen 初始化路线点 ===');
+    debugPrint('🗺️ 页面ID: $hashCode, 路线名称: ${widget.routeName}');
+    debugPrint('🗺️ widget.routePoints 是否为null: ${widget.routePoints == null}');
+    debugPrint('🗺️ widget.routePoints 长度: ${widget.routePoints?.length ?? 0}');
     
     if (widget.routePoints != null && widget.routePoints!.isNotEmpty) {
-      debugPrint('🗺️ 使用传入的 routePoints，第一个点: ${widget.routePoints!.first}');
+      debugPrint('🗺️ ✅ 使用传入的 routePoints');
+      debugPrint('🗺️   第一个点: 纬度=${widget.routePoints!.first.latitude}, 经度=${widget.routePoints!.first.longitude}');
+      debugPrint('🗺️   最后一个点: 纬度=${widget.routePoints!.last.latitude}, 经度=${widget.routePoints!.last.longitude}');
       _routePoints = widget.routePoints!;
     } else {
-      debugPrint('🗺️ routePoints 为空，使用默认杭州数据！');
+      debugPrint('🗺️ ⚠️ 警告: routePoints 为空，使用默认杭州数据！');
+      debugPrint('🗺️   这会导致地图显示杭州路线，而不是实际路线');
       _routePoints = const [
         LatLng(30.24, 120.14),
         LatLng(30.245, 120.145),
@@ -656,7 +661,10 @@ class _NavigationScreenState extends State<NavigationScreen>
     const double walkingSpeed = 1.4; // 米/秒
     _estimatedArrivalMinutes = (_totalDistance / walkingSpeed / 60).ceil();
     
-    debugPrint('🗺️ 总距离: $_totalDistance 米, 预计时间: $_estimatedArrivalMinutes 分钟');
+    debugPrint('🗺️ 总距离: $_totalDistance 米 (${(_totalDistance/1000).toStringAsFixed(2)}km)');
+    debugPrint('🗺️ 预计时间: $_estimatedArrivalMinutes 分钟');
+    debugPrint('🗺️ 路线点数: ${_routePoints.length}');
+    debugPrint('🗺️ === 路线初始化完成 ===');
   }
 
   /// 计算总距离
@@ -1362,6 +1370,10 @@ class _NavigationScreenState extends State<NavigationScreen>
       );
       
       if (shouldPop == true) {
+        debugPrint('🗺️ 用户确认结束导航，开始清理资源...');
+        // 提前标记正在销毁，阻止后续所有回调
+        _isDisposing = true;
+        
         // 用户确认结束导航，先停止定位
         try {
           _locationPlugin?.stopLocation();
@@ -1372,6 +1384,8 @@ class _NavigationScreenState extends State<NavigationScreen>
         } catch (e) {
           debugPrint('停止导航资源时出错: $e');
         }
+        
+        debugPrint('🗺️ 导航资源清理完成，准备退出页面');
       }
       
       return shouldPop ?? false;
@@ -1383,8 +1397,12 @@ class _NavigationScreenState extends State<NavigationScreen>
   Set<Polyline> _buildPolylines() {
     final polylines = <Polyline>{};
     
+    debugPrint('🗺️ _buildPolylines() 被调用, _routePoints 长度: ${_routePoints.length}');
+    
     // 添加主路线
     if (_routePoints.isNotEmpty) {
+      debugPrint('🗺️   绘制路线折线，点数: ${_routePoints.length}');
+      debugPrint('🗺️   第一个点: 纬度=${_routePoints.first.latitude}, 经度=${_routePoints.first.longitude}');
       polylines.add(
         Polyline(
           points: _routePoints,
@@ -1394,6 +1412,8 @@ class _NavigationScreenState extends State<NavigationScreen>
           width: 6,
         ),
       );
+    } else {
+      debugPrint('🗺️   ⚠️ _routePoints 为空，无法绘制路线');
     }
     
     // 预览模式下，添加从当前位置到起点的路径
@@ -1407,6 +1427,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       );
     }
     
+    debugPrint('🗺️   返回折线数量: ${polylines.length}');
     return polylines;
   }
 

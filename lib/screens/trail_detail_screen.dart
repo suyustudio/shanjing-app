@@ -341,20 +341,40 @@ class _TrailDetailScreenState extends State<TrailDetailScreen>
     LatLng? routeStartPoint;
     final coordinates = _trailData['coordinates'];
     
+    debugPrint('🗺️ === trail_detail_screen 提取路线坐标 ===');
+    debugPrint('🗺️ 路线ID: $trailId, 名称: $trailName');
+    debugPrint('🗺️ coordinates 是否为null: ${coordinates == null}');
+    debugPrint('🗺️ coordinates 类型: ${coordinates?.runtimeType}');
+    
     if (coordinates != null && coordinates is List) {
+      debugPrint('🗺️ coordinates 长度: ${coordinates.length}');
       routePoints = coordinates.map((coord) {
         if (coord is List && coord.length >= 2) {
-          final latLng = LatLng(coord[1].toDouble(), coord[0].toDouble());
+          final lat = coord[1].toDouble(); // 纬度
+          final lng = coord[0].toDouble(); // 经度
+          debugPrint('🗺️   原始坐标: [$lng, $lat] -> LatLng($lat, $lng)');
+          final latLng = LatLng(lat, lng);
           return latLng;
+        } else {
+          debugPrint('🗺️   ⚠️ 坐标格式无效: $coord');
         }
         return null;
       }).whereType<LatLng>().toList();
       
+      debugPrint('🗺️ 提取后的 routePoints 长度: ${routePoints?.length ?? 0}');
+      
       // 提取路线起点
       if (routePoints.isNotEmpty) {
         routeStartPoint = routePoints.first;
+        debugPrint('🗺️ 路线起点: 纬度=${routeStartPoint.latitude}, 经度=${routeStartPoint.longitude}');
+      } else {
+        debugPrint('🗺️ ⚠️ 警告: 提取的 routePoints 为空！');
       }
+    } else {
+      debugPrint('🗺️ ⚠️ 警告: coordinates 数据无效或为空');
     }
+    
+    debugPrint('🗺️ === 坐标提取完成 ===');
     
     // 上报导航开始事件
     AnalyticsService().trackEvent(
