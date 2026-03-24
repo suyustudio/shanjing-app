@@ -9,6 +9,8 @@ analyzer:
     - "test/**"
     - "integration_test/**"
     - "lib/generated_plugin_registrant.dart"
+    - "design/**"
+    - "flutter-amap-config/**"
   errors:
     missing_required_param: error
     missing_return: error
