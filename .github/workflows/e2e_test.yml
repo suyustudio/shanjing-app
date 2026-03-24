@@ -114,12 +114,26 @@ jobs:
             # 创建测试结果目录
             mkdir -p test-results
             
-            # 运行E2E测试 - 使用正确的integration_test命令
-            flutter test integration_test/ qa/m4/p2_testing/automation/e2e/ \
-              --reporter expanded 2>&1 | tee test-results/e2e-android-api${{ matrix.api-level }}.log
+            # 运行E2E测试 - 分别运行两个测试目录，避免路径冲突
+            echo "运行 integration_test/ 目录测试..."
+            flutter test integration_test/ \
+              --reporter expanded 2>&1 | tee -a test-results/e2e-android-api${{ matrix.api-level }}.log
             
-            # 检查测试结果
-            exit ${PIPESTATUS[0]}
+            # 检查第一个测试结果
+            exit_code_1=${PIPESTATUS[0]}
+            
+            echo "运行 qa/m4/p2_testing/automation/e2e/ 目录测试..."
+            flutter test qa/m4/p2_testing/automation/e2e/ \
+              --reporter expanded 2>&1 | tee -a test-results/e2e-android-api${{ matrix.api-level }}.log
+            
+            # 检查第二个测试结果
+            exit_code_2=${PIPESTATUS[0]}
+            
+            # 如果任何一个测试失败，则整体失败
+            if [ $exit_code_1 -ne 0 ] || [ $exit_code_2 -ne 0 ]; then
+              echo "测试失败: integration_test exit_code=$exit_code_1, qa exit_code=$exit_code_2"
+              exit 1
+            fi
       
       - name: Upload test results
         if: always()
@@ -162,12 +176,26 @@ jobs:
           # 创建测试结果目录
           mkdir -p test-results
           
-          # 运行E2E测试
-          flutter test integration_test/ qa/m4/p2_testing/automation/e2e/ \
-            --reporter expanded 2>&1 | tee test-results/e2e-ios.log
+          # 运行E2E测试 - 分别运行两个测试目录，避免路径冲突
+          echo "运行 integration_test/ 目录测试..."
+          flutter test integration_test/ \
+            --reporter expanded 2>&1 | tee -a test-results/e2e-ios.log
           
-          # 检查测试结果
-          exit ${PIPESTATUS[0]}
+          # 检查第一个测试结果
+          exit_code_1=${PIPESTATUS[0]}
+          
+          echo "运行 qa/m4/p2_testing/automation/e2e/ 目录测试..."
+          flutter test qa/m4/p2_testing/automation/e2e/ \
+            --reporter expanded 2>&1 | tee -a test-results/e2e-ios.log
+          
+          # 检查第二个测试结果
+          exit_code_2=${PIPESTATUS[0]}
+          
+          # 如果任何一个测试失败，则整体失败
+          if [ $exit_code_1 -ne 0 ] || [ $exit_code_2 -ne 0 ]; then
+            echo "测试失败: integration_test exit_code=$exit_code_1, qa exit_code=$exit_code_2"
+            exit 1
+          fi
       
       - name: Upload test results
         if: always()
@@ -205,12 +233,18 @@ jobs:
             # 创建测试结果目录
             mkdir -p test-results
             
-            # 运行烟雾测试 - 修复路径
+            # 运行烟雾测试 - 修复路径和命令
+            echo "运行烟雾测试..."
             flutter test qa/m4/p2_testing/automation/e2e/regressions/smoke_test.dart \
               --reporter expanded 2>&1 | tee test-results/smoke-test.log
             
-            # 检查测试结果 - 不再忽略失败
-            exit ${PIPESTATUS[0]}
+            # 检查测试结果
+            exit_code=${PIPESTATUS[0]}
+            
+            if [ $exit_code -ne 0 ]; then
+              echo "烟雾测试失败: exit_code=$exit_code"
+              exit 1
+            fi
       
       - name: Upload smoke test results
         if: always()
@@ -248,15 +282,25 @@ jobs:
             mkdir -p test-results
             
             # 运行性能测试 - 修复路径和命令
+            echo "运行性能测试..."
             flutter test qa/m4/p2_testing/performance/ \
               --reporter json > test-results/performance_results.json 2>&1
             
-            # 同时生成文本报告
+            # 检查第一个命令的结果
+            exit_code_1=${PIPESTATUS[0]}
+            
+            echo "生成文本报告..."
             flutter test qa/m4/p2_testing/performance/ \
               --reporter expanded 2>&1 | tee test-results/performance.log
             
-            # 检查测试结果
-            exit ${PIPESTATUS[0]}
+            # 检查第二个命令的结果
+            exit_code_2=${PIPESTATUS[0]}
+            
+            # 如果任何一个测试失败，则整体失败
+            if [ $exit_code_1 -ne 0 ] || [ $exit_code_2 -ne 0 ]; then
+              echo "性能测试失败: json_report exit_code=$exit_code_1, text_report exit_code=$exit_code_2"
+              exit 1
+            fi
       
       - name: Upload performance results
         if: always()
