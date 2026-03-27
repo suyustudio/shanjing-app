@@ -285,6 +285,27 @@ class AmapNaviService {
     debugPrint('🗺️ 模拟重新规划路线成功');
   }
   
+  /// 恢复导航（从后台恢复时调用）
+  Future<bool> resume() async {
+    if (!_isInitialized) {
+      final initialized = await initialize();
+      if (!initialized) return false;
+    }
+    
+    // 如果之前在导航中，恢复导航状态
+    if (!_isNavigating && _simulatedDistance > 0 && _simulatedDistance < _totalDistance) {
+      _isNavigating = true;
+      _startSimulationTimer();
+      _notifyListeners((listener) => listener.onNaviStarted());
+      debugPrint('🔄 模拟导航已恢复');
+      return true;
+    }
+    
+    // 如果已经到达或尚未开始，只是确保服务可用
+    debugPrint('🔄 导航服务已恢复（无需重启导航）');
+    return true;
+  }
+  
   /// 销毁服务
   Future<void> dispose() async {
     await stopNavigation();
