@@ -1765,15 +1765,22 @@ class _NavigationScreenState extends State<NavigationScreen>
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () async {
+                      debugPrint('🗺️ 底部返回按钮被点击');
                       // 停止定位后再返回
                       try {
                         _locationPlugin?.stopLocation();
                         _locationSubscription?.cancel();
+                        _locationSubscription = null;
                       } catch (e) {
                         debugPrint('停止定位时出错: $e');
                       }
-                      if (mounted) {
-                        Navigator.pop(context);
+                      
+                      // 延迟一帧确保状态更新完成
+                      await Future.delayed(const Duration(milliseconds: 50));
+                      
+                      if (mounted && context.mounted) {
+                        debugPrint('🗺️ 执行 Navigator.pop');
+                        Navigator.of(context, rootNavigator: true).pop();
                       }
                     },
                     icon: const Icon(Icons.arrow_back),
