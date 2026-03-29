@@ -921,15 +921,55 @@ class _NavigationScreenState extends State<NavigationScreen>
   }
 
   /// 开始实际导航
-  void _startActualNavigation() {
+  void _startActualNavigation() async {
     if (!mounted || _isDisposing) return;
+    
+    // 检查当前位置和路线起点
+    if (_currentPosition == null) {
+      debugPrint('❌ 无法开始导航：当前位置未知');
+      _speak('无法获取当前位置，请检查定位权限');
+      return;
+    }
+    
+    final routeStart = widget.routeStartPoint ?? 
+        (_routePoints.isNotEmpty ? _routePoints.first : null);
+    
+    if (routeStart == null) {
+      debugPrint('❌ 无法开始导航：路线起点未知');
+      _speak('路线信息不完整，无法开始导航');
+      return;
+    }
+    
+    debugPrint('🚀 开始阶段1导航：当前位置 → 路线起点');
+    debugPrint('   当前位置: (${_currentPosition!.latitude}, ${_currentPosition!.longitude})');
+    debugPrint('   路线起点: (${routeStart.latitude}, ${routeStart.longitude})');
     
     setState(() {
       _navigationMode = NavigationMode.navigating;
-      _navigationStartTime = DateTime.now(); // 重置导航开始时间
+      _navigationStartTime = DateTime.now();
+      _phase = NavigationPhase.planningToStart;
     });
     
-    _speak('开始导航，请跟随路线行走');
+    _speak('开始导航，正在规划到路线起点的路径');
+    
+    // 调用模拟导航服务进行路径规划（使用真实高德API）
+    final success = await _mockNaviService.calculateWalkRouteToStart(
+      startLat: _currentPosition!.latitude,
+      startLng: _currentPosition!.longitude,
+      targetLat: routeStart.latitude,
+      targetLng: routeStart.longitude,
+    );
+    
+    if (success && mounted) {
+      debugPrint('✅ 阶段1路径规划成功，开始导航');
+      _speak('路径规划完成，请按照导航指引前往路线起点');
+    } else if (mounted) {
+      debugPrint('❌ 阶段1路径规划失败');
+      _speak('路径规划失败，请检查网络连接');
+      setState(() {
+        _phase = NavigationPhase.error;
+      });
+    }
     
     // 上报实际导航开始事件
     AnalyticsService().trackEvent(
@@ -937,6 +977,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       params: {
         NavigationEvents.paramRouteName: widget.routeName,
         'mode': 'actual_navigation',
+        'phase': 'phase1_to_start',
         NavigationEvents.paramStartTimestamp: DateTime.now().millisecondsSinceEpoch,
       },
     );
@@ -1510,15 +1551,35 @@ class _NavigationScreenState extends State<NavigationScreen>
       debugPrint('🗺️   ⚠️ _routePoints 为空，无法绘制路线');
     }
     
-    // 预览模式下，添加从当前位置到起点的路径
+    // 阶段1导航：显示从当前位置到路线起点的真实规划路径
+    if (_phase == NavigationPhase.navigatingToStart || 
+        _phase == NavigationPhase.planningToStart) {
+      final plannedPath = _mockNaviService.plannedPath;
+      if (plannedPath.isNotEmpty) {
+        debugPrint('🗺️   绘制阶段1规划路径，点数: ${plannedPath.length}');
+        polylines.add(
+          Polyline(
+            points: plannedPath,
+            color: Colors.blue,
+            width: 5,
+          ),
+        );
+      }
+    }
+    
+    // 预览模式下，添加从当前位置到起点的路径（如果没有真实规划路径）
     if (_navigationMode == NavigationMode.preview && _previewPath.isNotEmpty) {
-      polylines.add(
-        Polyline(
-          points: _previewPath,
-          color: Colors.blue.withOpacity(0.6), // 半透明蓝色表示规划路径
-          width: 3,
-        ),
-      );
+      // 检查是否已经有真实规划路径
+      final plannedPath = _mockNaviService.plannedPath;
+      if (plannedPath.isEmpty) {
+        polylines.add(
+          Polyline(
+            points: _previewPath,
+            color: Colors.blue.withOpacity(0.6), // 半透明蓝色表示规划路径
+            width: 3,
+          ),
+        );
+      }
     }
     
     debugPrint('🗺️   返回折线数量: ${polylines.length}');
@@ -1748,7 +1809,9 @@ class _NavigationScreenState extends State<NavigationScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              '点击"开始导航"后，系统将引导您前往路线起点',
+              _currentPosition != null
+                  ? '点击"开始导航"后，系统将规划从您当前位置到路线起点的步行路线'
+                  : '正在获取您的位置，请稍候...',
               style: TextStyle(
                 fontSize: 12,
                 color: DesignSystem.getTextTertiary(context),
@@ -1814,13 +1877,17 @@ class _NavigationScreenState extends State<NavigationScreen>
                   context: context,
                   icon: Icons.location_on,
                   value: '${_remainingDistance.toStringAsFixed(0)} m',
-                  label: '剩余距离',
+                  label: _phase == NavigationPhase.navigatingToStart 
+                      ? '距起点'
+                      : '剩余距离',
                 ),
                 _buildInfoItem(
                   context: context,
                   icon: Icons.access_time,
                   value: '$_estimatedArrivalMinutes 分',
-                  label: '预计时间',
+                  label: _phase == NavigationPhase.navigatingToStart 
+                      ? '到起点'
+                      : '预计时间',
                 ),
                 _buildInfoItem(
                   context: context,

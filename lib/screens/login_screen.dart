@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../constants/design_system.dart';
 import '../../services/auth_service.dart';
+import 'register_screen.dart';
 
 /// 简化版登录页面（M3批次1）
 /// 
@@ -68,7 +69,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _goToRegister() {
-    Navigator.of(context).pushNamed('/register');
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const RegisterScreen()),
+    );
   }
 
   @override
