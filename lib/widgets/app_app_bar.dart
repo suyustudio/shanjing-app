@@ -25,6 +25,10 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool centerTitle;
   
   /// 返回按钮回调
+  /// 可以是同步或异步函数，返回 Future<bool> 表示是否应该返回
+  final Future<bool> Function()? onBackAsync;
+  
+  /// 同步返回按钮回调（兼容旧代码）
   final VoidCallback? onBack;
   
   /// 底部阴影高度
@@ -39,6 +43,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.foregroundColor,
     this.centerTitle = true,
     this.onBack,
+    this.onBackAsync,
     this.elevation,
   });
 
@@ -72,7 +77,18 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
                 Icons.arrow_back,
                 color: foregroundColor ?? defaultFgColor,
               ),
-              onPressed: onBack ?? () => Navigator.pop(context),
+              onPressed: () async {
+                if (onBackAsync != null) {
+                  final shouldPop = await onBackAsync!();
+                  if (shouldPop && context.mounted) {
+                    Navigator.pop(context);
+                  }
+                } else if (onBack != null) {
+                  onBack!();
+                } else {
+                  Navigator.pop(context);
+                }
+              },
             )
           : null,
       actions: actions?.map((action) {

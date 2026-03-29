@@ -1307,13 +1307,7 @@ class _NavigationScreenState extends State<NavigationScreen>
           backgroundColor: _getStatusColor(context),
           foregroundColor: DesignSystem.getTextInverse(context),
           showBack: true,
-          onBack: () async {
-            // 使用与 WillPopScope 相同的逻辑
-            final shouldPop = await _onWillPop();
-            if (shouldPop && mounted) {
-              Navigator.pop(context);
-            }
-          },
+          onBackAsync: _onWillPop,
         ),
         body: Stack(
           children: [
