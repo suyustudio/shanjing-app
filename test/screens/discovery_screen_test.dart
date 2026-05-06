@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/screens/discovery_screen.dart';
-import 'package:hangzhou_guide/widgets/app_loading.dart';
+import 'package:shanjing/screens/discovery_screen.dart';
+import 'package:shanjing/widgets/app_loading.dart';
 
 void main() {
   group('DiscoveryScreen', () {

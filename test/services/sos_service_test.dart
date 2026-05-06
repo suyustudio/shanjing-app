@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart';
-import 'package:hangzhou_guide/services/sos_service_enhanced.dart';
+import 'package:shanjing/services/sos_service_enhanced.dart';
 
 /// SOS 服务单元测试
 /// 

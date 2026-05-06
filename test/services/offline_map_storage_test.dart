@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/services/offline_map_storage.dart';
+import 'package:shanjing/services/offline_map_storage.dart';
 
 void main() {
   group('OfflineMapStorage 单元测试', () {

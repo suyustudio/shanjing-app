@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/screens/offline_map_screen.dart';
-import 'package:hangzhou_guide/widgets/app_loading.dart';
-import 'package:hangzhou_guide/widgets/app_error.dart';
+import 'package:shanjing/screens/offline_map_screen.dart';
+import 'package:shanjing/widgets/app_loading.dart';
+import 'package:shanjing/widgets/app_error.dart';
 
 void main() {
   group('OfflineMapScreen', () {

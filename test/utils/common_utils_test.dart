@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/utils/common_utils.dart';
+import 'package:shanjing/utils/common_utils.dart';
 
 void main() {
   group('StringExtensions', () {

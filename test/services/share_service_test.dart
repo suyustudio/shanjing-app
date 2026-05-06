@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/services/share_service_enhanced.dart';
+import 'package:shanjing/config/api_config.dart';
+import 'package:shanjing/services/share_service_enhanced.dart';
 
 /// 分享服务单元测试
 /// 
@@ -278,13 +279,13 @@ void main() {
     test('ApiException 应正确格式化错误信息', () {
       final exception = ApiException(
         message: '网络请求失败',
-        code: 'NETWORK_ERROR',
+        statusCode: 500,
       );
 
-      expect(exception.toString(), contains('NETWORK_ERROR'));
+      expect(exception.toString(), contains('500'));
       expect(exception.toString(), contains('网络请求失败'));
       expect(exception.message, '网络请求失败');
-      expect(exception.code, 'NETWORK_ERROR');
+      expect(exception.statusCode, 500);
     });
   });
 

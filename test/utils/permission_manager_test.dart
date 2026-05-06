@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/utils/permission_manager.dart';
+import 'package:shanjing/utils/permission_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 void main() {

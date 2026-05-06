@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/utils/error_handler.dart';
-import 'package:hangzhou_guide/utils/result.dart';
+import 'package:shanjing/utils/error_handler.dart';
+import 'package:shanjing/utils/result.dart';
 
 void main() {
   group('AppError', () {

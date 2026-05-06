@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:hangzhou_guide/utils/performance_optimizer.dart';
-import 'package:hangzhou_guide/utils/map_memory_optimizer.dart';
-import 'package:hangzhou_guide/utils/route_preload_optimizer.dart';
-import 'package:hangzhou_guide/utils/image_lazy_loader.dart';
+import 'package:shanjing/utils/performance_optimizer.dart';
+import 'package:shanjing/utils/map_memory_optimizer.dart';
+import 'package:shanjing/utils/route_preload_optimizer.dart';
+import 'package:shanjing/utils/image_lazy_loader.dart';
 
 /// 性能优化工具单元测试
 /// 

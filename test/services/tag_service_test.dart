@@ -1,9 +1,10 @@
 // tag_service_test.dart
 // 山径APP - 标签服务单元测试（M7 P2-06 测试覆盖率提升）
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/services/tag_service.dart';
-import 'package:hangzhou_guide/models/collection_tag.dart';
+import 'package:shanjing/services/tag_service.dart';
+import 'package:shanjing/models/collection_tag.dart';
 
 void main() {
   late TagService tagService;
@@ -153,8 +154,8 @@ void main() {
   group('TagStatistics 统计测试', () {
     test('从标签列表计算统计信息', () {
       final tags = [
-        CollectionTag.fromString('工作')..incrementCount()..incrementCount(),
-        CollectionTag.fromString('旅行')..incrementCount(),
+        CollectionTag.fromString('工作').incrementCount().incrementCount(),
+        CollectionTag.fromString('旅行').incrementCount(),
         CollectionTag.fromString('家庭'),
       ];
       
@@ -178,8 +179,8 @@ void main() {
 
     test('获取标签使用频率', () {
       final tags = [
-        CollectionTag.fromString('工作')..incrementCount()..incrementCount(),
-        CollectionTag.fromString('旅行')..incrementCount(),
+        CollectionTag.fromString('工作').incrementCount().incrementCount(),
+        CollectionTag.fromString('旅行').incrementCount(),
       ];
       
       final stats = TagStatistics.fromTags(tags);

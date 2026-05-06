@@ -2,8 +2,8 @@
 // 山径APP - 收藏夹增强功能单元测试（M7 P1）
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/models/collection_enhanced_model.dart';
-import 'package:hangzhou_guide/widgets/collections/collection_selection_manager.dart';
+import 'package:shanjing/models/collection_enhanced_model.dart';
+import 'package:shanjing/widgets/collections/collection_selection_manager.dart';
 
 void main() {
   group('增强收藏夹模型测试', () {

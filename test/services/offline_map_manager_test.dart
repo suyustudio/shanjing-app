@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
-import 'package:hangzhou_guide/services/offline_map_manager.dart';
+import 'package:shanjing/services/offline_map_manager.dart';
 
 void main() {
   group('OfflineMapManager Tests', () {

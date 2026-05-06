@@ -33,9 +33,6 @@ class NetworkService {
   }
 }
 
-// Mock 类
-class MockConnectivity extends Mock implements Connectivity {}
-
 @GenerateMocks([Connectivity])
 void main() {
   group('NetworkService', () {

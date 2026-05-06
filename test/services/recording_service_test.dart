@@ -11,20 +11,22 @@ import '../../lib/models/recording_model.dart';
 
 // Mock classes
 class MockAMapFlutterLocation extends Mock implements AMapFlutterLocation {}
-class MockSharedPreferences extends Mock implements SharedPreferences {}
+
+/// Fake SharedPreferences that returns null for getString
+class FakeSharedPreferences extends Fake implements SharedPreferences {
+  @override
+  String? getString(String key) => null;
+}
 
 void main() {
   late RecordingService recordingService;
   late MockAMapFlutterLocation mockLocation;
-  late MockSharedPreferences mockPrefs;
+  late FakeSharedPreferences mockPrefs;
 
   setUp(() {
     mockLocation = MockAMapFlutterLocation();
-    mockPrefs = MockSharedPreferences();
+    mockPrefs = FakeSharedPreferences();
     recordingService = RecordingService();
-    
-    // 模拟权限授予
-    when(mockPrefs.getString(any)).thenReturn(null);
   });
 
   tearDown(() {

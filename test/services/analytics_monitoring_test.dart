@@ -5,70 +5,63 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:your_app/services/analytics_service.dart';
-import 'package:your_app/services/performance_monitor_service.dart';
-import 'package:your_app/services/error_monitor_service.dart';
+import 'package:shanjing/services/analytics_service.dart';
+import 'package:shanjing/services/performance_monitor_service.dart';
+import 'package:shanjing/services/error_monitor_service.dart';
 
 // Mock classes
 class MockApiService extends Mock {}
 class MockConnectivityService extends Mock {}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    await AnalyticsService.instance.initialize(userId: 'test_user');
+  });
+
   group('Achievement Analytics Tests', () {
-    late AnalyticsService analytics;
-    
-    setUp(() async {
-      analytics = AnalyticsService.instance;
-      await analytics.initialize(userId: 'test_user');
-    });
-    
+
     test('logAchievementPageView should log correct event', () {
-      analytics.logAchievementPageView();
-      
+      AnalyticsService.instance.logAchievementPageView();
+
       // 验证事件被记录
       // 注意: 实际测试中需要验证事件队列或监听事件流
     });
-    
+
     test('logAchievementUnlock should include achievement_id and level', () {
-      analytics.logAchievementUnlock('dist_003', 'gold');
-      
+      AnalyticsService.instance.logAchievementUnlock('dist_003', 'gold');
+
       // 验证参数
     });
-    
+
     test('logAchievementShare should include all required params', () {
-      analytics.logAchievementShare(
+      AnalyticsService.instance.logAchievementShare(
         achievementId: 'dist_003',
         achievementName: '远行者',
         level: 'gold',
         channel: 'wechat_moments',
         shareType: 'card',
       );
-      
+
       // 验证参数完整性
     });
-    
+
     test('logAchievementScroll should calculate scroll percent correctly', () {
-      analytics.logAchievementScroll(
+      AnalyticsService.instance.logAchievementScroll(
         scrollOffset: 500,
         maxScrollExtent: 2000,
         visibleBadgeCount: 12,
         category: 'distance',
       );
-      
+
       // 验证滚动百分比计算: 500/2000 = 25%
     });
   });
-  
+
   group('Recommendation Analytics Tests', () {
-    late AnalyticsService analytics;
-    
-    setUp(() async {
-      analytics = AnalyticsService.instance;
-      await analytics.initialize(userId: 'test_user');
-    });
-    
+
     test('logRecommendationImpression should include all trail_ids', () {
-      analytics.logRecommendationImpression(
+      AnalyticsService.instance.logRecommendationImpression(
         scene: 'home',
         trailIds: ['trail_001', 'trail_002', 'trail_003'],
         logId: 'log_123',
@@ -79,7 +72,7 @@ void main() {
     });
     
     test('logRecommendationClick should include position and match_score', () {
-      analytics.logRecommendationClick(
+      AnalyticsService.instance.logRecommendationClick(
         scene: 'home',
         trailId: 'trail_001',
         position: 0,
@@ -94,7 +87,7 @@ void main() {
       final impressionTime = DateTime.now().subtract(Duration(seconds: 5));
       final timeToBookmark = DateTime.now().difference(impressionTime).inMilliseconds;
       
-      analytics.logRecommendationBookmark(
+      AnalyticsService.instance.logRecommendationBookmark(
         scene: 'home',
         trailId: 'trail_001',
         matchScore: 0.89,
@@ -105,7 +98,7 @@ void main() {
     });
     
     test('logRecommendationComplete should include duration_minutes', () {
-      analytics.logRecommendationComplete(
+      AnalyticsService.instance.logRecommendationComplete(
         scene: 'home',
         trailId: 'trail_001',
         matchScore: 0.89,

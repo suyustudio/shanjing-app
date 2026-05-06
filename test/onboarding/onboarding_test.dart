@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:hangzhou_guide/screens/onboarding/onboarding.dart';
+import 'package:shanjing/screens/onboarding/onboarding.dart';
 
 /// 新手引导模块单元测试
 /// 测试覆盖：OnboardingService, PermissionManager, OnboardingScreen, SpotlightOverlay

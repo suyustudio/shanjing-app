@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/constants/design_system.dart';
+import 'package:shanjing/constants/design_system.dart';
 
 /// 动画规范验证测试
 /// 基于 animation-spec-v1.0.md 的规范要求

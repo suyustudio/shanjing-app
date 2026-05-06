@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/widgets/route_card.dart';
+import 'package:shanjing/widgets/route_card.dart';
 
 void main() {
   group('RouteCard', () {

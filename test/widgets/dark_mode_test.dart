@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/widgets/app_button.dart';
-import 'package:hangzhou_guide/widgets/app_card.dart';
-import 'package:hangzhou_guide/widgets/app_input.dart';
-import 'package:hangzhou_guide/widgets/app_app_bar.dart';
-import 'package:hangzhou_guide/widgets/app_loading.dart';
-import 'package:hangzhou_guide/widgets/app_error.dart';
-import 'package:hangzhou_guide/widgets/app_shimmer.dart';
-import 'package:hangzhou_guide/widgets/route_card.dart';
-import 'package:hangzhou_guide/widgets/search_bar.dart';
-import 'package:hangzhou_guide/widgets/filter_tags.dart';
-import 'package:hangzhou_guide/constants/design_system.dart';
+import 'package:shanjing/widgets/app_button.dart';
+import 'package:shanjing/widgets/app_card.dart';
+import 'package:shanjing/widgets/app_input.dart';
+import 'package:shanjing/widgets/app_app_bar.dart';
+import 'package:shanjing/widgets/app_loading.dart';
+import 'package:shanjing/widgets/app_error.dart';
+import 'package:shanjing/widgets/app_shimmer.dart';
+import 'package:shanjing/widgets/route_card.dart';
+import 'package:shanjing/widgets/search_bar.dart';
+import 'package:shanjing/widgets/filter_tags.dart';
+import 'package:shanjing/constants/design_system.dart';
 
 void main() {
   group('暗黑模式适配测试', () {

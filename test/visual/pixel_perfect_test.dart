@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/constants/design_system.dart';
+import 'package:shanjing/constants/design_system.dart';
 
 /// 像素级视觉测试
 /// 基于 design-hifi-v1.0.md 的高保真设计规范

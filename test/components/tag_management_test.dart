@@ -3,8 +3,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/components/collection/tag_management.dart';
-import 'package:hangzhou_guide/models/collection_tag.dart';
+import 'package:shanjing/components/collection/tag_management.dart';
+import 'package:shanjing/models/collection_tag.dart';
 
 void main() {
   group('TagDisplayMode 枚举', () {

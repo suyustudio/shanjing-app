@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/services/network_manager.dart';
+import 'package:shanjing/services/network_manager.dart';
 
 void main() {
   group('NetworkManager 单元测试', () {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/constants/design_system.dart';
+import 'package:shanjing/constants/design_system.dart';
 
 /// 设计 Token 应用验证测试
 /// 确保组件正确使用 DesignSystem 常量，无硬编码值

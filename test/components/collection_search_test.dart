@@ -4,8 +4,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/components/collection/collection_search.dart';
-import 'package:hangzhou_guide/models/collection_enhanced_model.dart';
+import 'package:shanjing/components/collection/collection_search.dart';
+import 'package:shanjing/models/collection_enhanced_model.dart';
 
 void main() {
   group('SearchResultItem 测试', () {

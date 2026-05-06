@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/constants/design_system.dart';
+import 'package:shanjing/constants/design_system.dart';
 
 /// WCAG 对比度计算工具类
 class ContrastCalculator {

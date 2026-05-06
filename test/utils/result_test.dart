@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/utils/result.dart';
-import 'package:hangzhou_guide/utils/error_handler.dart';
+import 'package:shanjing/utils/result.dart';
+import 'package:shanjing/utils/error_handler.dart';
 
 void main() {
   group('Result', () {

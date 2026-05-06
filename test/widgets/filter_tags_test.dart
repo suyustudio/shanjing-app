@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/widgets/filter_tags.dart';
+import 'package:shanjing/widgets/filter_tags.dart';
 
 void main() {
   group('FilterTags 单元测试', () {

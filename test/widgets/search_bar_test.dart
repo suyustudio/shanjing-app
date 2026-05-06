@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/widgets/search_bar.dart';
+import 'package:shanjing/widgets/search_bar.dart';
 
 void main() {
   group('SearchBar 单元测试', () {

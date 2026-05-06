@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/widgets/app_button.dart';
-import 'package:hangzhou_guide/constants/design_system.dart';
+import 'package:shanjing/widgets/app_button.dart';
+import 'package:shanjing/constants/design_system.dart';
 
 void main() {
   group('AppButton 单元测试', () {

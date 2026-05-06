@@ -4,9 +4,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hangzhou_guide/components/collection/collection_multiselect.dart';
-import 'package:hangzhou_guide/components/collection/batch_action_bar.dart';
-import 'package:hangzhou_guide/components/collection/batch_action_menu.dart';
+import 'package:shanjing/components/collection/collection_multiselect.dart';
+import 'package:shanjing/components/collection/batch_action_bar.dart';
+import 'package:shanjing/components/collection/batch_action_menu.dart';
 
 void main() {
   group('CollectionMultiSelectManager 测试', () {
