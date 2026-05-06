@@ -69,7 +69,7 @@ class PhotoMasonryGrid extends StatelessWidget {
       alignment: Alignment.center,
       child: const CircularProgressIndicator(
         strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(DesignSystem.primaryColor),
+        valueColor: AlwaysStoppedAnimation<Color>(DesignSystem.primary),
       ),
     );
   }
@@ -186,12 +186,11 @@ class _PhotoCard extends StatelessWidget {
           child: Stack(
             children: [
               // 图片
-              ImageLazyLoader(
-                imageUrl: photo.thumbnailUrl ?? photo.url,
+              Image.network(
+                photo.thumbnailUrl ?? photo.url,
                 width: double.infinity,
                 height: estimatedHeight,
                 fit: BoxFit.cover,
-                borderRadius: 4,
               ),
 
               // 渐变遮罩
@@ -229,7 +228,7 @@ class _PhotoCard extends StatelessWidget {
                           photo.isLiked ? Icons.favorite : Icons.favorite_border,
                           size: 14,
                           color: photo.isLiked
-                              ? DesignSystem.errorColor
+                              ? DesignSystem.error
                               : Colors.white,
                         ),
                         const SizedBox(width: 4),
@@ -249,8 +248,8 @@ class _PhotoCard extends StatelessWidget {
                     // 用户头像（小）
                     if (photo.user.avatarUrl != null)
                       ClipOval(
-                        child: ImageLazyLoader(
-                          imageUrl: photo.user.avatarUrl!,
+                        child: Image.network(
+                          photo.user.avatarUrl!,
                           width: 16,
                           height: 16,
                           fit: BoxFit.cover,
@@ -273,7 +272,7 @@ class _PhotoCard extends StatelessWidget {
                       photo.isLiked ? Icons.favorite : Icons.favorite_border,
                       size: 20,
                       color: photo.isLiked
-                          ? DesignSystem.errorColor
+                          ? DesignSystem.error
                           : Colors.white.withOpacity(0.8),
                     ),
                   ),

@@ -3,6 +3,7 @@
 // 管理列表项的多选状态
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 /// 选择状态管理器
 class CollectionSelectionManager extends ChangeNotifier {

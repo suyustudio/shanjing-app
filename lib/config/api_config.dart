@@ -46,7 +46,6 @@ class HttpClientConfig {
   static HttpClient createHttpClient() {
     final client = HttpClient()
       ..connectionTimeout = ApiConfig.connectionTimeout
-      ..idleConnectionTimeout = const Duration(seconds: 60)
       ..maxConnectionsPerHost = 10;
     
     return client;

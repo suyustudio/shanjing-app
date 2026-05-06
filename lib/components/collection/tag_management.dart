@@ -5,7 +5,7 @@
 import 'package:flutter/material.dart';
 import '../../models/collection_tag.dart';
 import '../../services/tag_service.dart';
-import '../widgets/collections/tag_chip.dart';
+import '../../widgets/collections/tag_chip.dart';
 
 /// 标签显示模式
 enum TagDisplayMode {
@@ -478,7 +478,7 @@ class _TagEditorState extends State<TagEditor> {
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: _tags.length >= widget.maxTags
                     ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.warning,
+                    : Theme.of(context).colorScheme.error.withOpacity(0.7),
               ),
             ),
           ),
@@ -703,7 +703,7 @@ class _TagSelectorState extends State<TagSelector> {
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: _selectedTags.length >= widget.maxSelections
                             ? Theme.of(context).colorScheme.error
-                            : Theme.of(context).colorScheme.warning,
+                            : Theme.of(context).colorScheme.error.withOpacity(0.7),
                       ),
                     ),
                   ),

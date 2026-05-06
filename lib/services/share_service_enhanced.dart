@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'api_client.dart';
 import '../analytics/analytics_service.dart';
 import '../analytics/events/share_events.dart';
 
@@ -18,17 +19,6 @@ class ShareResponse {
       shareCode: json['shareCode'] ?? json['share_code'] ?? '',
     );
   }
-}
-
-/// API 异常
-class ApiException implements Exception {
-  final String message;
-  final String code;
-
-  ApiException({required this.message, required this.code});
-
-  @override
-  String toString() => 'ApiException(code: $code, message: $message)';
 }
 
 /// 分享服务（增强版 - 支持Mock模式）

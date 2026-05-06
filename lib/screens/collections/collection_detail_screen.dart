@@ -47,7 +47,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
   
   // 搜索状态
   String _searchQuery = '';
-  List<Trail> _filteredTrails = [];
+  List<CollectionTrail> _filteredTrails = [];
   
   // 标签状态
   List<CollectionTag> _tags = [];
@@ -221,7 +221,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     final query = _searchQuery.toLowerCase();
     _filteredTrails = _detail!.trails.where((trail) {
       return trail.name.toLowerCase().contains(query) ||
-          (trail.description?.toLowerCase().contains(query) ?? false) ||
+          (trail.note?.toLowerCase().contains(query) ?? false) ||
           (trail.note?.toLowerCase().contains(query) ?? false);
     }).toList();
   }
@@ -1295,7 +1295,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => TrailDetailScreen(
-                            trailId: trail.trailId,
+                            trailData: {'id': trail.trailId, 'name': trail.name},
                           ),
                         ),
                       ).then((_) => _loadDetail());
@@ -1310,7 +1310,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
               },
               child: CollectionTrailCard(
                 trail: trail,
-                onTap: null, // 由外层卡片处理
+                onTap: () {}, // 由外层卡片处理
                 onRemove: _isMultiSelectMode
                     ? null
                     : () => _removeTrail(trail.trailId),

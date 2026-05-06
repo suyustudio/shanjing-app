@@ -40,6 +40,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     PermissionType.notification: false,
   };
 
+  bool get _allPermissionsGranted =>
+      _permissionStates.values.every((granted) => granted);
+
   // 动画控制器
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -588,11 +591,17 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     _nextPage,
                   ),
                   const SizedBox(width: 16),
-                  _buildPrimaryButton(
-                    '允许权限',
-                    _requestAllPermissions,
-                    width: 160,
-                  ),
+                  _allPermissionsGranted
+                      ? _buildPrimaryButton(
+                          '下一步',
+                          _nextPage,
+                          width: 160,
+                        )
+                      : _buildPrimaryButton(
+                          '允许权限',
+                          _requestAllPermissions,
+                          width: 160,
+                        ),
                 ],
               ),
 

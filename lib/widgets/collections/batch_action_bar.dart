@@ -152,7 +152,7 @@ class BatchActionBar extends StatelessWidget {
         );
       case BatchActionType.addTo:
         return (
-          Icons.add_to_photos_outline,
+          Icons.add_photo_alternate_outlined,
           '添加到',
           theme.colorScheme.primary,
         );

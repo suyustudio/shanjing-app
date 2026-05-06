@@ -6,7 +6,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'achievement_model.freezed.dart';
-part 'achievement_model.g.dart';
 
 /// 成就类别枚举
 enum AchievementCategory {
@@ -14,7 +13,7 @@ enum AchievementCategory {
   distance,
   frequency,
   challenge,
-  social,
+  social;
 }
 
 /// 成就等级枚举
@@ -22,7 +21,7 @@ enum AchievementLevel {
   bronze,
   silver,
   gold,
-  diamond,
+  diamond;
 }
 
 /// 成就等级定义模型
@@ -38,8 +37,17 @@ class AchievementLevelModel with _$AchievementLevelModel {
     String? iconUrl,
   }) = _AchievementLevelModel;
 
-  factory AchievementLevelModel.fromJson(Map<String, dynamic> json) =
-      _$AchievementLevelModelFromJson;
+  factory AchievementLevelModel.fromJson(Map<String, dynamic> json) {
+    return AchievementLevelModel(
+      id: json['id'] as String,
+      level: AchievementLevel.values.byName(json['level'] as String),
+      requirement: (json['requirement'] as num).toInt(),
+      name: json['name'] as String,
+      description: json['description'] as String?,
+      reward: json['reward'] as String?,
+      iconUrl: json['iconUrl'] as String?,
+    );
+  }
 }
 
 /// 成就定义模型
@@ -57,8 +65,21 @@ class AchievementModel with _$AchievementModel {
     required List<AchievementLevelModel> levels,
   }) = _AchievementModel;
 
-  factory AchievementModel.fromJson(Map<String, dynamic> json) =
-      _$AchievementModelFromJson;
+  factory AchievementModel.fromJson(Map<String, dynamic> json) {
+    return AchievementModel(
+      id: json['id'] as String,
+      key: json['key'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String?,
+      category: AchievementCategory.values.byName(json['category'] as String),
+      iconUrl: json['iconUrl'] as String?,
+      isHidden: json['isHidden'] as bool? ?? false,
+      sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
+      levels: (json['levels'] as List<dynamic>)
+          .map((e) => AchievementLevelModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
 }
 
 /// 用户成就模型
@@ -78,8 +99,23 @@ class UserAchievementModel with _$UserAchievementModel {
     @Default(false) bool isUnlocked,
   }) = _UserAchievementModel;
 
-  factory UserAchievementModel.fromJson(Map<String, dynamic> json) =
-      _$UserAchievementModelFromJson;
+  factory UserAchievementModel.fromJson(Map<String, dynamic> json) {
+    return UserAchievementModel(
+      achievementId: json['achievementId'] as String,
+      key: json['key'] as String,
+      name: json['name'] as String,
+      category: json['category'] as String,
+      currentLevel: json['currentLevel'] as String?,
+      currentProgress: (json['currentProgress'] as num?)?.toInt() ?? 0,
+      nextRequirement: (json['nextRequirement'] as num?)?.toInt() ?? 0,
+      percentage: (json['percentage'] as num?)?.toInt() ?? 0,
+      unlockedAt: json['unlockedAt'] != null
+          ? DateTime.parse(json['unlockedAt'] as String)
+          : null,
+      isNew: json['isNew'] as bool? ?? false,
+      isUnlocked: json['isUnlocked'] as bool? ?? false,
+    );
+  }
 }
 
 /// 用户成就汇总模型
@@ -92,8 +128,18 @@ class UserAchievementSummary with _$UserAchievementSummary {
     @Default([]) List<UserAchievementModel> achievements,
   }) = _UserAchievementSummary;
 
-  factory UserAchievementSummary.fromJson(Map<String, dynamic> json) =
-      _$UserAchievementSummaryFromJson;
+  factory UserAchievementSummary.fromJson(Map<String, dynamic> json) {
+    return UserAchievementSummary(
+      totalCount: (json['totalCount'] as num?)?.toInt() ?? 0,
+      unlockedCount: (json['unlockedCount'] as num?)?.toInt() ?? 0,
+      newUnlockedCount: (json['newUnlockedCount'] as num?)?.toInt() ?? 0,
+      achievements: (json['achievements'] as List<dynamic>?)
+              ?.map(
+                  (e) => UserAchievementModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
 }
 
 /// 新解锁成就模型
@@ -107,8 +153,15 @@ class NewlyUnlockedAchievement with _$NewlyUnlockedAchievement {
     required String badgeUrl,
   }) = _NewlyUnlockedAchievement;
 
-  factory NewlyUnlockedAchievement.fromJson(Map<String, dynamic> json) =
-      _$NewlyUnlockedAchievementFromJson;
+  factory NewlyUnlockedAchievement.fromJson(Map<String, dynamic> json) {
+    return NewlyUnlockedAchievement(
+      achievementId: json['achievementId'] as String,
+      level: json['level'] as String,
+      name: json['name'] as String,
+      message: json['message'] as String,
+      badgeUrl: json['badgeUrl'] as String,
+    );
+  }
 }
 
 /// 进度更新模型
@@ -121,8 +174,14 @@ class ProgressUpdate with _$ProgressUpdate {
     required int percentage,
   }) = _ProgressUpdate;
 
-  factory ProgressUpdate.fromJson(Map<String, dynamic> json) =
-      _$ProgressUpdateFromJson;
+  factory ProgressUpdate.fromJson(Map<String, dynamic> json) {
+    return ProgressUpdate(
+      achievementId: json['achievementId'] as String,
+      progress: (json['progress'] as num).toInt(),
+      requirement: (json['requirement'] as num).toInt(),
+      percentage: (json['percentage'] as num).toInt(),
+    );
+  }
 }
 
 /// 检查成就响应模型
@@ -133,8 +192,20 @@ class CheckAchievementResult with _$CheckAchievementResult {
     @Default([]) List<ProgressUpdate> progressUpdated,
   }) = _CheckAchievementResult;
 
-  factory CheckAchievementResult.fromJson(Map<String, dynamic> json) =
-      _$CheckAchievementResultFromJson;
+  factory CheckAchievementResult.fromJson(Map<String, dynamic> json) {
+    return CheckAchievementResult(
+      newlyUnlocked: (json['newlyUnlocked'] as List<dynamic>?)
+              ?.map((e) =>
+                  NewlyUnlockedAchievement.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      progressUpdated: (json['progressUpdated'] as List<dynamic>?)
+              ?.map(
+                  (e) => ProgressUpdate.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
 }
 
 /// 用户统计模型
@@ -152,8 +223,20 @@ class UserStatsModel with _$UserStatsModel {
     @Default(0) int shareCount,
   }) = _UserStatsModel;
 
-  factory UserStatsModel.fromJson(Map<String, dynamic> json) =
-      _$UserStatsModelFromJson;
+  factory UserStatsModel.fromJson(Map<String, dynamic> json) {
+    return UserStatsModel(
+      totalDistanceM: (json['totalDistanceM'] as num?)?.toInt() ?? 0,
+      totalDurationSec: (json['totalDurationSec'] as num?)?.toInt() ?? 0,
+      totalElevationGainM:
+          (json['totalElevationGainM'] as num?)?.toDouble() ?? 0.0,
+      uniqueTrailsCount: (json['uniqueTrailsCount'] as num?)?.toInt() ?? 0,
+      currentWeeklyStreak: (json['currentWeeklyStreak'] as num?)?.toInt() ?? 0,
+      longestWeeklyStreak: (json['longestWeeklyStreak'] as num?)?.toInt() ?? 0,
+      nightTrailCount: (json['nightTrailCount'] as num?)?.toInt() ?? 0,
+      rainTrailCount: (json['rainTrailCount'] as num?)?.toInt() ?? 0,
+      shareCount: (json['shareCount'] as num?)?.toInt() ?? 0,
+    );
+  }
 }
 
 /// 轨迹统计数据
@@ -167,6 +250,13 @@ class TrailStats with _$TrailStats {
     @Default(false) bool isSolo,
   }) = _TrailStats;
 
-  factory TrailStats.fromJson(Map<String, dynamic> json) =
-      _$TrailStatsFromJson;
+  factory TrailStats.fromJson(Map<String, dynamic> json) {
+    return TrailStats(
+      distance: (json['distance'] as num).toInt(),
+      duration: (json['duration'] as num).toInt(),
+      isNight: json['isNight'] as bool? ?? false,
+      isRain: json['isRain'] as bool? ?? false,
+      isSolo: json['isSolo'] as bool? ?? false,
+    );
+  }
 }

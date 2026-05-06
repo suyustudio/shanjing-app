@@ -175,7 +175,7 @@ class _PhotoWallScreenState extends State<PhotoWallScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.camera_alt, color: DesignSystem.primaryColor),
+            icon: const Icon(Icons.camera_alt, color: DesignSystem.primary),
             onPressed: _navigateToUpload,
           ),
         ],
@@ -191,7 +191,7 @@ class _PhotoWallScreenState extends State<PhotoWallScreen> {
                 ? _buildEmptyState()
                 : RefreshIndicator(
                     onRefresh: _onRefresh,
-                    color: DesignSystem.primaryColor,
+                    color: DesignSystem.primary,
                     child: PhotoMasonryGrid(
                       photos: _photos,
                       scrollController: _scrollController,
@@ -210,7 +210,7 @@ class _PhotoWallScreenState extends State<PhotoWallScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _navigateToUpload,
-        backgroundColor: DesignSystem.primaryColor,
+        backgroundColor: DesignSystem.primary,
         icon: const Icon(Icons.camera_alt),
         label: const Text('上传照片'),
       ),
@@ -249,7 +249,7 @@ class _PhotoWallScreenState extends State<PhotoWallScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     color: _currentSort == option['value']
-                        ? DesignSystem.primaryColor
+                        ? DesignSystem.primary
                         : DesignSystem.gray600,
                     fontWeight: _currentSort == option['value']
                         ? FontWeight.w500
@@ -297,7 +297,7 @@ class _PhotoWallScreenState extends State<PhotoWallScreen> {
             icon: const Icon(Icons.camera_alt),
             label: const Text('上传照片'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: DesignSystem.primaryColor,
+              backgroundColor: DesignSystem.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(
                 horizontal: 24,

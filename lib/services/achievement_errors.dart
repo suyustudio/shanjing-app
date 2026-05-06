@@ -51,7 +51,7 @@ class AchievementValidationError extends AchievementServiceError {
   final dynamic value;
   final String constraint;
 
-  const AchievementValidationError({
+  AchievementValidationError({
     required this.field,
     required this.value,
     required this.constraint,
@@ -59,39 +59,49 @@ class AchievementValidationError extends AchievementServiceError {
     message: '参数验证失败: $field - $constraint',
     code: 'VALIDATION_ERROR',
     statusCode: 400,
-    details: {'field': field, 'value': value, 'constraint': constraint},
   );
+
+  @override
+  Map<String, dynamic>? get details => {
+    'field': field,
+    'value': value,
+    'constraint': constraint,
+  };
 }
 
 /// 成就不存在错误
 class AchievementNotFoundError extends AchievementServiceError {
   final String achievementId;
 
-  const AchievementNotFoundError({
+  AchievementNotFoundError({
     required this.achievementId,
   }) : super(
     message: '成就不存在: $achievementId',
     code: 'ACHIEVEMENT_NOT_FOUND',
     statusCode: 404,
-    details: {'achievementId': achievementId},
   );
+
+  @override
+  Map<String, dynamic>? get details => {'achievementId': achievementId};
 }
 
 /// 触发类型无效错误
 class InvalidTriggerTypeError extends AchievementServiceError {
   final String triggerType;
 
-  const InvalidTriggerTypeError({
+  InvalidTriggerTypeError({
     required this.triggerType,
   }) : super(
     message: '无效的触发类型: $triggerType',
     code: 'INVALID_TRIGGER_TYPE',
     statusCode: 400,
-    details: {
-      'triggerType': triggerType,
-      'allowedTypes': ['trail_completed', 'share', 'manual'],
-    },
   );
+
+  @override
+  Map<String, dynamic>? get details => {
+    'triggerType': triggerType,
+    'allowedTypes': ['trail_completed', 'share', 'manual'],
+  };
 }
 
 /// 并发修改错误
@@ -135,7 +145,7 @@ class AchievementResult<T> {
   /// 成功时返回数据，失败时抛出错误
   T getOrThrow() {
     if (isSuccess && data != null) {
-      return data;
+      return data!;
     }
     throw error ?? const AchievementServiceError(
       message: '未知错误',
@@ -146,7 +156,7 @@ class AchievementResult<T> {
   /// 成功时执行回调
   AchievementResult<T> onSuccess(void Function(T data) callback) {
     if (isSuccess && data != null) {
-      callback(data);
+      callback(data!);
     }
     return this;
   }
@@ -154,7 +164,7 @@ class AchievementResult<T> {
   /// 失败时执行回调
   AchievementResult<T> onFailure(void Function(AchievementServiceError error) callback) {
     if (!isSuccess && error != null) {
-      callback(error);
+      callback(error!);
     }
     return this;
   }
@@ -162,7 +172,7 @@ class AchievementResult<T> {
   /// 映射成功值
   AchievementResult<R> map<R>(R Function(T data) transform) {
     if (isSuccess && data != null) {
-      return AchievementResult.success(transform(data));
+      return AchievementResult.success(transform(data!));
     }
     return AchievementResult<R>.failure(error!);
   }

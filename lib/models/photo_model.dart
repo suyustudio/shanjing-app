@@ -36,7 +36,7 @@ class Photo {
     this.takenAt,
   });
 
-  factory Photo.fromJson(Map<string, dynamic> json) {
+  factory Photo.fromJson(Map<String, dynamic> json) {
     return Photo(
       id: json['id'] as String,
       url: json['url'] as String,

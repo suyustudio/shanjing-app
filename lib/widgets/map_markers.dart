@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import '../constants/design_system.dart';
 
@@ -184,16 +185,19 @@ class CustomMarkers {
     required double size,
   }) async {
     try {
-      // 加载 SVG 数据
-      final svgString = await rootBundle.loadString(assetPath);
-      
-      // 创建 DrawableRoot
-      final drawable = await svg.fromSvgString(svgString, assetPath);
-      
-      // 创建 Picture
-      final picture = drawable.toPicture(
-        size: Size(size, size),
-      );
+      // 绘制颜色标记图标（替代SVG渲染）
+      final pictureRecorder = ui.PictureRecorder();
+      final canvas = Canvas(pictureRecorder);
+      final paint = Paint()
+        ..color = const Color(0xFF2D968A)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(size / 2, size / 2), size / 2, paint);
+      final paintBorder = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+      canvas.drawCircle(Offset(size / 2, size / 2), size / 2 - 1, paintBorder);
+      final picture = pictureRecorder.endRecording();
       
       // 转换为 Image
       final image = await picture.toImage(
@@ -313,17 +317,15 @@ class MarkerSizeConfig {
 extension MarkerConfig on Marker {
   /// 创建带自定义图标的标记（便捷方法）
   static Future<Marker> createStartMarker({
-    required String markerId,
     required LatLng position,
     String? title,
     String? snippet,
     bool selected = false,
   }) async {
     return Marker(
-      markerId: MarkerId(markerId),
       position: position,
       icon: await CustomMarkers.start(selected: selected),
-      infoWindow: title != null 
+      infoWindow: title != null
           ? InfoWindow(title: title, snippet: snippet)
           : InfoWindow.noText,
       anchor: const Offset(0.5, 1.0), // 锚点在底部中心
@@ -331,17 +333,15 @@ extension MarkerConfig on Marker {
   }
 
   static Future<Marker> createEndMarker({
-    required String markerId,
     required LatLng position,
     String? title,
     String? snippet,
     bool selected = false,
   }) async {
     return Marker(
-      markerId: MarkerId(markerId),
       position: position,
       icon: await CustomMarkers.end(selected: selected),
-      infoWindow: title != null 
+      infoWindow: title != null
           ? InfoWindow(title: title, snippet: snippet)
           : InfoWindow.noText,
       anchor: const Offset(0.5, 1.0),
@@ -349,16 +349,14 @@ extension MarkerConfig on Marker {
   }
 
   static Future<Marker> createParkingMarker({
-    required String markerId,
     required LatLng position,
     String? name,
     bool selected = false,
   }) async {
     return Marker(
-      markerId: MarkerId(markerId),
       position: position,
       icon: await CustomMarkers.parking(selected: selected),
-      infoWindow: name != null 
+      infoWindow: name != null
           ? InfoWindow(title: '🅿️ $name', snippet: '停车场')
           : InfoWindow.noText,
       anchor: const Offset(0.5, 0.5), // 停车场图标锚点居中

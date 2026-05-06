@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../analytics/analytics.dart';
 import '../constants/design_system.dart';
+import '../models/recording_model.dart';
 import '../widgets/app_app_bar.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
 import 'safety_center_screen.dart';
 import 'recordings_list_screen.dart';
-import 'recording_qualification_screen.dart';
+import 'recording_edit_screen.dart';
 import 'recording_screen.dart';
 
 /// 我的页面
@@ -65,26 +66,11 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
 
   /// 跳转到我的采集
   void _goToMyRecordings() {
-    // 检查登录状态
-    if (!_isLoggedIn) {
-      _showLoginRequiredDialog();
-      return;
-    }
-    
-    // 检查采集资格（模拟）
-    final hasQualification = true; // 实际应该从服务获取
-    
-    if (!hasQualification) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const RecordingQualificationScreen()),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const RecordingsListScreen()),
-      );
-    }
+    // 本地采集功能不需要登录
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const RecordingsListScreen()),
+    );
   }
 
   /// 显示需要登录的对话框
@@ -233,8 +219,8 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
           // 统计卡片（仅登录显示）
           if (_isLoggedIn) _buildStatsCard(context),
           const SizedBox(height: DesignSystem.spacingLarge),
-          // 紧急采集入口（下周三上海采集用）
-          if (_isLoggedIn) _buildEmergencyRecordingCard(context),
+          // 快速采集入口（不需要登录）
+          _buildEmergencyRecordingCard(context),
         ],
       ),
     );
@@ -284,12 +270,19 @@ class _ProfileScreenState extends State<ProfileScreen> with AnalyticsMixin {
           ),
           const SizedBox(height: DesignSystem.spacingMedium),
           ElevatedButton(
-            onPressed: () {
-              // 直接跳转到录制页面，跳过所有检查
-              Navigator.push(
+            onPressed: () async {
+              final session = await Navigator.push<RecordingSession>(
                 context,
                 MaterialPageRoute(builder: (context) => const RecordingScreen()),
               );
+              if (session != null && context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RecordingEditScreen(session: session),
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: DesignSystem.getPrimary(context),

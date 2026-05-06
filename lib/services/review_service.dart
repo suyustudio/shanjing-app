@@ -239,21 +239,3 @@ class ReviewService {
     }
   }
 }
-
-/// API 异常类 (与 api_client.dart 保持一致)
-class ApiException implements Exception {
-  final int? statusCode;
-  final String message;
-  final String? code;
-  final dynamic data;
-
-  ApiException({
-    this.statusCode,
-    required this.message,
-    this.code,
-    this.data,
-  });
-
-  @override
-  String toString() => 'ApiException(statusCode: $statusCode, message: $message, code: $code)';
-}

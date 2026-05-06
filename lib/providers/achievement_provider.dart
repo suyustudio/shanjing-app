@@ -24,7 +24,7 @@ class AchievementProvider extends ChangeNotifier {
   String? get error => _error;
 
   // 是否有新解锁成就
-  bool get hasNewAchievements => _summary?.newUnlockedCount > 0 ?? false;
+  bool get hasNewAchievements => (_summary?.newUnlockedCount ?? 0) > 0;
 
   // 解锁成就数量
   int get unlockedCount => _summary?.unlockedCount ?? 0;

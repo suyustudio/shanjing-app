@@ -1,12 +1,10 @@
 // recording_preparation_screen.dart
 // 山径APP - 录制前准备页面
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../constants/design_system.dart';
 import '../models/recording_model.dart';
-import '../services/permission_service.dart';
 
 /// 录制前准备页面
 class RecordingPreparationScreen extends StatefulWidget {
@@ -23,24 +21,13 @@ class _RecordingPreparationScreenState extends State<RecordingPreparationScreen>
   final _cityController = TextEditingController();
   final _districtController = TextEditingController();
   final _descriptionController = TextEditingController();
-  
+
   TrailType _selectedTrailType = TrailType.hiking;
   DifficultyLevel _selectedDifficulty = DifficultyLevel.casual;
-  
-  // 检测状态
-  bool _isGpsReady = false;
-  bool _isBatteryReady = false;
-  bool _isStorageReady = false;
-  bool _isChecking = true;
-  
-  // 电池和存储信息
-  int _batteryLevel = 0;
-  int _availableStorageGB = 0;
 
   @override
   void initState() {
     super.initState();
-    _checkPrerequisites();
   }
 
   @override
@@ -52,65 +39,9 @@ class _RecordingPreparationScreenState extends State<RecordingPreparationScreen>
     super.dispose();
   }
 
-  /// 检查前提条件（GPS、电量、存储）
-  Future<void> _checkPrerequisites() async {
-    setState(() => _isChecking = true);
-
-    // 检查GPS
-    final gpsStatus = await PermissionService.checkLocationStatus();
-    
-    // 检查GPS信号强度（模拟）
-    bool isGpsSignalStrong = await _checkGpsSignal();
-    
-    // 检查电池（模拟）
-    final batteryLevel = await _getBatteryLevel();
-    final isBatteryEnough = batteryLevel >= 20;
-    
-    // 检查存储（模拟）
-    final availableStorage = await _getAvailableStorage();
-    final isStorageEnough = availableStorage >= 1; // 至少1GB
-
-    if (mounted) {
-      setState(() {
-        _isGpsReady = gpsStatus.isEnabled && isGpsSignalStrong;
-        _batteryLevel = batteryLevel;
-        _isBatteryReady = isBatteryEnough;
-        _availableStorageGB = availableStorage;
-        _isStorageReady = isStorageEnough;
-        _isChecking = false;
-      });
-    }
-  }
-  
-  /// 检查GPS信号强度 (P1修复)
-  Future<bool> _checkGpsSignal() async {
-    // 实际实现应该获取当前定位精度
-    // 这里模拟信号良好
-    await Future.delayed(const Duration(milliseconds: 500));
-    return true;
-  }
-
-  /// 获取电池电量（模拟）
-  Future<int> _getBatteryLevel() async {
-    // 实际实现应该使用 battery_plus 包
-    // 这里返回模拟值
-    return 65;
-  }
-
-  /// 获取可用存储空间（模拟）
-  Future<int> _getAvailableStorage() async {
-    // 实际实现应该使用 path_provider 和文件系统
-    // 这里返回模拟值
-    return 8;
-  }
-
   /// 开始录制
   Future<void> _startRecording() async {
     if (!_formKey.currentState!.validate()) return;
-
-    // 检查权限
-    final permissionsGranted = await PermissionService.requestRecordingPermissions(context);
-    if (!permissionsGranted) return;
 
     HapticFeedback.mediumImpact();
 
@@ -132,8 +63,6 @@ class _RecordingPreparationScreenState extends State<RecordingPreparationScreen>
 
   @override
   Widget build(BuildContext context) {
-    final allReady = _isGpsReady && _isBatteryReady && _isStorageReady;
-
     return Scaffold(
       backgroundColor: DesignSystem.getBackground(context),
       appBar: AppBar(
@@ -241,19 +170,13 @@ class _RecordingPreparationScreenState extends State<RecordingPreparationScreen>
                 prefixIcon: Icons.description,
               ),
             ),
-            const SizedBox(height: 24),
-
-            // 设备检测
-            _buildSectionTitle('设备检测'),
-            const SizedBox(height: 8),
-            _buildPrerequisiteChecks(),
             const SizedBox(height: 32),
 
             // 开始录制按钮
             SizedBox(
               height: 56,
               child: ElevatedButton(
-                onPressed: allReady ? _startRecording : null,
+                onPressed: _startRecording,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: DesignSystem.getError(context),
                   foregroundColor: DesignSystem.textInverse,
@@ -262,14 +185,14 @@ class _RecordingPreparationScreenState extends State<RecordingPreparationScreen>
                   ),
                   elevation: 0,
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.fiber_manual_record),
-                    const SizedBox(width: 8),
+                    Icon(Icons.fiber_manual_record),
+                    SizedBox(width: 8),
                     Text(
-                      allReady ? '开始录制' : '请解决上述问题',
-                      style: const TextStyle(
+                      '开始录制',
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -456,129 +379,4 @@ class _RecordingPreparationScreenState extends State<RecordingPreparationScreen>
     );
   }
 
-  /// 构建前提条件检查项
-  Widget _buildPrerequisiteChecks() {
-    if (_isChecking) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: DesignSystem.getBackgroundSecondary(context),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Column(
-            children: [
-              CircularProgressIndicator(color: DesignSystem.getPrimary(context)),
-              const SizedBox(height: 16),
-              Text(
-                '正在检测设备...',
-                style: TextStyle(color: DesignSystem.getTextSecondary(context)),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        _buildCheckItem(
-          icon: Icons.gps_fixed,
-          title: 'GPS定位',
-          subtitle: _isGpsReady ? '信号良好' : '请检查GPS信号',
-          isReady: _isGpsReady,
-          onTap: _isGpsReady ? null : () => PermissionService.openLocationSettings(),
-        ),
-        const SizedBox(height: 8),
-        _buildCheckItem(
-          icon: Icons.battery_full,
-          title: '电池电量',
-          subtitle: '$_batteryLevel% ${_isBatteryReady ? '' : '(建议20%以上)'}',
-          isReady: _isBatteryReady,
-        ),
-        const SizedBox(height: 8),
-        _buildCheckItem(
-          icon: Icons.storage,
-          title: '存储空间',
-          subtitle: '可用 $_availableStorageGB GB ${_isStorageReady ? '' : '(建议1GB以上)'}',
-          isReady: _isStorageReady,
-        ),
-      ],
-    );
-  }
-
-  /// 构建检查项
-  Widget _buildCheckItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool isReady,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isReady
-              ? DesignSystem.getSuccess(context).withOpacity(0.1)
-              : DesignSystem.getError(context).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isReady ? DesignSystem.getSuccess(context) : DesignSystem.getError(context),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isReady
-                    ? DesignSystem.getSuccess(context).withOpacity(0.2)
-                    : DesignSystem.getError(context).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                icon,
-                color: isReady ? DesignSystem.getSuccess(context) : DesignSystem.getError(context),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: DesignSystem.getTextPrimary(context),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isReady
-                          ? DesignSystem.getSuccess(context)
-                          : DesignSystem.getError(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              isReady ? Icons.check_circle : Icons.error,
-              color: isReady ? DesignSystem.getSuccess(context) : DesignSystem.getError(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

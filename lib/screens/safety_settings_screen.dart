@@ -585,10 +585,8 @@ class _SafetySettingsScreenState extends State<SafetySettingsScreen> {
   }
 
   Future<void> _updateEtaSettings(SmartEtaSettings settings) async {
-    final success = await _smartEtaService.saveSettings(settings);
-    if (success) {
-      setState(() => _etaSettings = settings);
-    }
+    await _smartEtaService.saveSettings(settings);
+    setState(() => _etaSettings = settings);
   }
 
   String _getPaceText(double adjustment) {

@@ -12,7 +12,7 @@ class PhotoEvents {
 
   /// 点击上传按钮
   void trackUploadClick({String? source}) {
-    _analytics.track('photo_upload_click', {
+    _analytics.trackEvent('photo_upload_click', params: {
       'source': source ?? 'unknown',
       'timestamp': DateTime.now().millisecondsSinceEpoch,
     });
@@ -25,7 +25,7 @@ class PhotoEvents {
     bool hasDescription = false,
     String? trailId,
   }) {
-    _analytics.track('photo_upload_success', {
+    _analytics.trackEvent('photo_upload_success', params: {
       'photo_count': photoCount,
       'has_location': hasLocation,
       'has_description': hasDescription,
@@ -39,7 +39,7 @@ class PhotoEvents {
     required String error,
     int? photoCount,
   }) {
-    _analytics.track('photo_upload_failed', {
+    _analytics.trackEvent('photo_upload_failed', params: {
       'error': error,
       'photo_count': photoCount,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
@@ -51,7 +51,7 @@ class PhotoEvents {
     String? trailId,
     String sort = 'newest',
   }) {
-    _analytics.track('photo_waterfall_view', {
+    _analytics.trackEvent('photo_waterfall_view', params: {
       'trail_id': trailId,
       'sort': sort,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
@@ -63,7 +63,7 @@ class PhotoEvents {
     required String photoId,
     String? source,
   }) {
-    _analytics.track('photo_detail_view', {
+    _analytics.trackEvent('photo_detail_view', params: {
       'photo_id': photoId,
       'source': source ?? 'waterfall',
       'timestamp': DateTime.now().millisecondsSinceEpoch,
@@ -75,7 +75,7 @@ class PhotoEvents {
     required String photoId,
     required bool isLiked,
   }) {
-    _analytics.track('photo_like', {
+    _analytics.trackEvent('photo_like', params: {
       'photo_id': photoId,
       'is_liked': isLiked,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
@@ -87,7 +87,7 @@ class PhotoEvents {
     required String photoId,
     required bool isSaved,
   }) {
-    _analytics.track('photo_save', {
+    _analytics.trackEvent('photo_save', params: {
       'photo_id': photoId,
       'is_saved': isSaved,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
@@ -98,7 +98,7 @@ class PhotoEvents {
   void trackDelete({
     required String photoId,
   }) {
-    _analytics.track('photo_delete', {
+    _analytics.trackEvent('photo_delete', params: {
       'photo_id': photoId,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
     });
@@ -110,7 +110,7 @@ class PhotoEvents {
     bool? descriptionChanged,
     bool? privacyChanged,
   }) {
-    _analytics.track('photo_edit', {
+    _analytics.trackEvent('photo_edit', params: {
       'photo_id': photoId,
       'description_changed': descriptionChanged,
       'privacy_changed': privacyChanged,
@@ -122,7 +122,7 @@ class PhotoEvents {
   void trackDownload({
     required String photoId,
   }) {
-    _analytics.track('photo_download', {
+    _analytics.trackEvent('photo_download', params: {
       'photo_id': photoId,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
     });
@@ -133,7 +133,7 @@ class PhotoEvents {
     required String photoId,
     required String channel,
   }) {
-    _analytics.track('photo_share', {
+    _analytics.trackEvent('photo_share', params: {
       'photo_id': photoId,
       'channel': channel,
       'timestamp': DateTime.now().millisecondsSinceEpoch,

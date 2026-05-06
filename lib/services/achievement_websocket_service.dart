@@ -140,16 +140,14 @@ class AchievementWebSocketService {
     _setState(WebSocketState.connecting);
     
     try {
-      _socket = io.io(serverUrl, <io.OptionBuilder>[
-        io.OptionBuilder()
-          .setTransports(['websocket'])
-          .enableAutoConnect()
-          .enableReconnection()
-          .setReconnectionDelay(1000)
-          .setReconnectionDelayMax(5000)
-          .setExtraHeaders({'Authorization': 'Bearer $_authToken'})
-          .build(),
-      ].toList());
+      _socket = io.io(serverUrl, <String, dynamic>{
+        'transports': ['websocket'],
+        'autoConnect': true,
+        'reconnection': true,
+        'reconnectionDelay': 1000,
+        'reconnectionDelayMax': 5000,
+        'extraHeaders': {'Authorization': 'Bearer $_authToken'},
+      });
       
       _setupSocketListeners();
       
@@ -205,7 +203,7 @@ class AchievementWebSocketService {
       
       final achievement = NewlyUnlockedAchievement(
         achievementId: data['achievementId'],
-        level: _parseLevel(data['level']),
+        level: _parseLevel(data['level']).name,
         name: data['name'],
         message: data['message'],
         badgeUrl: data['badgeUrl'],
@@ -273,11 +271,11 @@ class AchievementWebSocketService {
     final exponentialDelay = _initialReconnectDelay.inMilliseconds * 
         pow(2, _reconnectAttempts);
     final clampedDelay = min(exponentialDelay, _maxReconnectDelay.inMilliseconds);
-    
+
     // 添加抖动 (±20%)
     final jitter = (clampedDelay * 0.2 * (Random().nextDouble() - 0.5)).toInt();
-    
-    return Duration(milliseconds: clampedDelay + jitter);
+
+    return Duration(milliseconds: clampedDelay.toInt() + jitter);
   }
   
   /// 取消重连

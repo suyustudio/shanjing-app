@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../constants/design_system.dart';
 import 'trail_detail_screen.dart';
@@ -40,11 +41,6 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   // 显示模式：true=显示全部路线，false=只显示附近路线
   bool _showAllRoutes = false;
   static const double _nearbyDistanceThreshold = 50000; // 50km
-  
-  // 自定义标记图标
-  BitmapDescriptor? _startMarkerIcon;
-  BitmapDescriptor? _endMarkerIcon;
-  BitmapDescriptor? _loopMarkerIcon;
   
   // 路线数据（从assets加载）
   List<Map<String, dynamic>> _routes = [];
@@ -339,7 +335,6 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
   void initState() {
     super.initState();
     _initLocation();
-    _loadMarkerIcons();
     _loadRoutes();
   }
   
@@ -482,29 +477,7 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     return false;
   }
 
-  /// 加载自定义标记图标
-  Future<void> _loadMarkerIcons() async {
-    final startIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(48, 48)),
-      'assets/markers/marker_start_xhdpi.png',
-    );
-    final endIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(48, 48)),
-      'assets/markers/marker_end_xhdpi.png',
-    );
-    final loopIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(48, 48)),
-      'assets/markers/marker_loop_xhdpi.png',
-    );
-    
-    setState(() {
-      _startMarkerIcon = startIcon;
-      _endMarkerIcon = endIcon;
-      _loopMarkerIcon = loopIcon;
-    });
-  }
-
-  /// 初始化定位
+/// 初始化定位
   void _initLocation() {
     _locationPlugin = AMapFlutterLocation();
     
@@ -576,44 +549,32 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
       Marker(
         position: _currentPosition!,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-        infoWindow: const InfoWindow(
-          title: '当前位置',
-          snippet: '我在这里',
-        ),
       ),
     };
   }
 
-  // 路线标记 - 使用自定义起点/终点图标
+  // 路线标记
   Set<Marker> get _routeMarkers {
     final markers = <Marker>{};
-    
+
     for (final route in _routes) {
       final path = route['path'] as List<dynamic>?;
-      
+
       if (path != null && path.isNotEmpty) {
         // 添加起点标记
         markers.add(Marker(
           position: path.first as LatLng,
-          icon: _startMarkerIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          infoWindow: InfoWindow(
-            title: '${route['name']} - 起点',
-            snippet: '难度: ${route['difficulty']}',
-          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
         ));
-        
+
         // 添加终点标记
         markers.add(Marker(
           position: path.last as LatLng,
-          icon: _endMarkerIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          infoWindow: InfoWindow(
-            title: '${route['name']} - 终点',
-            snippet: '难度: ${route['difficulty']}',
-          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         ));
       }
     }
-    
+
     return markers;
   }
 
@@ -633,10 +594,6 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
             Marker(
               position: parking['position'] as LatLng,
               icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-              infoWindow: InfoWindow(
-                title: '🅿️ ${parking['name']}',
-                snippet: '停车场',
-              ),
             ),
           );
         }
@@ -1067,11 +1024,11 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
     return Scaffold(
       body: Stack(
         children: [
-          // 高德地图
+          // 地图
           AMapWidget(
-            apiKey: const AMapApiKey(
-              iosKey: _amapKey,
-              androidKey: _amapKey,
+            apiKey: AMapApiKey(
+              iosKey: dotenv.env['AMAP_KEY'] ?? '',
+              androidKey: dotenv.env['AMAP_KEY'] ?? '',
             ),
             privacyStatement: const AMapPrivacyStatement(
               hasContains: true,
@@ -1085,17 +1042,8 @@ class _MapScreenSimpleState extends State<MapScreenSimple> {
             onMapCreated: (controller) {
               _mapController = controller;
               debugPrint('✅ 地图创建成功');
-              // amap_flutter_map 3.0+ 不支持 setMyLocationEnabled
-              // 定位通过 amap_flutter_location 获取，位置标记通过 Marker 添加
             },
-            // 只启用基本手势
-            scrollGesturesEnabled: true,
-            zoomGesturesEnabled: true,
-            rotateGesturesEnabled: false,
-            tiltGesturesEnabled: false,
-            // 显示所有标记（当前位置 + 路线）
             markers: _allMarkers,
-            // 显示路线轨迹线
             polylines: _routePolylines,
           ),
           

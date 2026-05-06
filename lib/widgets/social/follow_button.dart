@@ -3,8 +3,8 @@
 // ================================================================
 
 import 'package:flutter/material.dart';
-import '../services/follow_service.dart';
-import '../constants/app_theme.dart';
+import '../../services/follow_service.dart';
+import '../../constants/design_system.dart';
 
 /// 关注按钮状态
 enum FollowButtonSize {
@@ -136,7 +136,7 @@ class _FollowButtonState extends State<FollowButton> {
           Icon(
             Icons.sync_alt,
             size: size.iconSize,
-            color: AppTheme.primaryColor,
+            color: DesignSystem.primary,
           ),
           SizedBox(width: 4),
           Text(
@@ -144,7 +144,7 @@ class _FollowButtonState extends State<FollowButton> {
             style: TextStyle(
               fontSize: size.fontSize,
               fontWeight: FontWeight.w500,
-              color: AppTheme.primaryColor,
+              color: DesignSystem.primary,
             ),
           ),
         ],
@@ -197,11 +197,11 @@ class _FollowButtonState extends State<FollowButton> {
         width: size.width,
         height: size.height,
         decoration: BoxDecoration(
-          color: AppTheme.primaryColor,
+          color: DesignSystem.primary,
           borderRadius: BorderRadius.circular(size.height / 2),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primaryColor.withOpacity(0.3),
+              color: DesignSystem.primary.withOpacity(0.3),
               blurRadius: 8,
               offset: Offset(0, 2),
             ),

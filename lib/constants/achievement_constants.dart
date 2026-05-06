@@ -119,7 +119,7 @@ class DifficultyMap {
   }
   
   /// 将数值映射为难度字符串
-  static String toString(int value) {
+  static String toDifficultyString(int value) {
     switch (value) {
       case easy:
         return 'EASY';

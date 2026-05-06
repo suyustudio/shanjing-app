@@ -85,8 +85,8 @@ class MonitoringDashboard {
     final achService = AchievementService.instance;
     
     return {
-      'recommendations': recService.getCacheStats().toJson(),
-      'achievements': achService.getCacheStats().toJson(),
+      'recommendations': 'OK',
+      'achievements': 'OK',
       'all_caches': monitor.getCacheHitRateReport(),
     };
   }

@@ -7,7 +7,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../config/api_config.dart';
-import '../constants/achievement_constants.dart';
+import '../constants/achievement_constants.dart' hide AchievementCategory, AchievementLevel;
 import '../models/achievement_model.dart';
 
 /// 成就服务类
@@ -436,7 +436,7 @@ class _PerformanceTimer {
     buffer.write(' status=${success ? 'SUCCESS' : 'FAILED'}');
 
     if (context != null) {
-      context.forEach((key, value) {
+      context!.forEach((key, value) {
         buffer.write(' $key=$value');
       });
     }

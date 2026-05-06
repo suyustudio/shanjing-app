@@ -4,8 +4,8 @@
 // ================================================================
 
 import 'package:flutter/material.dart';
-import '../../services/achievement_errors.dart';
-import 'achievement_state_manager.dart';
+import '../../../services/achievement_errors.dart';
+import '../achievement_state_manager.dart';
 
 /// 成就错误展示组件
 class AchievementErrorWidget extends StatelessWidget {

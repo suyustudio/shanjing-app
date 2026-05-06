@@ -5,9 +5,9 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../config/api_config.dart';
-import '../constants/achievement_constants.dart';
+import '../constants/achievement_constants.dart' hide RecommendationScene, UserAction;
 import '../models/recommendation_model.dart';
-import 'auth_service.dart';
+import 'auth_service.dart' hide ApiResponse;
 
 /// 推荐服务
 class RecommendationService {
@@ -31,7 +31,7 @@ class RecommendationService {
       'Accept': 'application/json',
     };
 
-    final token = _authService.token;
+    final token = _authService.tokenInfo?.accessToken;
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
     }
@@ -39,7 +39,7 @@ class RecommendationService {
     return headers;
   }
 
-  Future<ApiResponse<Map<String, dynamic>>?>> _get(
+  Future<ApiResponse<Map<String, dynamic>>?> _get(
     String url, {
     Map<String, String>? queryParams,
     Duration? timeout,
@@ -76,7 +76,7 @@ class RecommendationService {
     }
   }
 
-  Future<ApiResponse<Map<String, dynamic>>?>> _post(
+  Future<ApiResponse<Map<String, dynamic>>?> _post(
     String url, {
     Map<String, dynamic>? body,
     Duration? timeout,
@@ -185,7 +185,7 @@ class RecommendationService {
       queryParams: queryParams,
     );
 
-    if (response.success && response.data != null) {
+    if (response != null && response.success && response.data != null) {
       final data = response.data!;
       if (data['success'] == true && data['data'] != null) {
         final recommendationData = RecommendationsResponse.fromJson(data['data']);
@@ -280,7 +280,7 @@ class RecommendationService {
       body: body,
     );
 
-    return response.success && response.data?['success'] == true;
+    return response?.success == true && response?.data?['success'] == true;
   }
 
   /// 发送反馈（通用方法）
@@ -303,7 +303,7 @@ class RecommendationService {
     );
 
     // 清除用户推荐缓存
-    await clearCache();
+    clearCache();
   }
 
   // ============ 缓存管理 ============

@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../analytics/analytics.dart';
 import '../widgets/filter_tags.dart';
 import '../constants/design_system.dart';
@@ -60,6 +62,7 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
 
   // 高德定位
   late AMapFlutterLocation _locationPlugin;
+  bool _hasCameraMovedToUser = false; // 首次定位后移动一次相机
   StreamSubscription<Map<String, Object>>? _locationSubscription;
   LatLng? _currentLocation; // 当前真实GPS位置
 
@@ -129,7 +132,8 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
     super.initState();
     _requestPermission();
     _initOfflineManager();
-    _initLocation(); // 初始化高德定位
+    _loadCachedLocation(); // 加载上次缓存的位置
+    // 注意：_initLocation() 在权限确认后才调用，避免权限未授权时提前启动定位
   }
 
   /// 初始化离线地图管理器
@@ -222,10 +226,43 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
     }
   }
 
+  /// 从本地缓存加载上次定位位置
+  Future<void> _loadCachedLocation() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString('last_location');
+      if (cached != null) {
+        final data = jsonDecode(cached) as Map<String, dynamic>;
+        final lat = data['latitude'] as double;
+        final lng = data['longitude'] as double;
+        setState(() {
+          _currentLocation = LatLng(lat, lng);
+        });
+        debugPrint('已加载缓存位置: lat=$lat, lng=$lng');
+      }
+    } catch (e) {
+      debugPrint('加载缓存位置失败: $e');
+    }
+  }
+
+  /// 缓存当前定位到本地存储
+  Future<void> _saveLocation(double lat, double lng) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_location', jsonEncode({
+        'latitude': lat,
+        'longitude': lng,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      }));
+    } catch (e) {
+      debugPrint('保存位置缓存失败: $e');
+    }
+  }
+
   /// 初始化高德定位
   void _initLocation() {
     _locationPlugin = AMapFlutterLocation();
-    
+
     // 监听定位结果
     _locationSubscription = _locationPlugin.onLocationChanged().listen(
       _onLocationUpdate,
@@ -237,7 +274,7 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
     // 开始定位
     _locationPlugin.startLocation();
   }
-  
+
   /// 处理定位更新
   void _onLocationUpdate(Map<String, Object> location) {
     final double? latitude = location['latitude'] as double?;
@@ -250,11 +287,17 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
         _currentLocation = newLocation;
       });
       debugPrint('定位更新: lat=$latitude, lng=$longitude, accuracy=${accuracy ?? "unknown"}m');
-      
-      // 移动地图到用户位置
-      _mapController?.moveCamera(
-        CameraUpdate.newLatLng(newLocation),
-      );
+
+      // 缓存当前定位（异步，不阻塞）
+      _saveLocation(latitude, longitude);
+
+      // 移动地图到用户位置（只在首次定位或主动触发时移动）
+      if (!_hasCameraMovedToUser) {
+        _hasCameraMovedToUser = true;
+        _mapController?.moveCamera(
+          CameraUpdate.newLatLng(newLocation),
+        );
+      }
     }
   }
 
@@ -360,7 +403,6 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
             iosKey: dotenv.env['AMAP_KEY'] ?? '',
             androidKey: dotenv.env['AMAP_KEY'] ?? '',
           ),
-          // 隐私合规声明 - 必须设置，否则地图不会显示
           privacyStatement: const AMapPrivacyStatement(
             hasContains: true,
             hasShow: true,
@@ -372,36 +414,26 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
           ),
           onMapCreated: _onMapCreated,
           onTap: (_) => _closeCard(),
-          // 启用手势 - amap_flutter_map 3.0 参数
-          scrollGesturesEnabled: true,
-          zoomGesturesEnabled: true,
-          rotateGesturesEnabled: true,
-          tiltGesturesEnabled: true,
-          // myLocationEnabled 参数在 amap_flutter_map 3.0+ 中已移除
-          // 使用定位插件单独控制
           markers: _routes.asMap().entries.map((entry) {
-            final index = entry.key;
             final route = entry.value;
+            final hue = route.difficulty == 'easy'
+                ? BitmapDescriptor.hueGreen
+                : route.difficulty == 'moderate'
+                    ? BitmapDescriptor.hueOrange
+                    : BitmapDescriptor.hueRed;
             return Marker(
               position: route.position,
-              icon: BitmapDescriptor.defaultMarkerWithHue(
-                route.difficulty == 'easy' ? BitmapDescriptor.hueGreen :
-                route.difficulty == 'moderate' ? BitmapDescriptor.hueOrange :
-                BitmapDescriptor.hueRed,
-              ),
-              infoWindow: InfoWindow(
-                title: route.name,
-                snippet: '${route.distance} · ${route.duration}',
-              ),
+              icon: BitmapDescriptor.defaultMarkerWithHue(hue),
               onTap: (String id) => _onMarkerTap(route),
             );
           }).toSet(),
           polylines: {
-            Polyline(
-              points: _trailCoords.map((c) => LatLng(c[1], c[0])).toList(),
-              color: Colors.blue,
-              width: 6,
-            ),
+            if (_trailCoords.isNotEmpty)
+              Polyline(
+                points: _trailCoords.map((c) => LatLng(c[1], c[0])).toList(),
+                color: Colors.blue,
+                width: 6,
+              ),
           },
         ),
         // 离线模式指示器
@@ -652,7 +684,7 @@ class _MapScreenState extends State<MapScreen> with AnalyticsMixin {
 
   void _onMapCreated(AMapController controller) {
     _mapController = controller;
-    // 如果有当前位置，移动地图到用户位置
+    // 如果有缓存位置，立即移动地图到该位置（不等GPS定位）
     if (_currentLocation != null) {
       _mapController?.moveCamera(
         CameraUpdate.newLatLng(_currentLocation!),

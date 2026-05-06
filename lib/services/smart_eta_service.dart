@@ -425,6 +425,13 @@ class SmartEtaService {
   }
 }
 
+/// ETA数据来源
+enum EtaSource {
+  routeData,
+  historicalData,
+  mixed,
+}
+
 /// ETA推荐结果
 class EtaRecommendation {
   final String routeId;
@@ -482,6 +489,10 @@ class SmartEtaSettings {
   double confidenceThreshold;
   Duration minRecommendedDuration;
   Duration maxRecommendedDuration;
+  double safetyBuffer;
+  double paceAdjustment;
+  bool enableDynamicAdjustment;
+  bool enableWeatherFactor;
 
   SmartEtaSettings({
     this.useHistoricalData = true,
@@ -490,6 +501,10 @@ class SmartEtaSettings {
     this.confidenceThreshold = 0.5,
     this.minRecommendedDuration = const Duration(minutes: 15),
     this.maxRecommendedDuration = const Duration(hours: 8),
+    this.safetyBuffer = 0.1,
+    this.paceAdjustment = 0.0,
+    this.enableDynamicAdjustment = true,
+    this.enableWeatherFactor = true,
   });
 
   factory SmartEtaSettings.fromJson(Map<String, dynamic> json) {
@@ -497,9 +512,13 @@ class SmartEtaSettings {
       useHistoricalData: json['useHistoricalData'] ?? true,
       considerWeather: json['considerWeather'] ?? true,
       considerTimeOfDay: json['considerTimeOfDay'] ?? true,
-      confidenceThreshold: json['confidenceThreshold'] ?? 0.5,
+      confidenceThreshold: (json['confidenceThreshold'] ?? 0.5).toDouble(),
       minRecommendedDuration: Duration(minutes: json['minRecommendedDurationMinutes'] ?? 15),
       maxRecommendedDuration: Duration(hours: json['maxRecommendedDurationHours'] ?? 8),
+      safetyBuffer: (json['safetyBuffer'] ?? 0.1).toDouble(),
+      paceAdjustment: (json['paceAdjustment'] ?? 0.0).toDouble(),
+      enableDynamicAdjustment: json['enableDynamicAdjustment'] ?? true,
+      enableWeatherFactor: json['enableWeatherFactor'] ?? true,
     );
   }
 
@@ -511,6 +530,36 @@ class SmartEtaSettings {
       'confidenceThreshold': confidenceThreshold,
       'minRecommendedDurationMinutes': minRecommendedDuration.inMinutes,
       'maxRecommendedDurationHours': maxRecommendedDuration.inHours,
+      'safetyBuffer': safetyBuffer,
+      'paceAdjustment': paceAdjustment,
+      'enableDynamicAdjustment': enableDynamicAdjustment,
+      'enableWeatherFactor': enableWeatherFactor,
     };
+  }
+
+  SmartEtaSettings copyWith({
+    bool? useHistoricalData,
+    bool? considerWeather,
+    bool? considerTimeOfDay,
+    double? confidenceThreshold,
+    Duration? minRecommendedDuration,
+    Duration? maxRecommendedDuration,
+    double? safetyBuffer,
+    double? paceAdjustment,
+    bool? enableDynamicAdjustment,
+    bool? enableWeatherFactor,
+  }) {
+    return SmartEtaSettings(
+      useHistoricalData: useHistoricalData ?? this.useHistoricalData,
+      considerWeather: considerWeather ?? this.considerWeather,
+      considerTimeOfDay: considerTimeOfDay ?? this.considerTimeOfDay,
+      confidenceThreshold: confidenceThreshold ?? this.confidenceThreshold,
+      minRecommendedDuration: minRecommendedDuration ?? this.minRecommendedDuration,
+      maxRecommendedDuration: maxRecommendedDuration ?? this.maxRecommendedDuration,
+      safetyBuffer: safetyBuffer ?? this.safetyBuffer,
+      paceAdjustment: paceAdjustment ?? this.paceAdjustment,
+      enableDynamicAdjustment: enableDynamicAdjustment ?? this.enableDynamicAdjustment,
+      enableWeatherFactor: enableWeatherFactor ?? this.enableWeatherFactor,
+    );
   }
 }

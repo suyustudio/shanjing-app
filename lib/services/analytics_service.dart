@@ -27,9 +27,9 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
-import '../services/connectivity_service.dart';
-import '../services/performance_monitor_service.dart';
-import '../services/error_monitor_service.dart';
+import 'connectivity_service.dart';
+import '../services/performance_monitor_service.dart' hide Random;
+import '../services/error_monitor_service.dart' hide Random;
 
 /// 埋点事件
 class AnalyticsEvent {

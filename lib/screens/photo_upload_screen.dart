@@ -176,7 +176,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
               child: const Text(
                 '发布',
                 style: TextStyle(
-                  color: DesignSystem.primaryColor,
+                  color: DesignSystem.primary,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -201,7 +201,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
               strokeWidth: 4,
               backgroundColor: DesignSystem.gray200,
               valueColor: const AlwaysStoppedAnimation<Color>(
-                DesignSystem.primaryColor,
+                DesignSystem.primary,
               ),
             ),
           ),
@@ -344,7 +344,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: DesignSystem.primaryColor,
+                        color: DesignSystem.primary,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Text(
@@ -424,7 +424,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                     borderRadius: BorderRadius.circular(8),
                     border: _currentPhotoIndex == index
                         ? Border.all(
-                            color: DesignSystem.primaryColor,
+                            color: DesignSystem.primary,
                             width: 2,
                           )
                         : null,
@@ -539,7 +539,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
               _getRatingText(_rating!),
               style: TextStyle(
                 fontSize: 13,
-                color: DesignSystem.primaryColor,
+                color: DesignSystem.primary,
               ),
             ),
           ),
@@ -599,11 +599,11 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? DesignSystem.primaryColor.withOpacity(0.1)
+                      ? DesignSystem.primary.withOpacity(0.1)
                       : Colors.transparent,
                   border: Border.all(
                     color: isSelected
-                        ? DesignSystem.primaryColor
+                        ? DesignSystem.primary
                         : DesignSystem.gray300,
                   ),
                   borderRadius: BorderRadius.circular(16),
@@ -613,7 +613,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     color: isSelected
-                        ? DesignSystem.primaryColor
+                        ? DesignSystem.primary
                         : DesignSystem.gray600,
                     fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                   ),
@@ -700,7 +700,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
           Switch(
             value: true,
             onChanged: (value) {},
-            activeColor: DesignSystem.primaryColor,
+            activeColor: DesignSystem.primary,
           ),
         ],
       ),

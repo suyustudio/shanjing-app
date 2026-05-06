@@ -241,7 +241,7 @@ class _PhotoViewerState extends State<PhotoViewer>
                               backgroundImage: currentPhoto.user.avatarUrl != null
                                   ? NetworkImage(currentPhoto.user.avatarUrl!)
                                   : null,
-                              backgroundColor: DesignSystem.primaryColor,
+                              backgroundColor: DesignSystem.primary,
                               child: currentPhoto.user.avatarUrl == null
                                   ? Text(
                                       currentPhoto.user.nickname?.substring(0, 1) ?? '',
@@ -302,7 +302,7 @@ class _PhotoViewerState extends State<PhotoViewer>
                                   : Icons.favorite_border,
                               label: '${currentPhoto.likeCount}',
                               color: currentPhoto.isLiked
-                                  ? DesignSystem.errorColor
+                                  ? DesignSystem.error
                                   : Colors.white,
                               onTap: () => widget.onLikeTap?.call(currentPhoto),
                             ),
@@ -462,7 +462,7 @@ class _PhotoPageState extends State<_PhotoPage>
                             loadingProgress.expectedTotalBytes!
                         : null,
                     valueColor: const AlwaysStoppedAnimation<Color>(
-                      DesignSystem.primaryColor,
+                      DesignSystem.primary,
                     ),
                   ),
                 );

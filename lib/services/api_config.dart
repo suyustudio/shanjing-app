@@ -6,8 +6,8 @@
 
 /// API 基础配置
 class ApiConfig {
-  /// 开发环境基础 URL
-  static const String devBaseUrl = 'http://localhost:3000';
+  /// 开发环境基础 URL（真机测试时改为 Mac 的局域网 IP）
+  static const String devBaseUrl = 'http://192.168.21.238:3000';
   
   /// 生产环境基础 URL（待配置）
   static const String prodBaseUrl = 'https://api.shanjing.app';

@@ -233,7 +233,7 @@ class PhotoService {
 
   /// 批量获取上传凭证
   Future<List<UploadUrlResponse>> getBatchUploadUrls(
-    List<{String filename, String contentType}> files,
+    List<({String filename, String contentType})> files,
   ) async {
     final uri = Uri.parse('$_baseUrl/v1/files/upload-urls');
     final response = await http.post(

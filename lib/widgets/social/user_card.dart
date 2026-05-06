@@ -3,8 +3,8 @@
 // ================================================================
 
 import 'package:flutter/material.dart';
-import '../services/follow_service.dart';
-import '../constants/app_theme.dart';
+import '../../services/follow_service.dart';
+import '../../constants/design_system.dart';
 import 'follow_button.dart';
 
 /// 用户卡片组件
@@ -135,14 +135,14 @@ class UserCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: DesignSystem.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   '${user.mutualFollows}个共同关注',
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppTheme.primaryColor,
+                    color: DesignSystem.primary,
                   ),
                 ),
               ),

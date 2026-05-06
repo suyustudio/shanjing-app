@@ -34,18 +34,15 @@ class AchievementDetailPage extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // 徽章大图展示
-            _buildBadgeCard(isUnlocked),
+            _buildBadgeCard(context, isUnlocked),
             const SizedBox(height: 24),
-            // 成就信息
-            _buildInfoCard(),
+            _buildInfoCard(context),
             const SizedBox(height: 24),
-            // 进度信息
             if (!isUnlocked || achievement.percentage < 100)
-              _buildProgressCard(),
+              _buildProgressCard(context),
             if (isUnlocked) ...[
               const SizedBox(height: 24),
-              _buildUnlockInfoCard(),
+              _buildUnlockInfoCard(context),
             ],
           ],
         ),
@@ -53,7 +50,7 @@ class AchievementDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBadgeCard(bool isUnlocked) {
+  Widget _buildBadgeCard(BuildContext context, bool isUnlocked) {
     final levelColor = AchievementBadgeUtils.getLevelColor(
       achievement.currentLevel ?? 'bronze',
     );
@@ -80,7 +77,6 @@ class AchievementDetailPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // 徽章 - 使用新的 AchievementBadge 组件
           AchievementBadge(
             category: achievement.category,
             level: achievement.currentLevel ?? 'bronze',
@@ -89,12 +85,11 @@ class AchievementDetailPage extends StatelessWidget {
             enableAnimation: isUnlocked,
           ),
           const SizedBox(height: 20),
-          // 成就名称
           Text(
             achievement.name,
             style: DesignSystem.getHeadlineSmall(context).copyWith(
-              color: isUnlocked 
-                  ? DesignSystem.getTextPrimary(context) 
+              color: isUnlocked
+                  ? DesignSystem.getTextPrimary(context)
                   : DesignSystem.getTextTertiary(context),
             ),
           ),
@@ -121,7 +116,7 @@ class AchievementDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: DesignSystem.getBackgroundElevated(context),
@@ -138,27 +133,27 @@ class AchievementDetailPage extends StatelessWidget {
               style: DesignSystem.getTitleMedium(context),
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(
-              '类别', 
+            _buildInfoRow(context,
+              '类别',
               _getCategoryDisplayName(achievement.category),
             ),
             Divider(
-              height: 24, 
+              height: 24,
               color: DesignSystem.getDivider(context),
             ),
-            _buildInfoRow(
+            _buildInfoRow(context,
               '状态',
               achievement.isUnlocked ? '已解锁' : '未解锁',
-              valueColor: achievement.isUnlocked 
-                  ? DesignSystem.success 
+              valueColor: achievement.isUnlocked
+                  ? DesignSystem.success
                   : DesignSystem.getTextTertiary(context),
             ),
             if (achievement.isUnlocked && achievement.unlockedAt != null) ...[
               Divider(
-                height: 24, 
+                height: 24,
                 color: DesignSystem.getDivider(context),
               ),
-              _buildInfoRow(
+              _buildInfoRow(context,
                 '解锁时间',
                 _formatDate(achievement.unlockedAt!),
               ),
@@ -169,7 +164,7 @@ class AchievementDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressCard() {
+  Widget _buildProgressCard(BuildContext context) {
     final primaryColor = DesignSystem.getPrimary(context);
 
     return Container(
@@ -226,7 +221,7 @@ class AchievementDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildUnlockInfoCard() {
+  Widget _buildUnlockInfoCard(BuildContext context) {
     final successColor = DesignSystem.getSuccess(context);
 
     return Container(
@@ -263,7 +258,7 @@ class AchievementDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {Color? valueColor}) {
+  Widget _buildInfoRow(BuildContext context, String label, String value, {Color? valueColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

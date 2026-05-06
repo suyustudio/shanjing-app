@@ -5,9 +5,9 @@
  */
 
 import 'package:flutter/material.dart';
-import '../widgets/review/index.dart';
-import '../models/review_model.dart';
-import '../services/review_service.dart';
+import 'index.dart';
+import '../../models/review_model.dart';
+import '../../services/review_service.dart';
 
 /// 示例：路线详情页中的评论列表
 class TrailReviewsExample extends StatelessWidget {

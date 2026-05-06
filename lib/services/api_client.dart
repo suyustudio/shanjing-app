@@ -182,13 +182,14 @@ class ApiClient {
   /// DELETE 请求
   Future<ApiResponse<T>> delete<T>(
     String endpoint, {
+    Map<String, dynamic>? body,
     T Function(dynamic)? parser,
   }) async {
     try {
       final uri = Uri.parse(_buildUrl(endpoint));
 
       final response = await _client
-          .delete(uri, headers: _getHeaders())
+          .delete(uri, headers: _getHeaders(), body: body != null ? jsonEncode(body) : null)
           .timeout(Duration(seconds: ApiConfig.timeoutSeconds));
 
       return _handleResponse(response, parser);

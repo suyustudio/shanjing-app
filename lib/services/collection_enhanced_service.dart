@@ -2,10 +2,12 @@
 // 山径APP - 增强版收藏夹服务（M7 P1）
 // 扩展原有服务，添加批量操作和搜索筛选功能
 
+import 'dart:async';
 import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'api_client.dart';
 import 'api_config.dart';
+import '../models/collection_model.dart';
 import '../models/collection_enhanced_model.dart';
 import 'collection_service.dart';
 import 'share_service_enhanced.dart';
@@ -611,13 +613,8 @@ class CollectionEnhancedService {
     );
 
     final allTags = <String>{};
-    for (final collection in collections) {
-      // 注意：这里需要API返回tags字段，暂时使用空列表
-      // 实际实现需要后端支持
-      if (collection is EnhancedCollection) {
-        allTags.addAll(collection.tags);
-      }
-    }
+    // TODO: 需要API返回tags字段支持
+    // 当前collection类型不包含tags字段，待后端实现后补充
 
     return allTags.toList()..sort();
   }

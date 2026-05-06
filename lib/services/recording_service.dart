@@ -278,8 +278,7 @@ class RecordingService extends ChangeNotifier {
       await _saveCurrentSession();
 
       final finishedSession = _currentSession;
-      
-      _currentSession = null;
+
       _tempTrackPoints.clear();
       _positionHistory.clear();
       _lastTrackPoint = null;
@@ -287,6 +286,9 @@ class RecordingService extends ChangeNotifier {
 
       notifyListeners();
       onRecordingStopped?.call();
+
+      // 回调之后才清除currentSession，让回调仍能访问session
+      _currentSession = null;
       
       return finishedSession;
     } catch (e) {

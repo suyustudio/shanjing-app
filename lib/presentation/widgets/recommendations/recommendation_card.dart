@@ -3,7 +3,7 @@
 // ============================================
 
 import 'package:flutter/material.dart';
-import '../../models/recommendation_model.dart';
+import '../../../models/recommendation_model.dart';
 
 /// 推荐卡片
 class RecommendationCard extends StatelessWidget {

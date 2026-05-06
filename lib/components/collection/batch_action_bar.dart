@@ -179,18 +179,20 @@ class _CollectionBatchActionBarState extends State<CollectionBatchActionBar>
       buttons.add(
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: ActionChip(
-            avatar: Icon(icon, size: 18),
-            label: Text(label),
-            backgroundColor: color?.withOpacity(0.1),
-            labelStyle: theme.textTheme.bodySmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-            onPressed: () => widget.onActionSelected(action),
+          child: GestureDetector(
             onLongPress: widget.onActionLongPressed != null
                 ? () => widget.onActionLongPressed!(action)
                 : null,
+            child: ActionChip(
+              avatar: Icon(icon, size: 18),
+              label: Text(label),
+              backgroundColor: color?.withOpacity(0.1),
+              labelStyle: theme.textTheme.bodySmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+              onPressed: () => widget.onActionSelected(action),
+            ),
           ),
         ),
       );

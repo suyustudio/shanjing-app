@@ -39,7 +39,7 @@ class OfflineCacheService {
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
       (results) {
         // 只要有非none的连接就尝试重发
-        if (results.any((r) => r != ConnectivityResult.none)) {
+        if (results != ConnectivityResult.none) {
           _onNetworkRestored();
         }
       },
@@ -77,19 +77,21 @@ class OfflineCacheService {
     String eventId, {
     required SosEventStatus status,
     DateTime? sentAt,
+    DateTime? lastRetryAt,
     String? errorMessage,
   }) async {
     await initialize();
-    
+
     try {
       final events = await _getAllCachedEvents();
       final index = events.indexWhere((e) => e.id == eventId);
-      
+
       if (index == -1) return false;
-      
+
       final updatedEvent = events[index].copyWith(
         status: status,
         sentAt: sentAt,
+        lastRetryAt: lastRetryAt,
         errorMessage: errorMessage,
       );
       

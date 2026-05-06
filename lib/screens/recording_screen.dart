@@ -2,7 +2,6 @@
 // 山径APP - 轨迹录制主界面 (P1修复版)
 
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:battery_plus/battery_plus.dart';
@@ -18,7 +17,9 @@ import '../constants/design_system.dart';
 
 /// 轨迹录制页面
 class RecordingScreen extends StatefulWidget {
-  const RecordingScreen({super.key});
+  final RecordingPreparationData? preparationData;
+
+  const RecordingScreen({super.key, this.preparationData});
 
   @override
   State<RecordingScreen> createState() => _RecordingScreenState();
@@ -177,7 +178,18 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _recordingService,
-      child: Scaffold(
+      child: PopScope(
+        canPop: !_recordingService.isRecording && !_recordingService.isPaused,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (!didPop) {
+            if (_recordingService.isRecording) {
+              await _confirmStopRecording();
+            } else if (_recordingService.isPaused) {
+              await _confirmDiscardRecording();
+            }
+          }
+        },
+        child: Scaffold(
         backgroundColor: DesignSystem.getBackground(context),
         body: Stack(
           children: [
@@ -205,7 +217,8 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   /// 构建GPS信号弱提示条 (P1修复#6)
@@ -262,7 +275,6 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
       markers: _markers,
       onMapCreated: (controller) {
         _mapController = controller;
-        // 移动到当前位置
         if (_currentPosition != null) {
           _mapController?.moveCamera(
             CameraUpdate.newLatLng(_currentPosition!),
@@ -342,6 +354,19 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
                     // 电量显示 (P1修复#5)
                     _buildBatteryIndicator(),
                     const SizedBox(width: 12),
+                    // GPS精度
+                    if (_gpsAccuracy > 0) ...[
+                      _buildStatChip(
+                        Icons.gps_fixed,
+                        '${_gpsAccuracy.toStringAsFixed(0)}m',
+                        _gpsAccuracy <= 10
+                            ? DesignSystem.getSuccess(context)
+                            : _gpsAccuracy <= 20
+                                ? DesignSystem.getWarning(context)
+                                : DesignSystem.getError(context),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     // POI数量
                     if (session != null) ...[
                       _buildStatChip(
@@ -907,11 +932,14 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
   void _onRecordingStopped() {
     HapticFeedback.heavyImpact();
     _showSnackBar('录制已结束，数据已保存');
-    
-    // 显示上传对话框
+
+    // 立即保存session引用（stopRecording在回调后才会清除currentSession）
+    final session = _recordingService.currentSession;
+
+    // 延迟后pop回列表页，由列表页处理跳转到编辑页
     Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        _showUploadDialog();
+      if (mounted && session != null) {
+        Navigator.of(context).pop(session);
       }
     });
   }
@@ -956,10 +984,17 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
   // ========== 控制方法 ==========
 
   Future<void> _startRecording() async {
-    // 显示路线信息预填写对话框（紧急修复）
-    final trailInfo = await _showTrailInfoDialog();
-    if (trailInfo == null) {
-      return; // 用户取消
+    // 获取路线信息：优先使用准备页面传入的数据，否则弹出对话框
+    Map<String, dynamic>? trailInfo;
+    if (widget.preparationData != null) {
+      trailInfo = {
+        'name': widget.preparationData!.trailName,
+        'city': widget.preparationData!.city,
+        'description': widget.preparationData!.description,
+      };
+    } else {
+      trailInfo = await _showTrailInfoDialog();
+      if (trailInfo == null) return;
     }
 
     // 检查并申请必要权限
@@ -1208,17 +1243,6 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
     }
   }
 
-  Future<void> _showUploadDialog() async {
-    final session = _recordingService.currentSession;
-    if (session == null) return;
-
-    // 跳转到编辑页面
-    Navigator.of(context).pushReplacementNamed(
-      '/recording/edit',
-      arguments: session,
-    );
-  }
-
   void _focusOnPoi(PoiMarker poi) {
     _mapController?.moveCamera(
       CameraUpdate.newLatLngZoom(
@@ -1235,10 +1259,10 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
 
   void _updatePolylines() {
     _polylines.clear();
-    
+
     if (_trackPoints.length >= 2) {
       _polylines.add(Polyline(
-        points: _trackPoints,
+        points: List.from(_trackPoints),
         color: DesignSystem.getPrimary(context),
         width: 5,
       ));
@@ -1247,19 +1271,13 @@ class _RecordingScreenState extends State<RecordingScreen> with TickerProviderSt
 
   void _updateMarkers() {
     _markers.clear();
-    
+
     // 添加POI标记
     final pois = _recordingService.currentSession?.pois ?? [];
     for (final poi in pois) {
       _markers.add(Marker(
         position: LatLng(poi.latitude, poi.longitude),
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          _getMarkerHue(poi.type),
-        ),
-        infoWindow: InfoWindow(
-          title: poi.name ?? poi.type.displayName,
-          snippet: poi.description,
-        ),
+        icon: BitmapDescriptor.defaultMarkerWithHue(_getMarkerHue(poi.type)),
       ));
     }
   }

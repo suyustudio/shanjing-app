@@ -4,8 +4,8 @@
 // ================================================================
 
 import 'package:flutter/foundation.dart';
-import '../models/achievement_model.dart';
-import 'achievement_errors.dart';
+import '../../models/achievement_model.dart';
+import '../../services/achievement_errors.dart';
 
 /// 加载状态
 enum LoadingState {

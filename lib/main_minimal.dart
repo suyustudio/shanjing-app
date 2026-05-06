@@ -83,7 +83,6 @@ class _MinimalMapScreenState extends State<MinimalMapScreen> {
 
   @override
   void dispose() {
-    _mapController?.dispose();
     super.dispose();
   }
 }

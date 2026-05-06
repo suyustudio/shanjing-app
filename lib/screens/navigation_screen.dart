@@ -3,14 +3,13 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:amap_flutter_map/amap_flutter_map.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
 import 'package:amap_flutter_location/amap_flutter_location.dart';
 import 'package:amap_flutter_location/amap_location_option.dart';
-// import 'package:amap_flutter_navi/amap_flutter_navi.dart'; // 已移除，使用模拟导航服务
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../analytics/analytics.dart';
 import '../widgets/app_app_bar.dart';
 import '../widgets/sos_button.dart';
@@ -18,8 +17,8 @@ import '../constants/design_system.dart';
 import '../utils/permission_manager.dart';
 import '../services/sos_service.dart';
 import '../services/sos_service_enhanced.dart' show SOSSendResult;
+import '../services/map_service.dart';
 import '../services/amap_navi_service.dart';
-import '../services/mock_navi_service.dart';
 import '../models/navigation_phase.dart';
 
 /// 导航状态枚举（已废弃，使用 NavigationPhase 替代）
@@ -43,11 +42,10 @@ class _NaviListener implements AmapNaviListener {
   @override
   void onServiceInitialized(bool success) {
     if (!_screen.mounted) return;
-    
+
     if (success) {
       debugPrint('✅ 高德导航服务初始化成功');
-      // 位置权限获取后开始阶段1路径规划
-      _screen._startPhase1Planning();
+      // 不再自动触发路径规划，等待用户点击"开始导航"
     } else {
       debugPrint('❌ 高德导航服务初始化失败');
       if (_screen.mounted) {
@@ -253,15 +251,11 @@ class _NavigationScreenState extends State<NavigationScreen>
   // 高德导航服务
   final AmapNaviService _naviService = AmapNaviService();
   
-  // 模拟导航服务（替代高德导航 SDK）
-  final MockNaviService _mockNaviService = MockNaviService();
-  
   // 阶段1数据：当前位置 → 路线起点
   List<LatLng> _planToStartPath = [];
   double _planToStartDistance = 0;
   int _planToStartTime = 0;
-  bool _hasStartedPhase1Planning = false;
-  
+
   // 阶段2数据：路线起点 → 路线终点
   bool _isRouteNaviStarted = false;
 
@@ -302,10 +296,8 @@ class _NavigationScreenState extends State<NavigationScreen>
   // 导航模式
   NavigationMode _navigationMode = NavigationMode.preview;
   
-  // 到路线起点的规划路径
-  List<LatLng> _previewPath = [];
-  double _previewDistance = 0;
   bool _isCalculatingPreview = false;
+  double _previewDistance = 0;
 
   // 用于防止重复 dispose
   bool _isDisposing = false;
@@ -335,9 +327,6 @@ class _NavigationScreenState extends State<NavigationScreen>
       // 初始化模拟导航服务
       debugPrint('🚀 使用模拟导航服务（绕过高德SDK依赖问题）');
       
-      // 设置模拟导航监听
-      _setupMockNaviListeners();
-      
       // 初始化导航服务（会设置 isInitialized 并通知监听器）
       if (mounted) {
         final initialized = await _naviService.initialize();
@@ -358,140 +347,7 @@ class _NavigationScreenState extends State<NavigationScreen>
     }
   }
   
-  /// 设置模拟导航监听器
-  void _setupMockNaviListeners() {
-    // 监听导航状态变化
-    _mockNaviService.onNaviStateChange.listen((state) {
-      if (!mounted) return;
-      
-      debugPrint('📊 模拟导航状态变化: $state');
-      
-      switch (state) {
-        case MockNaviState.calculating:
-          // 路径计算中
-          break;
-        case MockNaviState.navigating:
-          // 导航中
-          if (_phase == NavigationPhase.planningToStart) {
-            setState(() => _phase = NavigationPhase.navigatingToStart);
-          } else if (_phase == NavigationPhase.previewRoute) {
-            setState(() => _phase = NavigationPhase.navigatingRoute);
-          } else if (_phase == NavigationPhase.offRoute) {
-            // 从偏航状态恢复，重新规划路线
-            if (mounted) {
-              _recalculateRoute();
-            }
-          }
-          break;
-        case MockNaviState.arrived:
-          // 到达目的地
-          if (_phase == NavigationPhase.navigatingToStart) {
-            // 阶段1完成，显示路线预览，等待用户确认
-            if (mounted) {
-              setState(() => _phase = NavigationPhase.previewRoute);
-              _speak('已到达路线起点，请预览路线并确认开始导航');
-              // 自动显示预览界面，3秒后自动开始导航（简化流程）
-              Future.delayed(const Duration(seconds: 3), () {
-                if (mounted && _phase == NavigationPhase.previewRoute) {
-                  _startPhase2RouteNavigation();
-                }
-              });
-            }
-          } else if (_phase == NavigationPhase.navigatingRoute) {
-            // 路线导航完成
-            setState(() => _phase = NavigationPhase.completed);
-            _navigationCompleted = true;
-            _speak('路线导航完成，您已到达目的地');
-          }
-          break;
-        case MockNaviState.offRoute:
-          // 偏航检测
-          if (mounted) {
-            setState(() => _phase = NavigationPhase.offRoute);
-            _speak('检测到偏航，正在重新规划路线');
-            // 不再立即重新规划，等待模拟服务3秒后恢复navigating状态
-            // 重新规划将在收到MockNaviState.navigating时执行
-          }
-          break;
-        case MockNaviState.error:
-          // 错误
-          setState(() => _phase = NavigationPhase.error);
-          break;
-        default:
-          break;
-      }
-    });
-    
-    // 监听导航信息更新
-    _mockNaviService.onNaviInfoUpdate.listen((info) {
-      if (!mounted) return;
-      
-      setState(() {
-        _remainingDistance = info.distance;
-        _estimatedArrivalMinutes = info.time ~/ 60;
-      });
-      
-      // 每公里语音播报
-      final kmRemaining = info.distance / 1000;
-      if (kmRemaining > 0 && kmRemaining < 1 && info.distance % 1000 < 50) {
-        _speak('距离目的地还有${kmRemaining.toStringAsFixed(1)}公里');
-      }
-    });
-  }
-  
-  /// 开始阶段1路径规划：当前位置 → 路线起点（使用模拟服务）
-  Future<void> _startPhase1Planning() async {
-    if (!mounted || _phase != NavigationPhase.planningToStart) return;
-    
-    // 检查是否已获取当前位置
-    if (_currentPosition == null) {
-      debugPrint('📍 等待获取当前位置...');
-      return;
-    }
-    
-    // 检查路线起点
-    final routeStart = widget.routeStartPoint ?? 
-        (_routePoints.isNotEmpty ? _routePoints.first : null);
-    
-    if (routeStart == null) {
-      debugPrint('❌ 无法获取路线起点');
-      if (mounted) {
-        setState(() => _phase = NavigationPhase.error);
-      }
-      return;
-    }
-    
-    debugPrint('🗺️ 开始阶段1路径规划（模拟）：当前位置 → 路线起点');
-    
-    try {
-      // 调用模拟导航服务计算步行路径
-      final success = await _mockNaviService.calculateWalkRouteToStart(
-        startLat: _currentPosition!.latitude,
-        startLng: _currentPosition!.longitude,
-        targetLat: routeStart.latitude,
-        targetLng: routeStart.longitude,
-      );
-      
-      if (success && mounted) {
-        debugPrint('✅ 阶段1路径规划成功（模拟）');
-        // 不再调用 _naviService.notifyRouteCalculationSuccess，由 _mockNaviService 流通知
-      } else {
-        debugPrint('❌ 阶段1路径规划失败（模拟）');
-        if (mounted) {
-          setState(() => _phase = NavigationPhase.error);
-        }
-        // 不再调用 _naviService.notifyRouteCalculationFailure，由 _mockNaviService 流通知
-      }
-    } catch (e) {
-      debugPrint('❌ 阶段1路径规划异常: $e');
-      if (mounted) {
-        setState(() => _phase = NavigationPhase.error);
-      }
-      // 不再调用 _naviService.notifyRouteCalculationFailure，由 _mockNaviService 流通知
-    }
-  }
-  
-  /// 上报 navigation_start 事件
+/// 上报 navigation_start 事件
   void _trackNavigationStart() {
     if (!mounted || _navigationCompleted) return;
     
@@ -514,40 +370,21 @@ class _NavigationScreenState extends State<NavigationScreen>
     );
   }
   
-  /// 开始阶段2路线导航：路线起点 → 路线终点（使用模拟服务）
+  /// 开始阶段2路线导航：路线起点 → 路线终点（GPS实时驱动）
+  /// 注：实际进度追踪由 _updateNavigationProgress() 中的GPS定位更新完成
   Future<void> _startPhase2RouteNavigation() async {
-    if (!mounted || (_phase != NavigationPhase.planningRoute && _phase != NavigationPhase.navigatingToStart)) return;
-    
-    debugPrint('🗺️ 开始阶段2路线导航（模拟）：路线起点 → 路线终点');
-    
-    try {
-      // 准备路线点数据
-      final routePoints = _routePoints.map((latLng) => {
-        'lat': latLng.latitude,
-        'lng': latLng.longitude,
-      }).toList();
-      
-      // 调用模拟导航服务启动路线导航
-      final success = await _mockNaviService.startRouteNavigation(
-        routePoints: routePoints,
-      );
-      
-      if (success && mounted) {
-        debugPrint('✅ 阶段2路线导航启动成功（模拟）');
-        setState(() => _phase = NavigationPhase.navigatingRoute);
-        _speak('路线导航开始，请沿路线前进');
-      } else {
-        debugPrint('❌ 阶段2路线导航启动失败（模拟）');
-        if (mounted) {
-          setState(() => _phase = NavigationPhase.error);
-        }
-      }
-    } catch (e) {
-      debugPrint('❌ 阶段2路线导航异常: $e');
-      if (mounted) {
-        setState(() => _phase = NavigationPhase.error);
-      }
-    }
+    if (!mounted || _isDisposing) return;
+    if (_phase != NavigationPhase.planningRoute && _phase != NavigationPhase.previewRoute) return;
+
+    debugPrint('🗺️ 开始阶段2路线导航（GPS实时追踪）：路线起点 → 路线终点');
+    debugPrint('   路线点数: ${_routePoints.length}, 总距离: ${_totalDistance.toStringAsFixed(0)}米');
+
+    setState(() {
+      _remainingDistance = _totalDistance;
+      _phase = NavigationPhase.navigatingRoute;
+    });
+
+    _speak('路线导航开始，请沿路线前进');
   }
 
 
@@ -591,13 +428,6 @@ class _NavigationScreenState extends State<NavigationScreen>
       _naviService.dispose();
     } catch (e) {
       debugPrint('清理导航服务时出错: $e');
-    }
-    
-    // 清理模拟导航服务
-    try {
-      _mockNaviService.dispose();
-    } catch (e) {
-      debugPrint('清理模拟导航服务时出错: $e');
     }
     
     super.dispose();
@@ -759,6 +589,8 @@ class _NavigationScreenState extends State<NavigationScreen>
       );
       _currentLatLng = const LatLng(30.25, 120.15);
     });
+    // 使用默认位置计算到路线起点的预览路径
+    _calculatePreviewPath();
   }
 
   /// 初始化高德定位
@@ -853,124 +685,171 @@ class _NavigationScreenState extends State<NavigationScreen>
     setState(() {
       _currentPosition = point;
       _currentLatLng = LatLng(latitude, longitude);
-      // _status = NavigationStatus.navigating; // 保持兼容（已废弃）
-      
-      // 如果是第一次获取到有效位置，且处于规划阶段，更新阶段状态
-      if (_phase == NavigationPhase.planningToStart) {
-        _phase = NavigationPhase.planningToStart; // 状态不变，但触发后续逻辑
-      }
     });
 
-    // 如果是第一次获取到有效位置，且未开始阶段1规划，则开始规划
-    if (!_hasStartedPhase1Planning && 
-        _phase == NavigationPhase.planningToStart &&
-        _naviService.isInitialized) {
-      _hasStartedPhase1Planning = true;
-      _startPhase1Planning();
+    // 移动地图相机到当前位置（预览和导航模式都跟随定位）
+    if (!mounted || _isDisposing || _navigationCompleted) return;
+    if (_mapController != null && _currentLatLng != null) {
+      try {
+        _mapController!.moveCamera(
+          CameraUpdate.newLatLng(_currentLatLng!),
+        );
+      } catch (e) {
+        debugPrint('移动相机时出错: $e');
+      }
     }
 
-    // 在导航模式下才移动地图和更新进度
+    // 在导航模式下更新进度（GPS驱动，非模拟计时器）、偏航检测和语音播报
     if (_navigationMode == NavigationMode.navigating) {
-      // 移动地图相机到当前位置（跟随定位）
-      // 添加多重检查避免页面关闭后操作地图
-      if (!mounted || _isDisposing || _navigationCompleted) return;
-      if (_mapController != null && _currentLatLng != null) {
-        try {
-          _mapController!.moveCamera(
-            CameraUpdate.newLatLng(_currentLatLng!),
-          );
-        } catch (e) {
-          debugPrint('移动相机时出错: $e');
-        }
+      if (_phase == NavigationPhase.navigatingToStart) {
+        // 阶段1：使用真实GPS位置更新到路线起点的进度
+        _updatePhase1Progress();
+      } else {
+        // 阶段2：沿路线轨迹的实时GPS进度追踪
+        _updateNavigationProgress();
       }
 
-      // 更新导航进度
-      _updateNavigationProgress();
-
-      // 偏航检测
-      _checkOffRoute();
+      // 偏航检测（仅在阶段2检查沿路线的偏航）
+      if (_phase == NavigationPhase.navigatingRoute) {
+        _checkOffRoute();
+      }
 
       // 语音播报
       _speakNavigationInstruction();
     } else {
-      // 预览模式：计算到起点的路径
+      // 预览模式：计算到起点的路径（仅为可视化，不调用后端API）
       _calculatePreviewPath();
     }
   }
 
-  /// 计算到路线起点的预览路径
-  void _calculatePreviewPath() {
+  /// 计算到路线起点的预览路径（实时规划，非简单直线）
+  Future<void> _calculatePreviewPath() async {
     if (_currentPosition == null) return;
-    
-    final routeStart = widget.routeStartPoint ?? 
+
+    final routeStart = widget.routeStartPoint ??
         (_routePoints.isNotEmpty ? _routePoints.first : null);
-    
+
     if (routeStart == null) return;
-    
-    // 简化的路径规划：直接连接当前位置和路线起点
+
+    // 防止重复请求
+    if (_isCalculatingPreview) return;
+
     final currentLatLng = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
-    
-    // 检查是否已经靠近起点
     final distanceToStart = _calculateDistance(currentLatLng, routeStart);
-    
+
     if (!mounted || _isDisposing) return;
     setState(() {
       _previewDistance = distanceToStart;
-      _previewPath = [currentLatLng, routeStart];
     });
+
+    // 已有规划路径，不再重复请求
+    if (_planToStartPath.isNotEmpty) return;
+
+    _isCalculatingPreview = true;
+
+    // 1) 优先调用后端 API 获取真实步行路径
+    try {
+      final result = await MapService().planWalkingRoute(
+        origin: currentLatLng,
+        destination: routeStart,
+      );
+      if (result.success && result.paths.isNotEmpty && mounted) {
+        setState(() {
+          _planToStartPath = result.paths.first.allPoints;
+          _planToStartDistance = result.paths.first.distance.toDouble();
+        });
+        _isCalculatingPreview = false;
+        return;
+      }
+    } catch (_) {
+      // API 不可用，使用备用路径
+    }
+
+    // 2) 备用方案：插值生成可见路径（20个点，非2点直线）
+    if (!mounted) { _isCalculatingPreview = false; return; }
+    const int numPoints = 20;
+    final path = <LatLng>[];
+    for (int i = 0; i < numPoints; i++) {
+      final t = i / (numPoints - 1);
+      path.add(LatLng(
+        currentLatLng.latitude + (routeStart.latitude - currentLatLng.latitude) * t,
+        currentLatLng.longitude + (routeStart.longitude - currentLatLng.longitude) * t,
+      ));
+    }
+    if (mounted) {
+      setState(() {
+        _planToStartPath = path;
+        _planToStartDistance = distanceToStart;
+      });
+    }
+    _isCalculatingPreview = false;
   }
 
-  /// 开始实际导航
-  void _startActualNavigation() async {
+  /// 开始实际导航 - 使用高德路径规划 + 真实GPS定位驱动
+  Future<void> _startActualNavigation() async {
     if (!mounted || _isDisposing) return;
-    
-    // 检查当前位置和路线起点
+
     if (_currentPosition == null) {
       debugPrint('❌ 无法开始导航：当前位置未知');
       _speak('无法获取当前位置，请检查定位权限');
       return;
     }
-    
-    final routeStart = widget.routeStartPoint ?? 
+
+    final routeStart = widget.routeStartPoint ??
         (_routePoints.isNotEmpty ? _routePoints.first : null);
-    
+
     if (routeStart == null) {
       debugPrint('❌ 无法开始导航：路线起点未知');
       _speak('路线信息不完整，无法开始导航');
       return;
     }
-    
+
     debugPrint('🚀 开始阶段1导航：当前位置 → 路线起点');
     debugPrint('   当前位置: (${_currentPosition!.latitude}, ${_currentPosition!.longitude})');
     debugPrint('   路线起点: (${routeStart.latitude}, ${routeStart.longitude})');
-    
+
     setState(() {
       _navigationMode = NavigationMode.navigating;
       _navigationStartTime = DateTime.now();
       _phase = NavigationPhase.planningToStart;
     });
-    
-    _speak('开始导航，正在规划到路线起点的路径');
-    
-    // 调用模拟导航服务进行路径规划（使用真实高德API）
-    final success = await _mockNaviService.calculateWalkRouteToStart(
-      startLat: _currentPosition!.latitude,
-      startLng: _currentPosition!.longitude,
-      targetLat: routeStart.latitude,
-      targetLng: routeStart.longitude,
+
+    _speak('正在规划到路线起点的步行路线');
+
+    // 使用真实高德步行路径规划API获取路线
+    final currentLatLng = LatLng(
+      _currentPosition!.latitude,
+      _currentPosition!.longitude,
     );
-    
-    if (success && mounted) {
-      debugPrint('✅ 阶段1路径规划成功，开始导航');
-      _speak('路径规划完成，请按照导航指引前往路线起点');
-    } else if (mounted) {
-      debugPrint('❌ 阶段1路径规划失败');
-      _speak('路径规划失败，请检查网络连接');
-      setState(() {
-        _phase = NavigationPhase.error;
-      });
+    try {
+      final result = await MapService().planWalkingRoute(
+        origin: currentLatLng,
+        destination: routeStart,
+      );
+
+      if (result.success && result.paths.isNotEmpty) {
+        final path = result.paths.first;
+        if (!mounted) return;
+        setState(() {
+          _planToStartPath = path.allPoints;
+          _planToStartDistance = path.distance.toDouble();
+          _planToStartTime = path.duration;
+          _remainingDistance = _planToStartDistance;
+          _phase = NavigationPhase.navigatingToStart;
+        });
+        debugPrint('✅ 高德路径规划成功: 距离=${path.distance}米, 步骤=${path.steps.length}');
+        _speak('路线规划完成，距离起点约${_planToStartDistance.toStringAsFixed(0)}米，请沿蓝色路线前行');
+      } else {
+        debugPrint('⚠️ 路径规划API失败: ${result.errorMessage}，使用直线路径');
+        _buildPhase1FallbackPath(currentLatLng, routeStart);
+        _speak('使用直线导航，请沿地图方向前往起点');
+      }
+    } catch (e) {
+      debugPrint('❌ 路径规划异常: $e');
+      _buildPhase1FallbackPath(currentLatLng, routeStart);
+      _speak('导航已开始，请沿地图方向前往起点');
     }
-    
+
     // 上报实际导航开始事件
     AnalyticsService().trackEvent(
       NavigationEvents.navigationStart,
@@ -981,6 +860,91 @@ class _NavigationScreenState extends State<NavigationScreen>
         NavigationEvents.paramStartTimestamp: DateTime.now().millisecondsSinceEpoch,
       },
     );
+  }
+
+  /// 阶段1备用：当前位置到路线起点的直线路径
+  void _buildPhase1FallbackPath(LatLng current, LatLng destination) {
+    if (!mounted) return;
+    const int numPoints = 20;
+    final polyline = <LatLng>[];
+    for (int i = 0; i < numPoints; i++) {
+      final t = i / (numPoints - 1);
+      polyline.add(LatLng(
+        current.latitude + (destination.latitude - current.latitude) * t,
+        current.longitude + (destination.longitude - current.longitude) * t,
+      ));
+    }
+    final straightDist = _calculateDistance(current, destination);
+    setState(() {
+      _planToStartPath = polyline;
+      _planToStartDistance = straightDist;
+      _remainingDistance = straightDist;
+      _phase = NavigationPhase.navigatingToStart;
+    });
+    debugPrint('✅ 备用直线路径生成: 距离=${straightDist.toStringAsFixed(0)}米');
+  }
+
+  /// GPS实时驱动的阶段1进度更新（当前位置 → 路线起点）
+  void _updatePhase1Progress() {
+    if (_currentPosition == null || _planToStartPath.isEmpty) return;
+    if (!mounted || _isDisposing || _navigationCompleted) return;
+
+    final currentLatLng = LatLng(
+      _currentPosition!.latitude,
+      _currentPosition!.longitude,
+    );
+    final routeStart = widget.routeStartPoint ??
+        (_routePoints.isNotEmpty ? _routePoints.first : null);
+    if (routeStart == null) return;
+
+    // 计算到路线起点的直线距离
+    final distToStart = _calculateDistance(currentLatLng, routeStart);
+
+    // 沿规划路径找到最近点，计算剩余路径距离
+    double minDist = double.infinity;
+    int nearestIndex = 0;
+    for (int i = 0; i < _planToStartPath.length; i++) {
+      final d = _calculateDistance(currentLatLng, _planToStartPath[i]);
+      if (d < minDist) {
+        minDist = d;
+        nearestIndex = i;
+      }
+    }
+
+    double remaining = 0;
+    for (int i = nearestIndex; i < _planToStartPath.length - 1; i++) {
+      remaining += _calculateDistance(
+          _planToStartPath[i], _planToStartPath[i + 1]);
+    }
+    // 加上从当前位置到最近点的距离
+    remaining += minDist;
+
+    const double walkingSpeed = 1.4;
+    final estimatedMinutes = (remaining / walkingSpeed / 60).ceil();
+
+    if (!mounted) return;
+    setState(() {
+      _remainingDistance = remaining;
+      _estimatedArrivalMinutes = estimatedMinutes;
+    });
+
+    // 到达路线起点判定（距离<20米）
+    if (distToStart < 20 && mounted) {
+      debugPrint('✅ GPS检测：已到达路线起点');
+      setState(() => _phase = NavigationPhase.previewRoute);
+      _speak('已到达路线起点');
+      // 2秒后自动进入阶段2（沿路线导航）
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted && _phase == NavigationPhase.previewRoute) {
+          setState(() {
+            _phase = NavigationPhase.planningRoute;
+            _remainingDistance = _totalDistance;
+          });
+          _speak('开始路线导航，请沿路线前进');
+          setState(() => _phase = NavigationPhase.navigatingRoute);
+        }
+      });
+    }
   }
 
   /// GPS 精度过滤
@@ -1301,24 +1265,23 @@ class _NavigationScreenState extends State<NavigationScreen>
       onWillPop: _onWillPop,
       child: Scaffold(
         appBar: AppAppBar(
-          title: _navigationMode == NavigationMode.preview 
+          title: _navigationMode == NavigationMode.preview
               ? '路线预览: ${widget.routeName}'
               : '导航: ${widget.routeName}',
           backgroundColor: _getStatusColor(context),
           foregroundColor: DesignSystem.getTextInverse(context),
           showBack: true,
-          onBackAsync: _onWillPop,
+          // 不使用 onBackAsync，由 WillPopScope 统一处理返回事件
         ),
         body: Stack(
           children: [
-            // 高德地图
+            // 地图
             AMapWidget(
               key: _mapKey,
               apiKey: AMapApiKey(
                 iosKey: dotenv.env['AMAP_KEY'] ?? '',
                 androidKey: dotenv.env['AMAP_KEY'] ?? '',
               ),
-              // 隐私合规声明 - 必须设置，否则地图不会显示
               privacyStatement: const AMapPrivacyStatement(
                 hasContains: true,
                 hasShow: true,
@@ -1328,12 +1291,8 @@ class _NavigationScreenState extends State<NavigationScreen>
                 target: _routePoints.isNotEmpty ? _routePoints.first : (_currentLatLng ?? const LatLng(30.25, 120.15)),
                 zoom: 17,
               ),
-              // myLocationEnabled 参数在 amap_flutter_map 3.0+ 中已移除
-              // 使用定位插件单独控制
               onMapCreated: (controller) {
-                // 检查 mounted 状态，避免页面关闭后设置控制器
                 if (!mounted || _isDisposing) {
-                  // 如果页面已关闭，直接释放控制器
                   return;
                 }
                 _mapController = controller;
@@ -1380,51 +1339,47 @@ class _NavigationScreenState extends State<NavigationScreen>
 
   /// 处理返回键
   Future<bool> _onWillPop() async {
+    // 防止重复调用（如 WillPopScope + AppBar 双触发）
+    if (_isDisposing) {
+      debugPrint('🗺️ _onWillPop 已跳过（_isDisposing 为 true）');
+      return false;
+    }
+
     if (_navigationMode == NavigationMode.navigating) {
-      debugPrint('🗺️ _onWillPop() 开始 - 当前 _isDisposing: $_isDisposing');
-      
-      // 在显示对话框前先暂停所有可能触发回调的操作
-      bool wasLocating = false;
+      debugPrint('🗺️ _onWillPop() 开始 - 导航中');
+
+      // 暂停定位，防止 dialog 期间回调
+      _locationSubscription?.cancel();
+      _locationSubscription = null;
       try {
-        // 记录定位状态
-        wasLocating = _locationPlugin != null && _locationSubscription != null;
-        
-        // 1. 停止所有定位相关
-        debugPrint('🗺️ 停止定位和取消订阅...');
         _locationPlugin?.stopLocation();
-        _locationSubscription?.cancel();
-        _locationSubscription = null;
-        
-        // 2. 暂停 TTS（如果正在播报）
-        if (_isTtsInitialized && _flutterTts != null) {
-          try {
-            _flutterTts!.stop();
-          } catch (e) {
-            debugPrint('暂停 TTS 时出错: $e');
-          }
-        }
-        
-        // 3. 标记对话框显示中，阻止其他回调
-        _isDisposing = true;
-        
-        debugPrint('🗺️ 所有资源已暂停，显示确认对话框...');
       } catch (e) {
-        debugPrint('暂停资源时出错: $e');
+        debugPrint('暂停定位出错: $e');
       }
-      
-      // 导航中返回，显示确认对话框
+      try {
+        if (_isTtsInitialized && _flutterTts != null) {
+          _flutterTts!.stop();
+        }
+      } catch (e) {
+        debugPrint('暂停 TTS 出错: $e');
+      }
+
+      // 标记 dialog 展示中，阻止后续回调
+      _isDisposing = true;
+
+      // 显示确认对话框
       final shouldPop = await showDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (ctx) => AlertDialog(
           title: const Text('结束导航？'),
           content: const Text('您正在导航中，确定要结束导航吗？'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Navigator.of(ctx).pop(false),
               child: const Text('继续导航'),
             ),
             ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => Navigator.of(ctx).pop(true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: DesignSystem.getError(context),
                 foregroundColor: DesignSystem.getTextInverse(context),
@@ -1434,100 +1389,45 @@ class _NavigationScreenState extends State<NavigationScreen>
           ],
         ),
       );
-      
+
       debugPrint('🗺️ 对话框返回: shouldPop = $shouldPop');
-      
+
       if (shouldPop == true) {
-        debugPrint('🗺️ 用户确认结束导航，彻底清理所有资源...');
-        
-        // 用户确认结束导航，彻底清理所有资源
-        try {
-          // 确保定位完全停止
-          _locationPlugin?.stopLocation();
-          _locationSubscription?.cancel();
-          _locationSubscription = null;
-          
-          // 停止 TTS
-          if (_isTtsInitialized && _flutterTts != null) {
-            _flutterTts!.stop();
-          }
-          
-          // 清理导航服务
-          try {
-            _naviService.dispose();
-          } catch (e) {
-            debugPrint('清理导航服务时出错: $e');
-          }
-          
-          // 清理模拟导航服务
-          try {
-            _mockNaviService.dispose();
-          } catch (e) {
-            debugPrint('清理模拟导航服务时出错: $e');
-          }
-          
-          // 移除生命周期观察器
-          try {
-            WidgetsBinding.instance.removeObserver(this);
-          } catch (e) {
-            debugPrint('移除观察器时出错: $e');
-          }
-          
-        } catch (e) {
-          debugPrint('清理资源时出错: $e');
-        }
-        
-        debugPrint('🗺️ 所有资源清理完成，准备退出页面');
+        // 用户确认结束导航，dispose() 会完成剩余清理
         return true;
       } else {
-        // 用户选择继续导航，恢复所有资源
-        debugPrint('🗺️ 用户选择继续导航，恢复所有资源...');
-        
-        // 先重置 _isDisposing 标志
+        // 用户选择继续导航，恢复定位
         _isDisposing = false;
-        
-        if (wasLocating && mounted) {
-          try {
-            // 重新创建定位订阅
-            _locationSubscription = _locationPlugin?.onLocationChanged().listen(
-              _onLocationUpdate,
-              onError: (error) {
-                debugPrint('定位错误: $error');
-              },
-              onDone: () {
-                debugPrint('定位流已关闭');
-              },
-            );
-            _locationPlugin?.startLocation();
-            debugPrint('🗺️ 定位已恢复');
-          } catch (e) {
-            debugPrint('恢复定位时出错: $e');
-          }
+        if (mounted) {
+          _locationSubscription = _locationPlugin?.onLocationChanged().listen(
+            _onLocationUpdate,
+            onError: (error) => debugPrint('定位错误: $error'),
+            onDone: () => debugPrint('定位流已关闭'),
+          );
+          _locationPlugin?.startLocation();
         }
-        
-        // 恢复其他服务
         try {
-          // 导航服务可能需要在恢复时重新初始化
-          if (_naviService != null) {
-            _naviService.resume();
-          }
+          _naviService.resume();
         } catch (e) {
-          debugPrint('恢复导航服务时出错: $e');
+          debugPrint('恢复导航服务出错: $e');
         }
-        
-        debugPrint('🗺️ 所有资源已恢复，继续导航');
+        debugPrint('🗺️ 定位已恢复，继续导航');
         return false;
       }
     }
+
+    // 预览模式下：取消定位订阅后直接返回
+    _locationSubscription?.cancel();
+    _locationSubscription = null;
     return true;
   }
 
   /// 构建地图折线
   Set<Polyline> _buildPolylines() {
     final polylines = <Polyline>{};
-    
+
     debugPrint('🗺️ _buildPolylines() 被调用, _routePoints 长度: ${_routePoints.length}');
-    
+
     // 添加主路线
     if (_routePoints.isNotEmpty) {
       debugPrint('🗺️   绘制路线折线，点数: ${_routePoints.length}');
@@ -1535,7 +1435,7 @@ class _NavigationScreenState extends State<NavigationScreen>
       polylines.add(
         Polyline(
           points: _routePoints,
-          color: _navigationMode == NavigationMode.navigating 
+          color: _navigationMode == NavigationMode.navigating
               ? DesignSystem.getPrimary(context)
               : DesignSystem.getPrimary(context).withOpacity(0.5),
           width: 6,
@@ -1544,38 +1444,24 @@ class _NavigationScreenState extends State<NavigationScreen>
     } else {
       debugPrint('🗺️   ⚠️ _routePoints 为空，无法绘制路线');
     }
-    
-    // 阶段1导航：显示从当前位置到路线起点的真实规划路径
-    if (_phase == NavigationPhase.navigatingToStart || 
-        _phase == NavigationPhase.planningToStart) {
-      final plannedPath = _mockNaviService.plannedPath;
-      if (plannedPath.isNotEmpty) {
-        debugPrint('🗺️   绘制阶段1规划路径，点数: ${plannedPath.length}');
-        polylines.add(
-          Polyline(
-            points: plannedPath,
-            color: Colors.blue,
-            width: 5,
-          ),
-        );
-      }
+
+    // 阶段1导航：显示从当前位置到路线起点的路径（导航中 + 预览模式）
+    if (_planToStartPath.isNotEmpty &&
+        (_phase == NavigationPhase.navigatingToStart ||
+         _phase == NavigationPhase.planningToStart ||
+         _navigationMode == NavigationMode.preview)) {
+      debugPrint('🗺️   绘制阶段1路径，点数: ${_planToStartPath.length}');
+      polylines.add(
+        Polyline(
+          points: _planToStartPath,
+          color: Colors.blue,
+          width: 5,
+        ),
+      );
     }
-    
-    // 预览模式下，添加从当前位置到起点的路径（如果没有真实规划路径）
-    if (_navigationMode == NavigationMode.preview && _previewPath.isNotEmpty) {
-      // 检查是否已经有真实规划路径
-      final plannedPath = _mockNaviService.plannedPath;
-      if (plannedPath.isEmpty) {
-        polylines.add(
-          Polyline(
-            points: _previewPath,
-            color: Colors.blue.withOpacity(0.6), // 半透明蓝色表示规划路径
-            width: 3,
-          ),
-        );
-      }
-    }
-    
+
+    // 预览模式下旧的直线路径不再单独绘制（已由上方 _planToStartPath 覆盖）
+
     debugPrint('🗺️   返回折线数量: ${polylines.length}');
     return polylines;
   }
@@ -1590,7 +1476,6 @@ class _NavigationScreenState extends State<NavigationScreen>
         Marker(
           position: _routePoints.first,
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          infoWindow: const InfoWindow(title: '路线起点'),
         ),
       );
     }
@@ -1601,7 +1486,6 @@ class _NavigationScreenState extends State<NavigationScreen>
         Marker(
           position: _routePoints.last,
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          infoWindow: const InfoWindow(title: '路线终点'),
         ),
       );
     }
@@ -1612,7 +1496,6 @@ class _NavigationScreenState extends State<NavigationScreen>
         Marker(
           position: _currentLatLng!,
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-          infoWindow: const InfoWindow(title: '当前位置'),
         ),
       );
     }
@@ -1764,24 +1647,10 @@ class _NavigationScreenState extends State<NavigationScreen>
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () async {
+                    onPressed: () {
                       debugPrint('🗺️ 底部返回按钮被点击');
-                      // 停止定位后再返回
-                      try {
-                        _locationPlugin?.stopLocation();
-                        _locationSubscription?.cancel();
-                        _locationSubscription = null;
-                      } catch (e) {
-                        debugPrint('停止定位时出错: $e');
-                      }
-                      
-                      // 延迟一帧确保状态更新完成
-                      await Future.delayed(const Duration(milliseconds: 50));
-                      
-                      if (mounted && context.mounted) {
-                        debugPrint('🗺️ 执行 Navigator.pop');
-                        Navigator.of(context, rootNavigator: true).pop();
-                      }
+                      // WillPopScope / PopScope 统一处理返回逻辑
+                      Navigator.of(context).pop();
                     },
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('返回'),

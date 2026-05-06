@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../constants/design_system.dart';
 import '../models/recording_model.dart';
+import '../services/recording_service.dart';
 import '../widgets/poi_marker_dialog.dart';
 
 /// 录制后编辑页面
@@ -36,10 +37,6 @@ class _RecordingEditScreenState extends State<RecordingEditScreen> {
   // 编辑状态
   late RecordingSession _editedSession;
   int _selectedCoverPoiIndex = -1; // -1表示使用默认封面
-  
-  // 播放状态
-  bool _isPlaying = false;
-  int _currentPlayIndex = 0;
 
   @override
   void initState() {
@@ -118,104 +115,23 @@ class _RecordingEditScreenState extends State<RecordingEditScreen> {
   /// 保存草稿
   Future<void> _saveDraft() async {
     HapticFeedback.lightImpact();
-    
+
     final updatedSession = _editedSession.copyWith(
       trailName: _nameController.text.trim(),
       description: _descriptionController.text.trim(),
       city: _cityController.text.trim(),
       district: _districtController.text.trim(),
       tags: _tags,
-      submissionStatus: SubmissionStatus.draft,
       updatedAt: DateTime.now(),
     );
 
-    Navigator.of(context).pop(updatedSession);
-  }
+    // 直接保存到service，无论从哪个路径进入都能持久化
+    final recordingService = RecordingService();
+    await recordingService.updateSession(updatedSession);
 
-  /// 提交审核
-  Future<void> _submitForReview() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    // 检查提交次数
-    if (_editedSession.submissionCount >= 3) {
-      _showErrorDialog('提交次数已达上限', '此录制已提交3次，无法再次提交。');
-      return;
+    if (mounted) {
+      Navigator.of(context).pop(updatedSession);
     }
-
-    HapticFeedback.mediumImpact();
-
-    // 确认提交对话框
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: DesignSystem.getSurface(context),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('提交审核', style: DesignSystem.getTitleLarge(context)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '提交后路线将进入审核流程，审核通过后会正式发布。',
-              style: DesignSystem.getBodyMedium(context),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              '剩余提交次数: ${3 - _editedSession.submissionCount - 1}次',
-              style: DesignSystem.getBodySmall(context)?.copyWith(
-                color: DesignSystem.getTextSecondary(context),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: DesignSystem.getPrimary(context),
-              foregroundColor: DesignSystem.textInverse,
-            ),
-            child: const Text('提交'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    final updatedSession = _editedSession.copyWith(
-      trailName: _nameController.text.trim(),
-      description: _descriptionController.text.trim(),
-      city: _cityController.text.trim(),
-      district: _districtController.text.trim(),
-      tags: _tags,
-      submissionStatus: SubmissionStatus.submitted,
-      submissionCount: _editedSession.submissionCount + 1,
-      updatedAt: DateTime.now(),
-    );
-
-    Navigator.of(context).pop(updatedSession);
-  }
-
-  void _showErrorDialog(String title, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: DesignSystem.getSurface(context),
-        title: Text(title, style: DesignSystem.getTitleLarge(context)),
-        content: Text(message, style: DesignSystem.getBodyMedium(context)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('知道了'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -344,11 +260,11 @@ class _RecordingEditScreenState extends State<RecordingEditScreen> {
             _buildStatsSection(),
             const SizedBox(height: 32),
 
-            // 提交按钮
+            // 保存按钮
             SizedBox(
               height: 56,
               child: ElevatedButton(
-                onPressed: _submitForReview,
+                onPressed: _saveDraft,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: DesignSystem.getPrimary(context),
                   foregroundColor: DesignSystem.textInverse,
@@ -360,10 +276,10 @@ class _RecordingEditScreenState extends State<RecordingEditScreen> {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.send),
+                    Icon(Icons.save),
                     SizedBox(width: 8),
                     Text(
-                      '提交审核',
+                      '保存',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -411,23 +327,6 @@ class _RecordingEditScreenState extends State<RecordingEditScreen> {
                   style: DesignSystem.getBodySmall(context),
                 ),
               ],
-            ),
-          ),
-          // 播放按钮
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: FloatingActionButton.small(
-              onPressed: () {
-                setState(() {
-                  _isPlaying = !_isPlaying;
-                });
-              },
-              backgroundColor: DesignSystem.getPrimary(context),
-              child: Icon(
-                _isPlaying ? Icons.pause : Icons.play_arrow,
-                color: DesignSystem.textInverse,
-              ),
             ),
           ),
         ],

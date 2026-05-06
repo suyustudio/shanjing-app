@@ -45,9 +45,9 @@ class AchievementService {
     bool forceRefresh = false,
   }) async {
     // 检查缓存
-    if (!forceRefresh &&&
-        _cachedSummary != null &&&amp;
-        _cacheTime != null &&&amp;
+    if (!forceRefresh &&
+        _cachedSummary != null &&
+        _cacheTime != null &&
         DateTime.now().difference(_cacheTime!) < _cacheDuration) {
       return _cachedSummary!;
     }

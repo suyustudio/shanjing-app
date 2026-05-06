@@ -33,7 +33,7 @@ class Trail {
     required this.isFavorited,
   });
 
-  factory Trail.fromJson(Map<string, dynamic> json) {
+  factory Trail.fromJson(Map<String, dynamic> json) {
     return Trail(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
@@ -58,7 +58,7 @@ class TrailDetail extends Trail {
   final double startPointLat;
   final double startPointLng;
   final String? startPointAddress;
-  final Map<string, dynamic>? safetyInfo;
+  final Map<String, dynamic>? safetyInfo;
   final List<TrailPoi> pois;
 
   TrailDetail({
@@ -83,7 +83,7 @@ class TrailDetail extends Trail {
     required this.pois,
   });
 
-  factory TrailDetail.fromJson(Map<string, dynamic> json) {
+  factory TrailDetail.fromJson(Map<String, dynamic> json) {
     return TrailDetail(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
@@ -130,7 +130,7 @@ class TrailPoi {
     required this.order,
   });
 
-  factory TrailPoi.fromJson(Map<string, dynamic> json) {
+  factory TrailPoi.fromJson(Map<String, dynamic> json) {
     return TrailPoi(
       id: json['id'] ?? '',
       name: json['name'] ?? '',

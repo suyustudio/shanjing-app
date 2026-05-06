@@ -181,6 +181,55 @@ class ExportService {
         .replaceAll("'", '&apos;');
   }
 
+  /// 导出录制会话为轨迹数据JSON格式（匹配 trail-data-schema-v1.0）
+  static Future<String?> exportToTrailJson(RecordingSession session) async {
+    try {
+      final coordinates = session.trackPoints.map((p) => [
+        p.longitude,  // lng first per schema
+        p.latitude,   // lat second
+      ]).toList();
+
+      final maxElev = session.trackPoints.fold<double>(0, (max, p) => p.altitude > max ? p.altitude : max);
+
+      final trailData = <String, dynamic>{
+        'id': session.id,
+        'name': session.trailName ?? '未命名路线',
+        'distance': (session.totalDistanceMeters / 1000).toStringAsFixed(2),
+        'duration': session.durationSeconds ~/ 60,
+        'difficulty': _mapDifficulty(session.difficulty),
+        'coordinates': coordinates,
+        'source': 'user_upload',
+        'description': session.description ?? '',
+        'elevation_gain': session.elevationGain.toStringAsFixed(0),
+        'max_elevation': maxElev.toStringAsFixed(0),
+        'tags': session.tags,
+        'location': session.city ?? '',
+        'collectionDate': session.startTime.toIso8601String().substring(0, 10),
+      };
+
+      final jsonContent = const JsonEncoder.withIndent('  ').convert(trailData);
+      final fileName = _generateFileName(session, 'trail.json');
+      return await _saveToFile(jsonContent, fileName);
+    } catch (e) {
+      print('轨迹JSON导出失败: $e');
+      return null;
+    }
+  }
+
+  static String _mapDifficulty(DifficultyLevel? level) {
+    switch (level) {
+      case DifficultyLevel.casual:
+      case DifficultyLevel.easy:
+        return 'easy';
+      case DifficultyLevel.moderate:
+        return 'moderate';
+      case DifficultyLevel.hard:
+        return 'hard';
+      default:
+        return 'easy';
+    }
+  }
+
   /// 批量导出所有录制会话
   static Future<List<String>> exportAllToGpx(List<RecordingSession> sessions) async {
     final results = <String>[];

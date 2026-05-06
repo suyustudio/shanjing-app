@@ -3,8 +3,8 @@
 // ================================================================
 
 import 'package:flutter/material.dart';
-import '../services/follow_service.dart';
-import '../widgets/social/user_card.dart';
+import '../../services/follow_service.dart';
+import '../../widgets/social/user_card.dart';
 
 /// 列表类型
 enum FollowListType {

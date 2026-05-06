@@ -1,11 +1,14 @@
 /**
  * 地图服务
- * 
- * 提供路径规划、地理编码等功能
- * 调用后端 API 使用高德地图服务
+ *
+ * 路径规划/地理编码：优先后端 API，后端不可用时直连高德 Web API
  */
 
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:amap_flutter_base/amap_flutter_base.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'api_client.dart';
 import 'api_config.dart';
 
@@ -144,31 +147,149 @@ class MapService {
   final ApiClient _apiClient = ApiClient();
 
   /// 步行路线规划
-  /// 
+  ///
   /// [origin] 起点坐标
   /// [destination] 终点坐标
-  /// 
-  /// 返回路线规划结果，包含多条可选路径
+  ///
+  /// 优先调用后端 API，不可用时直接调用高德 Web API
   Future<RoutePlanResult> planWalkingRoute({
     required LatLng origin,
     required LatLng destination,
   }) async {
-    final response = await _apiClient.post(
-      ApiEndpoints.walkingRoute,
-      body: {
-        'originLat': origin.latitude,
-        'originLng': origin.longitude,
-        'destLat': destination.latitude,
-        'destLng': destination.longitude,
-      },
-    );
+    // 1) 尝试后端 API
+    try {
+      final response = await _apiClient.post(
+        ApiEndpoints.walkingRoute,
+        body: {
+          'originLat': origin.latitude,
+          'originLng': origin.longitude,
+          'destLat': destination.latitude,
+          'destLng': destination.longitude,
+        },
+      );
 
-    if (response.success && response.data != null) {
-      return RoutePlanResult.fromJson(response.data as Map<String, dynamic>);
-    } else {
+      if (response.success && response.data != null) {
+        return RoutePlanResult.fromJson(response.data as Map<String, dynamic>);
+      }
+    } catch (_) {
+      debugPrint('⚠️ 后端路线规划不可用，切换到高德 Web API');
+    }
+
+    // 2) 后端不可用，直接调用高德 Web API
+    return _planWalkingRouteDirect(origin: origin, destination: destination);
+  }
+
+  /// 直接调用高德 Web API 进行步行路线规划
+  Future<RoutePlanResult> _planWalkingRouteDirect({
+    required LatLng origin,
+    required LatLng destination,
+  }) async {
+    try {
+      final apiKey = dotenv.env['AMAP_KEY'] ?? '';
+      if (apiKey.isEmpty) {
+        debugPrint('❌ 高德 Web API 调用失败：AMAP_KEY 未配置');
+        return RoutePlanResult(
+          success: false,
+          errorMessage: 'API Key 未配置',
+          paths: [],
+        );
+      }
+
+      // 高德步行路径规划 API：origin/destination 为 "lng,lat" 格式
+      final originStr = '${origin.longitude},${origin.latitude}';
+      final destStr = '${destination.longitude},${destination.latitude}';
+      final url = Uri.parse(
+        'https://restapi.amap.com/v3/direction/walking'
+        '?key=$apiKey'
+        '&origin=$originStr'
+        '&destination=$destStr',
+      );
+
+      debugPrint('🗺️ 调用高德 Web API 步行路径规划...');
+      debugPrint('   origin: $originStr');
+      debugPrint('   destination: $destStr');
+
+      final response = await http.get(url).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode != 200) {
+        debugPrint('❌ 高德 Web API HTTP ${response.statusCode}');
+        return RoutePlanResult(success: false, errorMessage: 'HTTP ${response.statusCode}', paths: []);
+      }
+
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      if (body['status'] != '1') {
+        final info = body['info'] ?? '未知错误';
+        debugPrint('❌ 高德 Web API 返回错误: $info');
+        return RoutePlanResult(success: false, errorMessage: info, paths: []);
+      }
+
+      final route = body['route'] as Map<String, dynamic>?;
+      if (route == null) {
+        return RoutePlanResult(success: false, errorMessage: '无路线数据', paths: []);
+      }
+
+      final pathsJson = route['paths'] as List<dynamic>? ?? [];
+      final paths = <RoutePath>[];
+
+      for (final p in pathsJson) {
+        final pMap = p as Map<String, dynamic>;
+        final stepsJson = (pMap['steps'] as List<dynamic>? ?? []);
+        final steps = <RouteStep>[];
+
+        for (final s in stepsJson) {
+          final sMap = s as Map<String, dynamic>;
+          final polylineStr = sMap['polyline'] as String? ?? '';
+          // polyline 格式: "lng1,lat1;lng2,lat2;..."
+          final polyline = polylineStr
+              .split(';')
+              .where((part) => part.contains(','))
+              .map((part) {
+                final coords = part.split(',');
+                if (coords.length >= 2) {
+                  return LatLng(
+                    double.tryParse(coords[1]) ?? 0,
+                    double.tryParse(coords[0]) ?? 0,
+                  );
+                }
+                return null;
+              })
+              .whereType<LatLng>()
+              .toList();
+
+          steps.add(RouteStep(
+            instruction: sMap['instruction'] ?? '',
+            road: sMap['road'] ?? '',
+            distance: int.tryParse(sMap['distance']?.toString() ?? '0') ?? 0,
+            duration: int.tryParse(sMap['duration']?.toString() ?? '0') ?? 0,
+            polyline: polyline,
+            action: sMap['action'],
+            assistantAction: sMap['assistant_action'],
+          ));
+        }
+
+        paths.add(RoutePath(
+          distance: int.tryParse(pMap['distance']?.toString() ?? '0') ?? 0,
+          duration: int.tryParse(pMap['duration']?.toString() ?? '0') ?? 0,
+          steps: steps,
+          tolls: pMap['tolls']?.toDouble(),
+          tollDistance: int.tryParse(pMap['toll_distance']?.toString() ?? ''),
+          restriction: pMap['restriction'] == '1',
+          trafficLights: int.tryParse(pMap['traffic_lights']?.toString() ?? ''),
+        ));
+      }
+
+      debugPrint('✅ 高德 Web API 步行路径规划成功: ${paths.length} 条路径');
+      return RoutePlanResult(
+        success: true,
+        paths: paths,
+        origin: originStr,
+        destination: destStr,
+      );
+    } catch (e) {
+      debugPrint('❌ 高德 Web API 调用异常: $e');
       return RoutePlanResult(
         success: false,
-        errorMessage: response.errorMessage ?? '路线规划失败',
+        errorMessage: '路径规划失败: $e',
         paths: [],
       );
     }

@@ -92,7 +92,7 @@ class ReviewItem extends StatelessWidget {
               maxDisplayCount: maxReplies,
               totalCount: review.replyCount,
               onViewAll: onExpand,
-              onReplyTap: onReply,
+              onReplyTap: onReply != null ? (_) => onReply!() : null,
             ),
           ],
         ],

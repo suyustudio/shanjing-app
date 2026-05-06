@@ -44,7 +44,7 @@ class MatchFactors {
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() {
     return {
       'difficultyMatch': difficultyMatch,
       'distance': distance,
@@ -99,7 +99,7 @@ class RecommendedTrail {
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
@@ -180,7 +180,7 @@ class RecommendationsResponse {
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() {
     return {
       'algorithm': algorithm,
       'scene': scene,

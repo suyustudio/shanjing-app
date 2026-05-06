@@ -14,7 +14,6 @@ class CustomMarkerExample extends StatefulWidget {
 }
 
 class _CustomMarkerExampleState extends State<CustomMarkerExample> {
-  AMapController? _mapController;
   Set<Marker> _markers = {};
   bool _isLoading = true;
 
@@ -34,23 +33,18 @@ class _CustomMarkerExampleState extends State<CustomMarkerExample> {
     // 预加载图标
     await CustomMarkers.preload();
 
-    // 创建标记
     final markers = <Marker>{
-      // 起点标记
       Marker(
-        markerId: const MarkerId('start'),
         position: _startPosition,
         icon: await CustomMarkers.start(),
         infoWindow: const InfoWindow(
           title: '起点',
           snippet: '从这里开始你的徒步之旅',
         ),
-        anchor: const Offset(0.5, 1.0), // 锚点在底部中心
+        anchor: const Offset(0.5, 1.0),
+        onTap: (_) => debugPrint('起点标记被点击'),
       ),
-      
-      // 终点标记
       Marker(
-        markerId: const MarkerId('end'),
         position: _endPosition,
         icon: await CustomMarkers.end(),
         infoWindow: const InfoWindow(
@@ -58,57 +52,23 @@ class _CustomMarkerExampleState extends State<CustomMarkerExample> {
           snippet: '恭喜你完成徒步！',
         ),
         anchor: const Offset(0.5, 1.0),
+        onTap: (_) => debugPrint('终点标记被点击'),
       ),
-      
-      // 停车场标记
       Marker(
-        markerId: const MarkerId('parking'),
         position: _parkingPosition,
         icon: await CustomMarkers.parking(),
         infoWindow: const InfoWindow(
-          title: '🅿️ 白堤停车场',
+          title: '停车场',
           snippet: '24小时营业',
         ),
-        anchor: const Offset(0.5, 0.5), // 停车场锚点居中
+        anchor: const Offset(0.5, 0.5),
+        onTap: (_) => debugPrint('停车场标记被点击'),
       ),
     };
 
     setState(() {
       _markers = markers;
       _isLoading = false;
-    });
-  }
-
-  /// 切换标记选中状态
-  Future<void> _toggleMarkerSelection(String markerId) async {
-    final updatedMarkers = _markers.map((marker) {
-      if (marker.markerId.value == markerId) {
-        // 切换选中状态
-        final isSelected = marker.icon == BitmapDescriptor.defaultMarker;
-        
-        // 根据类型重新加载图标
-        BitmapDescriptor newIcon;
-        if (markerId == 'start') {
-          newIcon = await CustomMarkers.start(selected: !isSelected);
-        } else if (markerId == 'end') {
-          newIcon = await CustomMarkers.end(selected: !isSelected);
-        } else {
-          newIcon = await CustomMarkers.parking(selected: !isSelected);
-        }
-        
-        return Marker(
-          markerId: marker.markerId,
-          position: marker.position,
-          icon: newIcon,
-          infoWindow: marker.infoWindow,
-          anchor: marker.anchor,
-        );
-      }
-      return marker;
-    }).toSet();
-
-    setState(() {
-      _markers = updatedMarkers;
     });
   }
 
@@ -136,14 +96,8 @@ class _CustomMarkerExampleState extends State<CustomMarkerExample> {
               target: _startPosition,
               zoom: 16,
             ),
-            onMapCreated: (controller) {
-              _mapController = controller;
-            },
+            onMapCreated: (controller) {},
             markers: _markers,
-            onMarkerTapped: (marker) {
-              debugPrint('点击标记: ${marker.markerId.value}');
-              _toggleMarkerSelection(marker.markerId.value);
-            },
           ),
           
           // 加载指示器

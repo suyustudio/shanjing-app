@@ -3,9 +3,9 @@
 // ================================================================
 
 import 'package:flutter/material.dart';
-import '../services/follow_service.dart';
-import '../widgets/social/follow_button.dart';
-import '../screens/social/follow_list_screen.dart';
+import '../../services/follow_service.dart';
+import '../../widgets/social/follow_button.dart';
+import 'follow_list_screen.dart';
 
 /// 用户主页屏幕
 class UserProfileScreen extends StatefulWidget {

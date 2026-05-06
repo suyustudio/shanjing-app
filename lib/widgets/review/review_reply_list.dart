@@ -55,7 +55,7 @@ class ReviewReplyList extends StatelessWidget {
               children: [
                 ReviewReplyItem(
                   reply: reply,
-                  onReplyTap: onReplyTap,
+                  onReplyTap: onReplyTap != null ? () => onReplyTap!(reply.id) : null,
                   onUserTap: onUserTap,
                 ),
                 if (index < displayReplies.length - 1)

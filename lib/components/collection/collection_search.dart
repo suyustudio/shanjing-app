@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import '../../models/collection_enhanced_model.dart';
 import '../../models/collection_model.dart';
 import '../../services/collection_enhanced_service.dart';
-import '../widgets/collections/search_filter_panel.dart';
+import '../../widgets/collections/search_filter_panel.dart';
 
 /// 搜索状态
 enum SearchState {

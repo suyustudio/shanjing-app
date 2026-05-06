@@ -7,7 +7,7 @@ import 'dart:async';
 import '../../models/recommendation_model.dart';
 import '../../services/recommendation_service.dart';
 import '../../services/location_service.dart';
-import 'recommendation_card.dart';
+import '../widgets/recommendations/recommendation_card.dart';
 
 class RecommendationScreen extends StatefulWidget {
   const RecommendationScreen({Key? key}) : super(key: key);

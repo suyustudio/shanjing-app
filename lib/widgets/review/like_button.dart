@@ -5,6 +5,7 @@
  * 参考: design/M6-DESIGN-FIX-v1.0.md
  */
 
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 /// 点赞按钮

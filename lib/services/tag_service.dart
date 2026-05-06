@@ -3,6 +3,7 @@
 // 管理与后端API的标签相关操作，支持本地缓存
 
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../services/api_client.dart';
 import '../services/api_config.dart';
@@ -124,7 +125,7 @@ class TagService {
     required String name,
     Color? color,
   }) async {
-    final tagColor = color ?? CollectionTag._generateColor(name);
+    final tagColor = color ?? CollectionTag.fromString(name).color;
     
     final response = await _apiClient.post(
       '${ApiEndpoints.collections}/tags',
