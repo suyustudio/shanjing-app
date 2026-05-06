@@ -16,4 +16,28 @@ export declare class CollectionsService {
     searchCollectionTrails(userId: string, collectionId: string, dto: SearchCollectionTrailsDto): Promise<CollectionDetailDto>;
     private mapToCollectionDto;
     private mapToCollectionDetailDto;
+    private generateTagColor;
+    private hueToRgb;
+    private generateTagId;
+    getAllTags(userId?: string): Promise<Array<{
+        id: string;
+        name: string;
+        color: string;
+        count: number;
+    }>>;
+    createTag(userId: string, tagName: string, color?: string): Promise<{
+        id: string;
+        name: string;
+        color: string;
+        count: number;
+    }>;
+    deleteTag(userId: string, tagName: string): Promise<void>;
+    getCollectionTags(collectionId: string, userId?: string): Promise<string[]>;
+    updateCollectionTags(userId: string, collectionId: string, tags: string[]): Promise<CollectionDto>;
+    searchTags(query: string, userId?: string): Promise<Array<{
+        id: string;
+        name: string;
+        color: string;
+        count: number;
+    }>>;
 }

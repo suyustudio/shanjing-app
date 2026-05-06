@@ -79,6 +79,33 @@ let CollectionsController = class CollectionsController {
         const collection = await this.collectionsService.searchCollectionTrails(req.user.userId, id, dto);
         return wrapResponse(collection);
     }
+    async getAllTags(req, userId) {
+        const targetUserId = userId || req.user.userId;
+        const tags = await this.collectionsService.getAllTags(targetUserId);
+        return wrapResponse(tags);
+    }
+    async createTag(req, body) {
+        const tag = await this.collectionsService.createTag(req.user.userId, body.name, body.color);
+        return wrapResponse(tag);
+    }
+    async deleteTag(req, tagName) {
+        await this.collectionsService.deleteTag(req.user.userId, tagName);
+        return wrapResponse({ message: '删除成功' });
+    }
+    async getCollectionTags(req, collectionId) {
+        const userId = req.user?.userId;
+        const tags = await this.collectionsService.getCollectionTags(collectionId, userId);
+        return wrapResponse(tags);
+    }
+    async updateCollectionTags(req, collectionId, body) {
+        const collection = await this.collectionsService.updateCollectionTags(req.user.userId, collectionId, body.tags);
+        return wrapResponse(collection);
+    }
+    async searchTags(req, query, userId) {
+        const targetUserId = userId || req.user.userId;
+        const tags = await this.collectionsService.searchTags(query, targetUserId);
+        return wrapResponse(tags);
+    }
 };
 exports.CollectionsController = CollectionsController;
 __decorate([
@@ -231,6 +258,85 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, collection_dto_1.SearchCollectionTrailsDto]),
     __metadata("design:returntype", Promise)
 ], CollectionsController.prototype, "searchCollectionTrails", null);
+__decorate([
+    (0, common_1.Get)('collections/tags'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: '获取所有标签' }),
+    (0, swagger_1.ApiQuery)({ name: 'userId', required: false, description: '用户ID（可选，不传则获取当前用户）' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: '获取成功' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], CollectionsController.prototype, "getAllTags", null);
+__decorate([
+    (0, common_1.Post)('collections/tags'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: '创建标签' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: '创建成功' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], CollectionsController.prototype, "createTag", null);
+__decorate([
+    (0, common_1.Delete)('collections/tags/:name'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: '删除标签' }),
+    (0, swagger_1.ApiParam)({ name: 'name', description: '标签名' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: '删除成功' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('name')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], CollectionsController.prototype, "deleteTag", null);
+__decorate([
+    (0, common_1.Get)('collections/:id/tags'),
+    (0, swagger_1.ApiOperation)({ summary: '获取收藏夹的标签' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: '收藏夹ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: '获取成功' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], CollectionsController.prototype, "getCollectionTags", null);
+__decorate([
+    (0, common_1.Put)('collections/:id/tags'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: '更新收藏夹标签' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: '收藏夹ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: '更新成功', type: collection_dto_1.CollectionDto }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", Promise)
+], CollectionsController.prototype, "updateCollectionTags", null);
+__decorate([
+    (0, common_1.Get)('collections/tags/search'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: '搜索标签' }),
+    (0, swagger_1.ApiQuery)({ name: 'q', description: '搜索关键词' }),
+    (0, swagger_1.ApiQuery)({ name: 'userId', required: false, description: '用户ID（可选）' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: '搜索成功' }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('q')),
+    __param(2, (0, common_1.Query)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], CollectionsController.prototype, "searchTags", null);
 exports.CollectionsController = CollectionsController = __decorate([
     (0, swagger_1.ApiTags)('收藏夹系统'),
     (0, common_1.Controller)('v1'),

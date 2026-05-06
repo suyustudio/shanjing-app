@@ -501,6 +501,170 @@ let CollectionsService = class CollectionsService {
             })),
         };
     }
+    generateTagColor(tagName) {
+        let hash = 0;
+        for (let i = 0; i < tagName.length; i++) {
+            hash = ((hash << 5) - hash) + tagName.charCodeAt(i);
+            hash |= 0;
+        }
+        hash = Math.abs(hash);
+        const hue = hash % 360;
+        const saturation = 60 + (hash % 20);
+        const lightness = 50 + (hash % 10);
+        const h = hue / 360;
+        const s = saturation / 100;
+        const l = lightness / 100;
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        const r = Math.round(this.hueToRgb(p, q, h + 1 / 3) * 255);
+        const g = Math.round(this.hueToRgb(p, q, h) * 255);
+        const b = Math.round(this.hueToRgb(p, q, h - 1 / 3) * 255);
+        return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+    }
+    hueToRgb(p, q, t) {
+        if (t < 0)
+            t += 1;
+        if (t > 1)
+            t -= 1;
+        if (t < 1 / 6)
+            return p + (q - p) * 6 * t;
+        if (t < 1 / 2)
+            return q;
+        if (t < 2 / 3)
+            return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+    }
+    generateTagId(tagName) {
+        let hash = 0;
+        for (let i = 0; i < tagName.length; i++) {
+            hash = ((hash << 5) - hash) + tagName.charCodeAt(i);
+            hash |= 0;
+        }
+        return Math.abs(hash).toString();
+    }
+    async getAllTags(userId) {
+        const where = {};
+        if (userId) {
+            where.userId = userId;
+        }
+        const collections = await this.prisma.collection.findMany({
+            where,
+            select: { tags: true },
+        });
+        const tagCounts = new Map();
+        collections.forEach(collection => {
+            collection.tags.forEach(tag => {
+                tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+            });
+        });
+        return Array.from(tagCounts.entries())
+            .map(([name, count]) => ({
+            id: this.generateTagId(name),
+            name,
+            color: this.generateTagColor(name),
+            count,
+        }))
+            .sort((a, b) => b.count - a.count);
+    }
+    async createTag(userId, tagName, color) {
+        if (!tagName || tagName.trim().length === 0) {
+            throw new Error('标签名不能为空');
+        }
+        if (tagName.length > 20) {
+            throw new Error('标签名不能超过20个字符');
+        }
+        const userCollections = await this.prisma.collection.findMany({
+            where: { userId },
+            select: { tags: true },
+        });
+        const existingTags = new Set();
+        userCollections.forEach(collection => {
+            collection.tags.forEach(tag => existingTags.add(tag));
+        });
+        if (existingTags.has(tagName)) {
+            const allTags = await this.getAllTags(userId);
+            const existingTag = allTags.find(t => t.name === tagName);
+            return existingTag || {
+                id: this.generateTagId(tagName),
+                name: tagName,
+                color: color || this.generateTagColor(tagName),
+                count: 0,
+            };
+        }
+        return {
+            id: this.generateTagId(tagName),
+            name: tagName,
+            color: color || this.generateTagColor(tagName),
+            count: 0,
+        };
+    }
+    async deleteTag(userId, tagName) {
+        const collections = await this.prisma.collection.findMany({
+            where: {
+                userId,
+                tags: { has: tagName },
+            },
+        });
+        for (const collection of collections) {
+            const updatedTags = collection.tags.filter(t => t !== tagName);
+            await this.prisma.collection.update({
+                where: { id: collection.id },
+                data: { tags: updatedTags },
+            });
+        }
+    }
+    async getCollectionTags(collectionId, userId) {
+        const collection = await this.prisma.collection.findUnique({
+            where: { id: collectionId },
+            select: { tags: true, userId: true },
+        });
+        if (!collection) {
+            throw new common_1.NotFoundException('收藏夹不存在');
+        }
+        if (collection.userId !== userId) {
+            const publicCollection = await this.prisma.collection.findFirst({
+                where: { id: collectionId, isPublic: true },
+            });
+            if (!publicCollection) {
+                throw new common_1.ForbiddenException('无权访问此收藏夹');
+            }
+        }
+        return collection.tags;
+    }
+    async updateCollectionTags(userId, collectionId, tags) {
+        const collection = await this.prisma.collection.findUnique({
+            where: { id: collectionId },
+        });
+        if (!collection) {
+            throw new common_1.NotFoundException('收藏夹不存在');
+        }
+        if (collection.userId !== userId) {
+            throw new common_1.ForbiddenException('无权修改此收藏夹');
+        }
+        const validatedTags = tags
+            .map(tag => tag.trim())
+            .filter(tag => tag.length > 0 && tag.length <= 20)
+            .slice(0, 10);
+        const updatedCollection = await this.prisma.collection.update({
+            where: { id: collectionId },
+            data: { tags: validatedTags },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        nickname: true,
+                        avatarUrl: true,
+                    },
+                },
+            },
+        });
+        return this.mapToCollectionDto(updatedCollection);
+    }
+    async searchTags(query, userId) {
+        const allTags = await this.getAllTags(userId);
+        const lowerQuery = query.toLowerCase();
+        return allTags.filter(tag => tag.name.toLowerCase().includes(lowerQuery));
+    }
 };
 exports.CollectionsService = CollectionsService;
 exports.CollectionsService = CollectionsService = __decorate([

@@ -70,5 +70,57 @@ export declare class CollectionsController {
         data: CollectionDetailDto;
         meta: any;
     }>;
+    getAllTags(req: RequestWithUser, userId?: string): Promise<{
+        success: boolean;
+        data: {
+            id: string;
+            name: string;
+            color: string;
+            count: number;
+        }[];
+        meta: any;
+    }>;
+    createTag(req: RequestWithUser, body: {
+        name: string;
+        color?: string;
+    }): Promise<{
+        success: boolean;
+        data: {
+            id: string;
+            name: string;
+            color: string;
+            count: number;
+        };
+        meta: any;
+    }>;
+    deleteTag(req: RequestWithUser, tagName: string): Promise<{
+        success: boolean;
+        data: {
+            message: string;
+        };
+        meta: any;
+    }>;
+    getCollectionTags(req: RequestWithUser, collectionId: string): Promise<{
+        success: boolean;
+        data: string[];
+        meta: any;
+    }>;
+    updateCollectionTags(req: RequestWithUser, collectionId: string, body: {
+        tags: string[];
+    }): Promise<{
+        success: boolean;
+        data: CollectionDto;
+        meta: any;
+    }>;
+    searchTags(req: RequestWithUser, query: string, userId?: string): Promise<{
+        success: boolean;
+        data: {
+            id: string;
+            name: string;
+            color: string;
+            count: number;
+        }[];
+        meta: any;
+    }>;
 }
 export {};
